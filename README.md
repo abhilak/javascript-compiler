@@ -7,3 +7,9 @@
 # Milestones
 
 - 10th March, the AST should be completed by this time.
+
+# Build Instruction
+
+- The builds are only for a Linux compliant machine (preferably Ubunutu)
+- Use the makefile provided (instructions will be added as and when new componenets will be added)
+
