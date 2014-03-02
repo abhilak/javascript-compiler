@@ -5,6 +5,7 @@ filename, input_file = argv
 
 # The different token need to be defined as a tuple
 tokens = (
+        "COMMENT",
         "KEYWORD",
         "IDENTIFIER",
         "NUMBER",
@@ -33,6 +34,13 @@ tokens = (
         "SEP_CLOSE_PARENTHESIS",
         "WHITESPACE"
         )
+
+# RegEx for comments
+def t_COMMENT(t):
+    (
+            r"//[^\n]+|"
+            r"/\*[^(\*/)]+(\*/)"
+            )
 
 # RegEx for KEYWORDS
 t_KEYWORD = (

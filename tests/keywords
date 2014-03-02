@@ -1,3 +1,6 @@
+/* A listing of some keywords */
 var
+
+// Conditional constructs
 if
 else

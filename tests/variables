@@ -1,5 +1,8 @@
-var the
-var quick
-brown
-brown1
-bro3n
+// Simple variable declarations
+var the;
+var quick;
+
+// Direct use of variable
+brown;
+brown1;
+bro3n;
