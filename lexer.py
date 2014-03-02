@@ -36,9 +36,8 @@ tokens = (
 
 # RegEx for KEYWORDS
 t_KEYWORD = (
-        r"var|"
-        r"let|"
         # Programming Constructs
+        r"var|"
         r"if|"
         r"else|"
         r"for|"
@@ -63,9 +62,6 @@ t_KEYWORD = (
         r"instanceof|"
         r"typeof|"
         # Entities in the language
-        r"Array|"
-        r"Object|"
-        r"Function|"
         r"true|"
         r"false|"
         r"undefined|"
