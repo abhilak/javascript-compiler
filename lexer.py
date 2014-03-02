@@ -7,9 +7,9 @@ filename, input_file = argv
 tokens = (
         "KEYWORD",
         "IDENTIFIER",
-        "WHITESPACE",
         "NUMBER",
         "OP_ASSIGNMENT",
+        "SEP_QUOTES",
         "OP_COLON",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
@@ -21,9 +21,9 @@ tokens = (
         "SEP_SEMICOLON",
         "SEP_OPEN_BRACE",
         "SEP_CLOSE_BRACE",
-        "SEP_QUOTES",
         "SEP_OPEN_BRACKET",
-        "SEP_CLOSE_BRACKET"
+        "SEP_CLOSE_BRACKET",
+        "WHITESPACE"
         )
 
 # RegEx for KEYWORDS
@@ -118,10 +118,13 @@ def t_WHITESPACE(t):
 def t_error(t):
     raise TypeError("Unknown text '%s'" % (t.value,))
 
+# Create he lexer by calling lex function of lex
 lex.lex()
 
-# Lex the input file
+# Open the passed argument as an input file and then pass it to lex
 program = open(input_file).read()
 lex.input(program)
+
+# This iterates over the function lex.token and converts the returned object into an iterator
 for tok in iter(lex.token, None):
     print repr(tok.type), repr(tok.value)
