@@ -10,7 +10,6 @@
     - There is no forwards compatibility.
         - class
         - const
-        - default
         - extends
         - field
         - final
@@ -20,8 +19,8 @@
         - protected
         - public
         - super
-    - RegEx are not supported as of yet.
-    - Ternary operator is not supported as well.
+    - RegEx are not supported.
+    - Ternary operator is not supported.
 - The target architecture is SPIM.
 - The implementation language is python.
 
