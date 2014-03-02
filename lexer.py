@@ -18,11 +18,19 @@ tokens = (
         "OP_MULTIPLICATION",
         "OP_DIVISION",
         "OP_MODULUS",
+        "OP_GREATER_THEN",
+        "OP_GREATER_THEN_E",
+        "OP_LESS_THEN",
+        "OP_LESS_THEN_E",
+        "OP_AND",
+        "OP_OR",
         "SEP_SEMICOLON",
         "SEP_OPEN_BRACE",
         "SEP_CLOSE_BRACE",
         "SEP_OPEN_BRACKET",
         "SEP_CLOSE_BRACKET",
+        "SEP_OPEN_PARENTHESIS",
+        "SEP_CLOSE_PARENTHESIS",
         "WHITESPACE"
         )
 
@@ -98,6 +106,12 @@ t_OP_NOT_EQUALS = (
         r"!=|"
         r"!=="
         )
+t_OP_GREATER_THEN = r">"
+t_OP_GREATER_THEN_E = r">="
+t_OP_LESS_THEN = r"<"
+t_OP_LESS_THEN_E = r"<="
+t_OP_AND = r"&&"
+t_OP_OR = r"\|\|"
 
 # RegEx for SEPERATORS
 t_SEP_SEMICOLON = r";"
@@ -105,6 +119,8 @@ t_SEP_OPEN_BRACE = r"\{"
 t_SEP_CLOSE_BRACE = r"\}"
 t_SEP_OPEN_BRACKET = r"\["
 t_SEP_CLOSE_BRACKET = r"\]"
+t_SEP_OPEN_PARENTHESIS = r"\("
+t_SEP_CLOSE_PARENTHESIS = r"\)"
 t_SEP_QUOTES = (
         r"\"|"
         r"\'"
@@ -126,5 +142,7 @@ program = open(input_file).read()
 lex.input(program)
 
 # This iterates over the function lex.token and converts the returned object into an iterator
+print "\tTYPE \t\t\t\t\t\t VALUE"
+print "\t---- \t\t\t\t\t\t -----"
 for tok in iter(lex.token, None):
-    print repr(tok.type), repr(tok.value)
+    print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
