@@ -3,13 +3,14 @@ var the;
 var quick;
 
 // Direct use of variable
-brown;
 brown1;
-bro3n;
 
 // Assignments
 a = 1;
-b += a;
-c /= b;
-c *= b;
-c %= 9;
+b += "My name is antony";
+c /= 'My name is antony';
+c *= true;
+c %= false;
+c = undefined;
+c = inf;
+c = NaN;

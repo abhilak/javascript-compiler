@@ -4,13 +4,18 @@ from sys import argv
 filename, input_file = argv 
 
 # The different token need to be defined as a tuple
-tokens = (
+tokens = [
         "COMMENT",
+        "STRING",
+        "BOOLEAN",
+        "NULL",
+        "NAN",
+        "UNDEFINED",
+        "INFINITY",
+        "NUMBER",
         "KEYWORD",
         "IDENTIFIER",
-        "NUMBER",
         "OP_ASSIGNMENT",
-        "SEP_QUOTES",
         "OP_COLON",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
@@ -33,14 +38,47 @@ tokens = (
         "SEP_OPEN_PARENTHESIS",
         "SEP_CLOSE_PARENTHESIS",
         "WHITESPACE"
-        )
+        ]
 
 # RegEx for comments
 def t_COMMENT(t):
-    (
-            r"//[^\n]+|"
-            r"/\*[^(\*/)]+(\*/)"
-            )
+    r"//[^\n]+|" r"/\*[^(\*/)]+(\*/)"
+
+# Entities in the language
+def t_BOOLEAN(t):
+    r"true|false"
+    return t
+
+# RegEx for undefined
+def t_UNDEFINED(t): 
+    r"undefined"
+    return t
+
+# RegEx for infinity
+def t_INFINITY(t): 
+    r"inf"
+    return t
+
+# RegEx for null
+def t_NULL(t): 
+    r"null"
+    return t
+
+# RegEx for NaN
+def t_NAN(t): 
+    r"NaN"
+    return t
+
+# RegEx for strings
+def t_STRING(t): 
+    r"(?P<start>\"|')[^\"']*(?P=start)"
+    return t
+
+# RegEx for NUMBERS
+def t_NUMBER(t):
+    r"\d+(\.\d+)?"
+    t.value = float(t.value)
+    return t
 
 # RegEx for KEYWORDS
 t_KEYWORD = (
@@ -68,24 +106,11 @@ t_KEYWORD = (
         r"delete|"
         # Other operators
         r"instanceof|"
-        r"typeof|"
-        # Entities in the language
-        r"true|"
-        r"false|"
-        r"undefined|"
-        r"infinity|"
-        r"null|"
-        r"NaN"
+        r"typeof"
         )
 
 # RegEx for IDENTIFIERS
-t_IDENTIFIER = r"[a-zA-Z]\w*"
-
-# RegEx for NUMBERS
-def t_NUMBER(t):
-    r"\d+(\.\d+)?"
-    t.value = float(t.value)
-    return t
+t_IDENTIFIER = r"[a-zA-Z$_]\w*"
 
 # RegEx for OPERATORS
 t_OP_ASSIGNMENT = (
@@ -125,10 +150,6 @@ t_SEP_OPEN_BRACKET = r"\["
 t_SEP_CLOSE_BRACKET = r"\]"
 t_SEP_OPEN_PARENTHESIS = r"\("
 t_SEP_CLOSE_PARENTHESIS = r"\)"
-t_SEP_QUOTES = (
-        r"\"|"
-        r"\'"
-        )
 
 # RegEx for WHITESPACE
 def t_WHITESPACE(t): 
