@@ -6,3 +6,10 @@ var quick;
 brown;
 brown1;
 bro3n;
+
+// Assignments
+a = 1;
+b += a;
+c /= b;
+c *= b;
+c %= 9;

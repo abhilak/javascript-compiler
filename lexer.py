@@ -79,7 +79,7 @@ t_KEYWORD = (
         )
 
 # RegEx for IDENTIFIERS
-t_IDENTIFIER = r"[a-zA-Z]\w+"
+t_IDENTIFIER = r"[a-zA-Z]\w*"
 
 # RegEx for NUMBERS
 def t_NUMBER(t):
@@ -92,9 +92,9 @@ t_OP_ASSIGNMENT = (
         r"=|"
         r"\+=|"
         r"-=|"
+        r"\*=|"
         r"/=|"
-        r"%=|"
-        r"\*="
+        r"%="
         )
 t_OP_COLON = r":"
 t_OP_ADDITION = r"\+"

@@ -1,2 +1,6 @@
 var test = 123;
 var t1 = 123.45;
+
+if (a>b) {
+    a = b;
+}
