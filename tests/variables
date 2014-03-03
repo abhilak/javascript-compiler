@@ -1,16 +1,15 @@
-// Simple variable declarations
-var the;
-var quick;
-
 // Direct use of variable
-brown1;
 
 // Assignments
-a = 1;
+brown1;
+var a = 1.2;
 b += "My name is antony";
 c /= 'My name is antony';
 c *= true;
-c %= false;
-c = undefined;
+c %= undefined;
 c = inf;
 c = NaN;
+
+a = {
+    'my': 'name'
+};

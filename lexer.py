@@ -37,6 +37,7 @@ tokens = [
         "SEP_CLOSE_BRACKET",
         "SEP_OPEN_PARENTHESIS",
         "SEP_CLOSE_PARENTHESIS",
+        "SEP_COMMA",
         "WHITESPACE"
         ]
 
@@ -110,7 +111,7 @@ t_KEYWORD = (
         )
 
 # RegEx for IDENTIFIERS
-t_IDENTIFIER = r"[a-zA-Z$_]\w*"
+t_IDENTIFIER = r"[a-zA-Z$_][\w$]*"
 
 # RegEx for OPERATORS
 t_OP_ASSIGNMENT = (
@@ -150,6 +151,7 @@ t_SEP_OPEN_BRACKET = r"\["
 t_SEP_CLOSE_BRACKET = r"\]"
 t_SEP_OPEN_PARENTHESIS = r"\("
 t_SEP_CLOSE_PARENTHESIS = r"\)"
+t_SEP_COMMA = r","
 
 # RegEx for WHITESPACE
 def t_WHITESPACE(t): 
