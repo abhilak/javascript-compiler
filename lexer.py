@@ -32,12 +32,12 @@ tokens = [
         "TRY", 
         "CATCH", 
         "FINALLY", 
-        "INSTANCEOF", 
-        "TYPEOF", 
-        "NEW", 
-        "DELETE", 
-        "THIS", 
+        # "NEW", 
+        # "DELETE", 
+        # "THIS", 
         "IDENTIFIER",
+        "OP_INSTANCEOF", 
+        "OP_TYPEOF", 
         "OP_ASSIGNMENT",
         "OP_COLON",
         "OP_EQUALS",
@@ -318,9 +318,45 @@ def test_lex(input_file):
         print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
 
 ######################################################################################################
+
+# A block of statements
+def p_statments(p):
+    '''statements : statement statements
+                  | statement'''
+    return p[0]
+
+# A single statement
+def p_statment(p):
+    '''statement : assign'''
+    return p[0]
+
+# An assignment statement
 def p_assign_statment(p):
-    'assign : VAR IDENTIFIER OP_ASSIGNMENT NUMBER'
+    'assign : VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'
     print "assignment"
+    return p[0]
+
+# Different types of data
+def p_array(p):
+    '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
+             | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
+    print "array"
+    return p[0]
+
+def p_list(p):
+    '''list : data_type SEP_COMMA list
+            | data_type'''
+    return p[0]
+
+def p_data_type(p):
+    '''data_type : NUMBER 
+                 | BOOLEAN
+                 | STRING
+                 | NULL
+                 | NAN
+                 | UNDEFINED
+                 | INFINITY
+                 | array '''
     return p[0]
 
 def p_error(p):
@@ -335,4 +371,5 @@ if __name__ == "__main__":
     program = open(input_file).read()
 
     yacc.yacc()
-    yacc.parse('var some = 123.4')
+    yacc.parse(program)
+    # test_lex(input_file)
