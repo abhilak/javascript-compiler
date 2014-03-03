@@ -19,6 +19,7 @@
         - protected
         - public
         - super
+    - Library routines are not implemented.
     - RegEx are not supported.
     - Ternary operator is not supported.
 - The target architecture is SPIM.
@@ -31,6 +32,9 @@
 - run python lexer.py <testFileName>
 
 # Build Instruction
+- lexer.py contains the token definitions
+    - the variable **lexer** stores the lexer
+    - to start lexing, we need to give **lexer** a string and call **lexer.token** for a token
 
 ## Dependencies
 - Python 2.7 and higher

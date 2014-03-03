@@ -1,9 +1,11 @@
-from ply import lex
+from ply import lex, yacc
 from sys import argv
 
-filename, input_file = argv 
+######################################################################################################
 
-# The different token need to be defined as a tuple
+########################################
+############# TOKENS ###################
+########################################
 tokens = [
         "COMMENT",
         "STRING",
@@ -13,7 +15,28 @@ tokens = [
         "UNDEFINED",
         "INFINITY",
         "NUMBER",
-        "KEYWORD",
+        "VAR", 
+        "IF", 
+        "ELSE", 
+        "WHILE", 
+        "FOR", 
+        "IN", 
+        "DO", 
+        "SWITCH", 
+        "CASE", 
+        "BREAK", 
+        "CONTINUE", 
+        "FUNCTION", 
+        "RETURN", 
+        "THROW", 
+        "TRY", 
+        "CATCH", 
+        "FINALLY", 
+        "INSTANCEOF", 
+        "TYPEOF", 
+        "NEW", 
+        "DELETE", 
+        "THIS", 
         "IDENTIFIER",
         "OP_ASSIGNMENT",
         "OP_COLON",
@@ -41,135 +64,275 @@ tokens = [
         "WHITESPACE"
         ]
 
-# RegEx for comments
+########################################
+############# COMMENTS #################
+########################################
 def t_COMMENT(t):
     r"//[^\n]+|" r"/\*[^(\*/)]+(\*/)"
 
-# Entities in the language
+########################################
+############# TYPES ####################
+########################################
 def t_BOOLEAN(t):
     r"true|false"
     return t
 
-# RegEx for undefined
 def t_UNDEFINED(t): 
     r"undefined"
     return t
 
-# RegEx for infinity
 def t_INFINITY(t): 
     r"inf"
     return t
 
-# RegEx for null
 def t_NULL(t): 
     r"null"
     return t
 
-# RegEx for NaN
 def t_NAN(t): 
     r"NaN"
     return t
 
-# RegEx for strings
 def t_STRING(t): 
     r"(?P<start>\"|')[^\"']*(?P=start)"
     return t
 
-# RegEx for NUMBERS
 def t_NUMBER(t):
     r"\d+(\.\d+)?"
     t.value = float(t.value)
     return t
 
-# RegEx for KEYWORDS
-t_KEYWORD = (
-        # Programming Constructs
-        r"var|"
-        r"if|"
-        r"else|"
-        r"for|"
-        r"in|"
-        r"do|"
-        r"while|"
-        r"switch|"
-        r"case|"
-        r"break|"
-        r"continue|"
-        r"function|"
-        r"return|"
-        r"try|"
-        r"throw|"
-        r"catch|"
-        r"finally|"
-        # OOP features
-        r"new|"
-        r"this|"
-        r"delete|"
-        # Other operators
-        r"instanceof|"
-        r"typeof"
-        )
+########################################
+############# CONSTRUCTS ###############
+########################################
+def t_VAR(t): 
+    r"var"
+    return t
 
-# RegEx for IDENTIFIERS
-t_IDENTIFIER = r"[a-zA-Z$_][\w$]*"
+def t_IF(t):
+    r"if"
+    return t
 
-# RegEx for OPERATORS
-t_OP_ASSIGNMENT = (
-        r"=|"
-        r"\+=|"
-        r"-=|"
-        r"\*=|"
-        r"/=|"
-        r"%="
-        )
-t_OP_COLON = r":"
-t_OP_ADDITION = r"\+"
-t_OP_SUBTRACTION = r"-"
-t_OP_MULTIPLICATION = r"\*"
-t_OP_DIVISION = r"/"
-t_OP_MODULUS = r"%"
-t_OP_EQUALS = (
-        r"==|"
-        r"==="
-        )
-t_OP_NOT_EQUALS = (
-        r"!=|"
-        r"!=="
-        )
-t_OP_GREATER_THEN = r">"
-t_OP_GREATER_THEN_E = r">="
-t_OP_LESS_THEN = r"<"
-t_OP_LESS_THEN_E = r"<="
-t_OP_AND = r"&&"
-t_OP_OR = r"\|\|"
+def t_ELSE(t):
+    r"else"
+    return t
 
+def t_WHILE(t):
+    r"while"
+    return t
+
+def t_FOR(t):
+    r"for"
+    return t
+
+def t_IN(t):
+    r"in"
+    return t
+
+def t_DO(t):
+    r"do"
+    return t
+
+def t_SWITCH(t):
+    r"switch"
+    return t
+
+def t_CASE(t):
+    r"case"
+    return t
+
+def t_BREAK(t):
+    r"BREAK"
+    return t
+
+def t_CONTINUE(t):
+    r"CONTINUE"
+    return t
+
+def t_FUNCTION(t):
+    r"function"
+    return t
+
+def t_RETURN(t):
+    r"return"
+    return t
+
+def t_THROW(t):
+    r"throw"
+    return t
+
+def t_TRY(t):
+    r"try"
+    return t
+
+def t_CATCH(t):
+    r"catch"
+    return t
+
+def t_FINALLY(t):
+    r"finally"
+    return t
+
+# RegEx for OOP
+# t_NEW = r"new"
+# t_DELETE = r"delete"
+# t_THIS = r"this"
+
+########################################
+############# IDENTIFIER ###############
+########################################
+def t_IDENTIFIER(t):
+    r"[a-zA-Z$_][\w$]*"
+    return t
+
+########################################
+############# OPERATORS ################
+########################################
+def t_OP_INSTANCEOF(t):
+    r"instanceof"
+    return t
+
+def t__OP_TYPEOF(t):
+    r"typeof"
+    return t
+
+def t_OP_ASSIGNMENT(t):
+    r"=|"r"\+=|"r"-=|"r"\*=|"r"/=|"r"%="
+    return t
+
+def t_OP_COLON(t):
+    r":"
+    return t
+
+def t_OP_ADDITION(t):
+    r"\+"
+    return t
+
+def t_OP_SUBTRACTION(t):
+    r"-"
+    return t
+
+def t_OP_MULTIPLICATION(t):
+    r"\*"
+    return t
+
+def t_OP_DIVISION(t):
+    r"/"
+    return t
+
+def t_OP_MODULUS(t):
+    r"%"
+    return t
+
+def t_OP_EQUALS(t):
+    r"==|"r"==="
+    return t
+
+def t_OP_NOT_EQUALS(t):
+    r"!=|"r"!=="
+    return t
+
+def t_OP_GREATER_THEN(t):
+    r">"
+    return t
+
+def t_OP_GREATER_THEN_E(t):
+    r">="
+    return t
+
+def t_OP_LESS_THEN(t):
+    r"<"
+    return t
+
+def t_OP_LESS_THEN_E(t):
+    r"<="
+    return t
+
+def t_OP_AND(t):
+    r"&&"
+    return t
+
+def t_OP_OR(t):
+    r"\|\|"
+    return t
+
+########################################
+############# SEPERATORS ###############
+########################################
 # RegEx for SEPERATORS
-t_SEP_SEMICOLON = r";"
-t_SEP_OPEN_BRACE = r"\{"
-t_SEP_CLOSE_BRACE = r"\}"
-t_SEP_OPEN_BRACKET = r"\["
-t_SEP_CLOSE_BRACKET = r"\]"
-t_SEP_OPEN_PARENTHESIS = r"\("
-t_SEP_CLOSE_PARENTHESIS = r"\)"
-t_SEP_COMMA = r","
+def t_SEP_SEMICOLON(t):
+    r";"
+    return t
 
-# RegEx for WHITESPACE
+def t_SEP_OPEN_BRACE(t):
+    r"\{"
+    return t
+
+def t_SEP_CLOSE_BRACE(t):
+    r"\}"
+    return t
+
+def t_SEP_OPEN_BRACKET(t):
+    r"\["
+    return t
+
+def t_SEP_CLOSE_BRACKET(t):
+    r"\]"
+    return t
+
+def t_SEP_OPEN_PARENTHESIS(t):
+    r"\("
+    return t
+
+def t_SEP_CLOSE_PARENTHESIS(t):
+    r"\)"
+    return t
+
+def t_SEP_COMMA(t):
+    r","
+    return t
+
+########################################
+############# WHITESPACE ###############
+########################################
 def t_WHITESPACE(t): 
     r"\s"
 
-# Necessary error function
+########################################
+############# ERROR ####################
+########################################
 def t_error(t):
     raise TypeError("Unknown text '%s'" % (t.value,))
 
-# Create he lexer by calling lex function of lex
-lex.lex()
+######################################################################################################
+# A function to test the lexer
+def test_lex(input_file):
+    # Open the passed argument as an input file and then pass it to lex
+    program = open(input_file).read()
+    lex.input(program)
 
-# Open the passed argument as an input file and then pass it to lex
-program = open(input_file).read()
-lex.input(program)
+    # This iterates over the function lex.token and converts the returned object into an iterator
+    print "\tTYPE \t\t\t\t\t\t VALUE"
+    print "\t---- \t\t\t\t\t\t -----"
+    for tok in iter(lex.token, None):
+        print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
 
-# This iterates over the function lex.token and converts the returned object into an iterator
-print "\tTYPE \t\t\t\t\t\t VALUE"
-print "\t---- \t\t\t\t\t\t -----"
-for tok in iter(lex.token, None):
-    print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
+######################################################################################################
+def p_assign_statment(p):
+    'assign : VAR IDENTIFIER OP_ASSIGNMENT NUMBER'
+    print "assignment"
+    return p[0]
+
+def p_error(p):
+    raise TypeError("unknown text at %r" % (p.value,))
+
+
+if __name__ == "__main__":
+    # Here the lexer is initialized so that it can be used in another file
+    lex.lex()
+
+    filename, input_file = argv 
+    program = open(input_file).read()
+
+    yacc.yacc()
+    yacc.parse('var some = 123.4')
