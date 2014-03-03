@@ -337,6 +337,21 @@ def p_assign_statment(p):
     return p[0]
 
 # Different types of data
+def p_object(p):
+    '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
+              | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
+    print "object"
+    return p[0]
+
+def p_items(p):
+    '''items : property SEP_COMMA items
+             | property'''
+    return p[0]
+
+def p_property(p):
+    '''property : STRING OP_COLON data_type'''
+    return p[0]
+
 def p_array(p):
     '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
              | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
@@ -356,12 +371,12 @@ def p_data_type(p):
                  | NAN
                  | UNDEFINED
                  | INFINITY
-                 | array '''
+                 | array
+                 | object'''
     return p[0]
 
 def p_error(p):
     raise TypeError("unknown text at %r" % (p.value,))
-
 
 if __name__ == "__main__":
     # Here the lexer is initialized so that it can be used in another file

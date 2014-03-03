@@ -22,6 +22,7 @@
     - Library routines are not implemented.
     - RegEx are not supported.
     - Ternary operator is not supported.
+    - comman at the end of arrays and objects are not allowed
 - The target architecture is SPIM.
 - The implementation language is python.
 
