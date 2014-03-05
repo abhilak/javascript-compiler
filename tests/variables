@@ -1,7 +1,6 @@
 // Direct use of variable
 
 // Assignments
-brown1;
 var a = 1.2;
 b += "My name is antony";
 c /= 'My name is antony';
@@ -10,6 +9,4 @@ c %= undefined;
 c = inf;
 c = NaN;
 
-a = {
-    'my': 'name'
-};
+a = {'my': 'name'};

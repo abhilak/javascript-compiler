@@ -318,8 +318,17 @@ def test_lex(input_file):
         print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
 
 ######################################################################################################
+def p_start(p):
+    '''start : block
+             | statements'''
+    return p[0]
 
-# A block of statements
+# A group of statements
+def p_block(p): 
+    '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
+    return p[0]
+
+# A group of statements
 def p_statments(p):
     '''statements : statement statements
                   | statement'''
@@ -327,41 +336,82 @@ def p_statments(p):
 
 # A single statement
 def p_statment(p):
-    '''statement : assign'''
+    '''statement : assign
+                 | express
+                 | str_express'''
     return p[0]
+
+# An expression statement
+def p_expression(p):
+    '''express : expression SEP_SEMICOLON'''
+
+# Rules for arithmeatic expressions
+precedence = (
+        ('left', 'OP_ADDITION', 'OP_SUBTRACTION'),
+        ('left', 'OP_MULTIPLICATION', 'OP_DIVISION')
+        )
+
+def p_expression_binop(p):
+    '''expression : expression OP_ADDITION expression
+                  | expression OP_SUBTRACTION expression
+                  | expression OP_MULTIPLICATION expression
+                  | expression OP_DIVISION expression'''
+    if p[2] == '+'  : p[0] = p[1] + p[3]
+    elif p[2] == '-': p[0] = p[1] - p[3]
+    elif p[2] == '*': p[0] = p[1] * p[3]
+    elif p[2] == '/': p[0] = p[1] / p[3]
+    print p[0]
+
+def p_expression_group(p):
+    'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
+    p[0] = p[2]
+
+def p_expression_number(p):
+    'expression : NUMBER'
+    p[0] = p[1]
+
+# A string expression statement
+def p_str_expression(p):
+    '''str_express : str_expression SEP_SEMICOLON'''
+
+# Rule for string concatenation
+def p_str_expression_binop(p):
+    '''str_expression : str_expression OP_ADDITION str_expression'''
+    p[0] = p[1] + p[3]
+    print p[0]
+
+def p_str_expression_plain(p):
+    '''str_expression : STRING'''
+    p[0] = p[1]
+    print p[0]
 
 # An assignment statement
 def p_assign_statment(p):
-    'assign : VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'
+    '''assign : VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON
+              | IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'''
     print "assignment"
-    return p[0]
 
 # Different types of data
 def p_object(p):
     '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
               | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
     print "object"
-    return p[0]
 
 def p_items(p):
     '''items : property SEP_COMMA items
              | property'''
-    return p[0]
 
 def p_property(p):
     '''property : STRING OP_COLON data_type'''
-    return p[0]
 
 def p_array(p):
     '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
              | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
     print "array"
-    return p[0]
 
 def p_list(p):
     '''list : data_type SEP_COMMA list
             | data_type'''
-    return p[0]
 
 def p_data_type(p):
     '''data_type : NUMBER 
@@ -373,7 +423,6 @@ def p_data_type(p):
                  | INFINITY
                  | array
                  | object'''
-    return p[0]
 
 def p_error(p):
     raise TypeError("unknown text at %r" % (p.value,))

@@ -20,11 +20,18 @@
         - public
         - super
     - Library routines are not implemented.
+        - OOP features are not implemented because it is a library feature.
     - RegEx are not supported.
     - Ternary operator is not supported.
-    - comman at the end of arrays and objects are not allowed
+    - comma at the end of arrays and objects are not allowed
 - The target architecture is SPIM.
 - The implementation language is python.
+
+# Todo
+- String and number cross addition
+- unary minus
+- extension of expressions
+- relational expressions
 
 # Milestones
 - 10th March, the AST should be completed by this time.

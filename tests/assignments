@@ -1,4 +1,6 @@
+{
 var hol = [];
 var holy = [123, 123, "srijan"];
 var name = {};
 var name = { "other" : 123, "name" : "srijan" };
+}
