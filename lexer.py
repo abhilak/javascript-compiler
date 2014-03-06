@@ -95,6 +95,7 @@ def t_NAN(t):
 
 def t_STRING(t): 
     r"(?P<start>\"|')[^\"']*(?P=start)"
+    t.value = t.value.replace("\"", "").replace("'", "")
     return t
 
 def t_NUMBER(t):
