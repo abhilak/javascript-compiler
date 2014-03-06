@@ -337,59 +337,62 @@ def p_statments(p):
 
 # A single statement
 def p_statment(p):
-    '''statement : assign
-                 | express
-                 | str_express'''
+    '''statement : assignment
+                 | expression'''
     return p[0]
 
 # An expression statement
 def p_expression(p):
-    '''express : expression SEP_SEMICOLON'''
+    '''expression : num_expression SEP_SEMICOLON
+                  | str_expression SEP_SEMICOLON'''
 
-# Rules for arithmeatic expressions
+# Rules for allowing implicit typecast to string
+def p_expression_str_to_num1(p):
+    '''expression : str_expression OP_ADDITION num_expression SEP_SEMICOLON'''
+    p[0] = p[1] + str(p[3])
+
+def p_expression_str_to_num2(p):
+    '''expression : num_expression OP_ADDITION str_expression SEP_SEMICOLON'''
+    p[0] = p[3] + str(p[1])
+
+# Rules for arithematic expressions
 precedence = (
         ('left', 'OP_ADDITION', 'OP_SUBTRACTION'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION')
         )
 
-def p_expression_binop(p):
-    '''expression : expression OP_ADDITION expression
-                  | expression OP_SUBTRACTION expression
-                  | expression OP_MULTIPLICATION expression
-                  | expression OP_DIVISION expression'''
+def p_num_expression_binop(p):
+    '''num_expression : num_expression OP_ADDITION num_expression
+                      | num_expression OP_SUBTRACTION num_expression
+                      | num_expression OP_MULTIPLICATION num_expression
+                      | num_expression OP_DIVISION num_expression'''
     if p[2] == '+'  : p[0] = p[1] + p[3]
     elif p[2] == '-': p[0] = p[1] - p[3]
     elif p[2] == '*': p[0] = p[1] * p[3]
     elif p[2] == '/': p[0] = p[1] / p[3]
-    print p[0]
 
-def p_expression_group(p):
-    'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
+def p_num_expression_group(p):
+    'num_expression : SEP_OPEN_PARENTHESIS num_expression SEP_CLOSE_PARENTHESIS'
     p[0] = p[2]
 
-def p_expression_number(p):
-    'expression : NUMBER'
+def p_num_expression_number(p):
+    'num_expression : NUMBER'
     p[0] = p[1]
 
-# A string expression statement
-def p_str_expression(p):
-    '''str_express : str_expression SEP_SEMICOLON'''
-
-# Rule for string concatenation
+# Rules for string concatenation
 def p_str_expression_binop(p):
     '''str_expression : str_expression OP_ADDITION str_expression'''
     p[0] = p[1] + p[3]
-    print p[0]
 
 def p_str_expression_plain(p):
     '''str_expression : STRING'''
     p[0] = p[1]
-    print p[0]
 
 # An assignment statement
 def p_assign_statment(p):
-    '''assign : VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON
-              | IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'''
+    '''assignment : VAR IDENTIFIER SEP_SEMICOLON
+                  | VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON
+                  | IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'''
     print "assignment"
 
 # Different types of data

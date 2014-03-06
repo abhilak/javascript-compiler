@@ -24,17 +24,27 @@
     - RegEx are not supported.
     - Ternary operator is not supported.
     - comma at the end of arrays and objects are not allowed
+    - Overloading of '+' is not allowed
+    - Only one type of number is allowed (compliant with the specs)
 - The target architecture is SPIM.
 - The implementation language is python.
 
 # Todo
-- String and number cross addition
+- Symbol table
+- String and number conversion
 - unary minus
+- typeof operator
 - extension of expressions
 - relational expressions
 
 # Milestones
-- 10th March, the AST should be completed by this time.
+
+## Features Implemented till now
+- Declaration of variables
+    - Objects and arrays are supported
+- Assignment of values to variables
+- Addition, Subtratction, Multiplication, Division of numbers
+- String concatenation
 
 # Usage
 - run python lexer.py <testFileName>
