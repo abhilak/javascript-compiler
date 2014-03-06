@@ -1,12 +1,7 @@
 # Practical JavaScript Compiler
 - We'll be working on creating a JavaScript practical compiler.
     - The version we are targeting is ES5.
-    - Constructs which are bad will be omitted.
-        - with
-    - Lesser used constructs will also be omitted.
-        - eval
-        - '==' and '===' mean the same thing
-        - '!=' and '!==' mean the same thing
+    - Only one type of number is allowed (compliant with the specs)
     - There is no forwards compatibility.
         - class
         - const
@@ -21,11 +16,17 @@
         - super
     - Library routines are not implemented.
         - OOP features are not implemented because it is a library feature.
-    - RegEx are not supported.
-    - Ternary operator is not supported.
-    - comma at the end of arrays and objects are not allowed
-    - Overloading of '+' is not allowed
-    - Only one type of number is allowed (compliant with the specs)
+    - Some features are not supported:
+        - RegEx
+        - Ternary Operator
+    - Some warts of javascript are not supported
+        - with
+        - eval
+        - Semicolon insertion
+        - comma at the end of arrays and objects.
+        - Overloading of '+' is not allowed
+        - '==' and '===' mean the same thing
+        - '!=' and '!==' mean the same thing
 - The target architecture is SPIM.
 - The implementation language is python.
 
