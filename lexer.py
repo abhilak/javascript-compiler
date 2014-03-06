@@ -347,29 +347,31 @@ def p_expression(p):
                   | str_expression SEP_SEMICOLON'''
 
 # Rules for allowing implicit typecast to string
-def p_expression_str_to_num1(p):
-    '''expression : str_expression OP_ADDITION num_expression SEP_SEMICOLON'''
-    p[0] = p[1] + str(p[3])
-
-def p_expression_str_to_num2(p):
-    '''expression : num_expression OP_ADDITION str_expression SEP_SEMICOLON'''
-    p[0] = p[3] + str(p[1])
+# def p_expression_str_to_num1(p):
+#     '''expression : str_expression OP_ADDITION num_expression SEP_SEMICOLON'''
+#     p[0] = p[1] + str(p[3])
+#
+# def p_expression_str_to_num2(p):
+#     '''expression : num_expression OP_ADDITION str_expression SEP_SEMICOLON'''
+#     p[0] = p[3] + str(p[1])
 
 # Rules for arithematic expressions
 precedence = (
         ('left', 'OP_ADDITION', 'OP_SUBTRACTION'),
-        ('left', 'OP_MULTIPLICATION', 'OP_DIVISION')
+        ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS')
         )
 
 def p_num_expression_binop(p):
     '''num_expression : num_expression OP_ADDITION num_expression
                       | num_expression OP_SUBTRACTION num_expression
                       | num_expression OP_MULTIPLICATION num_expression
-                      | num_expression OP_DIVISION num_expression'''
+                      | num_expression OP_DIVISION num_expression
+                      | num_expression OP_MODULUS num_expression'''
     if p[2] == '+'  : p[0] = p[1] + p[3]
     elif p[2] == '-': p[0] = p[1] - p[3]
     elif p[2] == '*': p[0] = p[1] * p[3]
     elif p[2] == '/': p[0] = p[1] / p[3]
+    elif p[2] == '%': p[0] = p[1] % p[3]
 
 def p_num_expression_group(p):
     'num_expression : SEP_OPEN_PARENTHESIS num_expression SEP_CLOSE_PARENTHESIS'
