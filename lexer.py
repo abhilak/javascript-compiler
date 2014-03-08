@@ -1,3 +1,4 @@
+import pprint
 from ply import lex, yacc
 from sys import argv
 
@@ -344,7 +345,7 @@ def p_statment(p):
 ########################################
 def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
-    symbol_table[p[2]] = { 'type' : 'UNDEFINED'}
+    symbol_table[p[2]] = { 'type' : 'UNDEFINED', 'value': None}
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -356,32 +357,8 @@ def p_assignment_statment(p):
         symbol_table[p[2]] = { 'type' : p[4]['type'], 'value' : p[4]['value']}
     else :
         symbol_table[p[1]] = { 'type' : p[3]['type'], 'value' : p[4]['value']}
-    print symbol_table
-
-########################################
-############# OBJECTS ##################
-########################################
-def p_object(p):
-    '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
-              | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
-
-def p_items(p):
-    '''items : property SEP_COMMA items
-             | property'''
-
-def p_property(p):
-    '''property : STRING OP_COLON expression'''
-
-########################################
-############# ARRAYS ###################
-########################################
-def p_array(p):
-    '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
-             | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
-
-def p_list(p):
-    '''list : expression SEP_COMMA list
-            | expression'''
+    print
+    pprint.pprint( symbol_table )
 
 ########################################
 ######## EXPRESSION STATEMENT ##########
@@ -390,21 +367,69 @@ def p_expression_statement(p):
     'expression_statement : expression SEP_SEMICOLON'
     p[0] = p[1]
 
-def p_expression_num(p):
-    'expression : num_expression'
-    p[0] = { 'type' : 'NUMBER', 'value': p[1]}
+########################################
+######## OBJECT EXPRESSIONS ############
+########################################
+def p_expression_object(p):
+    'expression : object'
+    p[0] = { 'type' : 'OBJECT', 'value': p[1]}
 
-def p_expression_string(p):
-    'expression : str_expression'
-    p[0] = { 'type' : 'STRING', 'value': p[1]}
+def p_object(p):
+    '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
+              | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
+    if p[2] == '}':
+        p[0] = {} 
+    else :
+        p[0] = p[2]
 
-def p_expression_data_type(p):
-    'expression : data_type'
+def p_items(p):
+    'items : property SEP_COMMA items'
+    if p[3] == None:
+        p[0] = p[1]
+    else :
+        p[0] = dict(p[1], **p[3])
+
+def p_items_base(p):
+    'items : property'
     p[0] = p[1]
+
+def p_property(p):
+    '''property : STRING OP_COLON expression'''
+    p[0] = { p[1] : p[3]['value'] }
+
+########################################
+######## ARRAY EXPRESSION ##############
+########################################
+def p_expression_array(p):
+    'expression : array'
+    p[0] = { 'type' : 'ARRAY', 'value': p[1]}
+
+def p_array(p):
+    '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
+             | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
+    if p[2] == ']':
+        p[0] = []
+    else :
+        p[0] = p[2]
+
+def p_list(p):
+    'list : expression SEP_COMMA list'
+    if p[3] == None:
+        p[0] = [ p[1]['value'] ]
+    else :
+        p[0] = [ p[1]['value'] ] + p[3]
+
+def p_list_base(p):
+    'list : expression'''
+    p[0] = [ p[1]['value'] ]
 
 ########################################
 ########## NUMERIC EXPRESSIONS #########
 ########################################
+def p_expression_num(p):
+    'expression : num_expression'
+    p[0] = { 'type' : 'NUMBER', 'value': p[1]}
+
 # Precedence of operators
 precedence = (
         ('left', 'OP_ADDITION', 'OP_SUBTRACTION'),
@@ -427,51 +452,58 @@ def p_num_expression_group(p):
     'num_expression : SEP_OPEN_PARENTHESIS num_expression SEP_CLOSE_PARENTHESIS'
     p[0] = p[2]
 
-def p_num_expression_number(p):
+def p_num_expression_base(p):
     'num_expression : NUMBER'
     p[0] = p[1]
 
 ########################################
 ########## STRING EXPRESSIONS ##########
 ########################################
+def p_expression_string(p):
+    'expression : str_expression'
+    p[0] = { 'type' : 'STRING', 'value': p[1]}
+
 def p_str_expression_binop(p):
     '''str_expression : str_expression OP_ADDITION str_expression'''
     p[0] = p[1] + p[3]
 
-def p_str_expression_plain(p):
+def p_str_expression_base(p):
     '''str_expression : STRING'''
     p[0] = p[1]
 
 ########################################
-############# DATA-TYPES ###############
+######## RELATIONAL EXPRESSIONS ########
 ########################################
-def p_data_type_boolean(p):
-    'data_type : BOOLEAN'
-    p[0] = { 'type' : 'BOOLEAN', 'value': p[0]}
+def p_expression_relational(p):
+    'expression : rel_expression'
+    p[0] = { 'type' : 'BOOLEAN', 'value': p[1]}
+
+def p_rel_expression_base(p):
+    'rel_expression : BOOLEAN'
+    p[0] = p[1]
+
+########################################
+########## SPECIAL-TYPES ###############
+########################################
+def p_expression_special_type(p):
+    'expression : special_type'
+    p[0] = p[1]
+
+def p_special_type_undefined(p):
+    'special_type : UNDEFINED'
+    p[0] = { 'type' : 'UNDEFINED', 'value': None}
+
+def p_special_type_infinity(p):
+    'special_type : INFINITY'
+    p[0] = { 'type' : 'INFINITY', 'value': float("inf")}
 
 def p_data_type_null(p):
     'data_type : NULL'
-    p[0] = { 'type' : 'NULL', 'value': p[0]}
+    p[0] = { 'type' : 'NULL', 'value': p[1]}
 
 def p_data_type_nan(p):
     'data_type : NAN'
-    p[0] = { 'type' : 'NAN', 'value': p[0]}
-
-def p_data_type_undefined(p):
-    'data_type : UNDEFINED'
-    p[0] = { 'type' : 'UNDEFINED', 'value': p[0]}
-
-def p_data_type_infinity(p):
-    'data_type : INFINITY'
-    p[0] = { 'type' : 'INFINITY', 'value': p[0]}
-
-def p_data_type_array(p):
-    'data_type : array'
-    p[0] = { 'type' : 'ARRAY', 'value': p[0]}
-
-def p_data_type_object(p):
-    'data_type : object'
-    p[0] = { 'type' : 'OBJECT', 'value': p[0]}
+    p[0] = { 'type' : 'NAN', 'value': p[1]}
 
 ########################################
 ############# ERROR ####################

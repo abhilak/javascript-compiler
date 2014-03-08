@@ -1,12 +1,13 @@
 {
-var n;
-var me = "srijan";
-var num = 1.34;
-var bool = true;
-
+/* var n; */
+/* var me = "srijan"; */
+/* var num = 1.34; */
+/* var bool = true; */
 /* var hol = []; */
 /* var holy = [123, 123, "srijan"]; */
-/* var nme = {}; */
-/* var ne = { "other" : 123, "name" : "srijan" }; */
+
+// To support these
+var nme = {};
+var ne = { "other" : 123, "name" : "srijan" };
 }
 

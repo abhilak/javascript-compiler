@@ -1,11 +1,8 @@
 # Todo
-- add support for blocks
-- Symbol table
-    - typeof operator
-- relational expressions
 - unary minus
-- expressions in assignments
-- value of arrays and objects
+- typeof operator
+- relational expressions
+- find NaN, null in python
 
 # Practical JavaScript Compiler
 
