@@ -31,12 +31,11 @@
 - The implementation language is python.
 
 # Todo
+- add support for blocks
 - Symbol table
-- String and number conversion
-- unary minus
-- typeof operator
-- extension of expressions
+    - typeof operator
 - relational expressions
+- unary minus
 
 # Milestones
 

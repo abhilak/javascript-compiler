@@ -322,24 +322,20 @@ def test_lex(input_file):
 def p_start(p):
     '''start : block
              | statements'''
-    return p[0]
 
 # A group of statements
 def p_block(p): 
     '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
-    return p[0]
 
 # A group of statements
 def p_statments(p):
     '''statements : statement statements
                   | statement'''
-    return p[0]
 
 # A single statement
 def p_statment(p):
     '''statement : assignment
                  | expression'''
-    return p[0]
 
 # An expression statement
 def p_expression(p):
