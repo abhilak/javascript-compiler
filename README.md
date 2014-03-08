@@ -1,6 +1,5 @@
 # Todo
 - unary minus
-- typeof operator
 - relational expressions
 - find NaN, null in python
 
