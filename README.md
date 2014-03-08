@@ -1,7 +1,16 @@
 # Todo
 - unary minus
 - relational expressions
+- function expressions and statements
+- types and variables
 - find NaN, null in python
+    - NaN is not equalt to NaN and is toxic
+    - 
+- assignment shorthands
+- string conversion using unary +
+- boolean conversion using unary !
+- truthy and falsy values
+- taking input
 
 # Practical JavaScript Compiler
 
@@ -16,8 +25,22 @@
 - Only one number type
 - function language
 - function scope
+- JavaScript allows for arbitary comparisons between different types of data
+    - Note, we use the python comparison results over here which may be a bit off
+      as compared to JS results.
 
 ## Features not implemented
+- OOP features of ES5.1
+    - new
+    - this
+    - instanceof
+    - delete
+- Bitwise Operations and operators
+```
+    - & | ^ ~ >> << >>>
+    - &= |= ^= >>= <<= >>>=
+```
+
 - Unused keywords
     - class
     - const
@@ -39,10 +62,11 @@
 - with
 - eval
 - Semicolon insertion
-- comma at the end of arrays and objects.
-- '+' is not overloaded for strings and numbers.
+- comma at the end of arrays and objects
+- '+' is not overloaded for strings and numbers
 - '==' and '===' mean the same thing
 - '!=' and '!==' mean the same thing
+- '++' and '--' are not supported
 
 ## Features Implemented till now
 - Declaration of variables

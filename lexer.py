@@ -35,9 +35,6 @@ tokens = [
         "TRY", 
         "CATCH", 
         "FINALLY", 
-        # "NEW", 
-        # "DELETE", 
-        # "THIS", 
         "IDENTIFIER",
         "OP_INSTANCEOF", 
         "OP_TYPEOF", 
@@ -45,8 +42,8 @@ tokens = [
         "OP_COLON",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
-        "OP_ADDITION",
-        "OP_SUBTRACTION",
+        "OP_PLUS",
+        "OP_MINUS",
         "OP_MULTIPLICATION",
         "OP_DIVISION",
         "OP_MODULUS",
@@ -183,15 +180,6 @@ def t_OP_TYPEOF(t):
     r"typeof"
     return t
 
-# RegEx for OOP
-# t_NEW = r"new"
-# t_DELETE = r"delete"
-# t_THIS = r"this"
-# def t_OP_INSTANCEOF(t):
-#     r"instanceof"
-#     return t
-
-
 ########################################
 ############# IDENTIFIER ###############
 ########################################
@@ -210,11 +198,11 @@ def t_OP_COLON(t):
     r":"
     return t
 
-def t_OP_ADDITION(t):
+def t_OP_PLUS(t):
     r"\+"
     return t
 
-def t_OP_SUBTRACTION(t):
+def t_OP_MINUS(t):
     r"-"
     return t
 
@@ -369,6 +357,7 @@ def p_assignment_statment(p):
 def p_expression_statement(p):
     'expression_statement : expression SEP_SEMICOLON'
     p[0] = p[1]
+    print p[0]
 
 ########################################
 ######## TYPEOF EXPRESSIONS ############
@@ -442,13 +431,13 @@ def p_expression_num(p):
 
 # Precedence of operators
 precedence = (
-        ('left', 'OP_ADDITION', 'OP_SUBTRACTION'),
+        ('left', 'OP_PLUS', 'OP_MINUS'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS')
         )
 
 def p_num_expression_binop(p):
-    '''num_expression : num_expression OP_ADDITION num_expression
-                      | num_expression OP_SUBTRACTION num_expression
+    '''num_expression : num_expression OP_PLUS num_expression
+                      | num_expression OP_MINUS num_expression
                       | num_expression OP_MULTIPLICATION num_expression
                       | num_expression OP_DIVISION num_expression
                       | num_expression OP_MODULUS num_expression'''
@@ -474,7 +463,7 @@ def p_expression_string(p):
     p[0] = { 'type' : 'STRING', 'value': p[1]}
 
 def p_str_expression_binop(p):
-    '''str_expression : str_expression OP_ADDITION str_expression'''
+    '''str_expression : str_expression OP_PLUS str_expression'''
     p[0] = p[1] + p[3]
 
 def p_str_expression_base(p):
