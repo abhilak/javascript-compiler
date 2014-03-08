@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import pprint
 from ply import lex, yacc
 from sys import argv
@@ -176,10 +177,20 @@ def t_FINALLY(t):
     r"finally"
     return t
 
+# typeof is an operator but needs to be defined before
+# identifiers
+def t_OP_TYPEOF(t):
+    r"typeof"
+    return t
+
 # RegEx for OOP
 # t_NEW = r"new"
 # t_DELETE = r"delete"
 # t_THIS = r"this"
+# def t_OP_INSTANCEOF(t):
+#     r"instanceof"
+#     return t
+
 
 ########################################
 ############# IDENTIFIER ###############
@@ -191,14 +202,6 @@ def t_IDENTIFIER(t):
 ########################################
 ############# OPERATORS ################
 ########################################
-def t_OP_INSTANCEOF(t):
-    r"instanceof"
-    return t
-
-def t__OP_TYPEOF(t):
-    r"typeof"
-    return t
-
 def t_OP_ASSIGNMENT(t):
     r"=|"r"\+=|"r"-=|"r"\*=|"r"/=|"r"%="
     return t
@@ -368,6 +371,13 @@ def p_expression_statement(p):
     p[0] = p[1]
 
 ########################################
+######## TYPEOF EXPRESSIONS ############
+########################################
+def p_expression_typeof(p):
+    'expression : OP_TYPEOF expression'
+    p[0] = { 'type' : 'STRING', 'value' : p[2]['type'] }
+
+########################################
 ######## OBJECT EXPRESSIONS ############
 ########################################
 def p_expression_object(p):
@@ -516,9 +526,11 @@ if __name__ == "__main__":
     # Here the lexer is initialized so that it can be used in another file
     lex.lex()
 
-    filename, input_file = argv 
+    filename, flag, input_file = argv 
     program = open(input_file).read()
 
-    yacc.yacc()
-    yacc.parse(program)
-    # test_lex(input_file)
+    if flag == '-l': 
+        test_lex(input_file)
+    else:
+        yacc.yacc()
+        yacc.parse(program)

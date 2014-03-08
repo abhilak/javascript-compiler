@@ -9,5 +9,6 @@
 // To support these
 var nme = {};
 var ne = { "other" : 123, "name" : "srijan" };
+var temp = typeof "string";
 }
 
