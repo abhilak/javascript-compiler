@@ -2,6 +2,7 @@ from ply import lex, yacc
 from sys import argv
 
 ######################################################################################################
+symbol_table = {}
 
 ########################################
 ############# TOKENS ###################
@@ -90,7 +91,7 @@ def t_NULL(t):
     return t
 
 def t_NAN(t): 
-    r"NaN"
+    r"NAN"
     return t
 
 def t_STRING(t): 
@@ -319,39 +320,76 @@ def test_lex(input_file):
         print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
 
 ######################################################################################################
+
+########################################
+############# STATEMENTS ###############
+########################################
 def p_start(p):
     '''start : block
              | statements'''
-
-# A group of statements
 def p_block(p): 
     '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
 
-# A group of statements
 def p_statments(p):
     '''statements : statement statements
                   | statement'''
 
-# A single statement
 def p_statment(p):
     '''statement : assignment
+                 | declaration
                  | expression'''
 
-# An expression statement
+########################################
+############# DECLARATION ##############
+########################################
+def p_declaration_statement(p):
+    '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
+
+########################################
+############# ASSIGNMENT ###############
+########################################
+def p_assignment_statment(p):
+    '''assignment : VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON
+                  | IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'''
+    if p[1] == 'var':
+        symbol_table[p[2]] = { 'type' : p[4]['type']}
+    else :
+        symbol_table[p[1]] = { 'type' : p[3]['type']}
+    print symbol_table
+
+########################################
+############# OBJECTS ##################
+########################################
+def p_object(p):
+    '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
+              | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
+
+def p_items(p):
+    '''items : property SEP_COMMA items
+             | property'''
+
+def p_property(p):
+    '''property : STRING OP_COLON data_type'''
+
+########################################
+############# ARRAYS ###################
+########################################
+def p_array(p):
+    '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
+             | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
+
+def p_list(p):
+    '''list : data_type SEP_COMMA list
+            | data_type'''
+
+########################################
+############# EXPRESSIONS ##############
+########################################
 def p_expression(p):
     '''expression : num_expression SEP_SEMICOLON
                   | str_expression SEP_SEMICOLON'''
 
-# Rules for allowing implicit typecast to string
-# def p_expression_str_to_num1(p):
-#     '''expression : str_expression OP_ADDITION num_expression SEP_SEMICOLON'''
-#     p[0] = p[1] + str(p[3])
-#
-# def p_expression_str_to_num2(p):
-#     '''expression : num_expression OP_ADDITION str_expression SEP_SEMICOLON'''
-#     p[0] = p[3] + str(p[1])
-
-# Rules for arithematic expressions
+# Precedence of operators
 precedence = (
         ('left', 'OP_ADDITION', 'OP_SUBTRACTION'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS')
@@ -377,7 +415,7 @@ def p_num_expression_number(p):
     'num_expression : NUMBER'
     p[0] = p[1]
 
-# Rules for string concatenation
+# String Expressions
 def p_str_expression_binop(p):
     '''str_expression : str_expression OP_ADDITION str_expression'''
     p[0] = p[1] + p[3]
@@ -386,49 +424,52 @@ def p_str_expression_plain(p):
     '''str_expression : STRING'''
     p[0] = p[1]
 
-# An assignment statement
-def p_assign_statment(p):
-    '''assignment : VAR IDENTIFIER SEP_SEMICOLON
-                  | VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON
-                  | IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'''
-    print "assignment"
+########################################
+############# DATA-TYPES ###############
+########################################
+def p_data_type_number(p):
+    'data_type : NUMBER'
+    p[0] = { 'type' : 'NUMBER', 'value': p[0]}
 
-# Different types of data
-def p_object(p):
-    '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
-              | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
-    print "object"
+def p_data_type_boolean(p):
+    'data_type : BOOLEAN'
+    p[0] = { 'type' : 'BOOLEAN', 'value': p[0]}
 
-def p_items(p):
-    '''items : property SEP_COMMA items
-             | property'''
+def p_data_type_string(p):
+    'data_type : STRING'
+    p[0] = { 'type' : 'STRING', 'value': p[0]}
 
-def p_property(p):
-    '''property : STRING OP_COLON data_type'''
+def p_data_type_null(p):
+    'data_type : NULL'
+    p[0] = { 'type' : 'NULL', 'value': p[0]}
 
-def p_array(p):
-    '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
-             | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
-    print "array"
+def p_data_type_nan(p):
+    'data_type : NAN'
+    p[0] = { 'type' : 'NAN', 'value': p[0]}
 
-def p_list(p):
-    '''list : data_type SEP_COMMA list
-            | data_type'''
+def p_data_type_undefined(p):
+    'data_type : UNDEFINED'
+    p[0] = { 'type' : 'UNDEFINED', 'value': p[0]}
 
-def p_data_type(p):
-    '''data_type : NUMBER 
-                 | BOOLEAN
-                 | STRING
-                 | NULL
-                 | NAN
-                 | UNDEFINED
-                 | INFINITY
-                 | array
-                 | object'''
+def p_data_type_infinity(p):
+    'data_type : INFINITY'
+    p[0] = { 'type' : 'INFINITY', 'value': p[0]}
 
+def p_data_type_array(p):
+    'data_type : array'
+    p[0] = { 'type' : 'array', 'value': p[0]}
+
+def p_data_type_object(p):
+    'data_type : object'
+    p[0] = { 'type' : 'object', 'value': p[0]}
+
+########################################
+############# ERROR ####################
+########################################
 def p_error(p):
     raise TypeError("unknown text at %r" % (p.value,))
 
+######################################################################################################
 if __name__ == "__main__":
     # Here the lexer is initialized so that it can be used in another file
     lex.lex()

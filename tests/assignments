@@ -1,9 +1,9 @@
 {
 var hol = [];
 var holy = [123, 123, "srijan"];
-var name = {};
-var name = { "other" : 123, "name" : "srijan" };
-var name;
-name = "srijan";
+var nme = {};
+var ne = { "other" : 123, "name" : "srijan" };
+var n;
+me = "srijan";
 }
 
