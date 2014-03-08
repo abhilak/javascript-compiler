@@ -337,24 +337,25 @@ def p_statments(p):
 def p_statment(p):
     '''statement : assignment
                  | declaration
-                 | expression'''
+                 | expression_statement'''
 
 ########################################
 ############# DECLARATION ##############
 ########################################
 def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
+    symbol_table[p[2]] = { 'type' : 'UNDEFINED'}
 
 ########################################
 ############# ASSIGNMENT ###############
 ########################################
 def p_assignment_statment(p):
-    '''assignment : VAR IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON
-                  | IDENTIFIER OP_ASSIGNMENT data_type SEP_SEMICOLON'''
+    '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
+                  | IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
     if p[1] == 'var':
-        symbol_table[p[2]] = { 'type' : p[4]['type']}
+        symbol_table[p[2]] = { 'type' : p[4]['type'], 'value' : p[4]['value']}
     else :
-        symbol_table[p[1]] = { 'type' : p[3]['type']}
+        symbol_table[p[1]] = { 'type' : p[3]['type'], 'value' : p[4]['value']}
     print symbol_table
 
 ########################################
@@ -369,7 +370,7 @@ def p_items(p):
              | property'''
 
 def p_property(p):
-    '''property : STRING OP_COLON data_type'''
+    '''property : STRING OP_COLON expression'''
 
 ########################################
 ############# ARRAYS ###################
@@ -379,16 +380,31 @@ def p_array(p):
              | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
 
 def p_list(p):
-    '''list : data_type SEP_COMMA list
-            | data_type'''
+    '''list : expression SEP_COMMA list
+            | expression'''
 
 ########################################
-############# EXPRESSIONS ##############
+######## EXPRESSION STATEMENT ##########
 ########################################
-def p_expression(p):
-    '''expression : num_expression SEP_SEMICOLON
-                  | str_expression SEP_SEMICOLON'''
+def p_expression_statement(p):
+    'expression_statement : expression SEP_SEMICOLON'
+    p[0] = p[1]
 
+def p_expression_num(p):
+    'expression : num_expression'
+    p[0] = { 'type' : 'NUMBER', 'value': p[1]}
+
+def p_expression_string(p):
+    'expression : str_expression'
+    p[0] = { 'type' : 'STRING', 'value': p[1]}
+
+def p_expression_data_type(p):
+    'expression : data_type'
+    p[0] = p[1]
+
+########################################
+########## NUMERIC EXPRESSIONS #########
+########################################
 # Precedence of operators
 precedence = (
         ('left', 'OP_ADDITION', 'OP_SUBTRACTION'),
@@ -415,7 +431,9 @@ def p_num_expression_number(p):
     'num_expression : NUMBER'
     p[0] = p[1]
 
-# String Expressions
+########################################
+########## STRING EXPRESSIONS ##########
+########################################
 def p_str_expression_binop(p):
     '''str_expression : str_expression OP_ADDITION str_expression'''
     p[0] = p[1] + p[3]
@@ -427,17 +445,9 @@ def p_str_expression_plain(p):
 ########################################
 ############# DATA-TYPES ###############
 ########################################
-def p_data_type_number(p):
-    'data_type : NUMBER'
-    p[0] = { 'type' : 'NUMBER', 'value': p[0]}
-
 def p_data_type_boolean(p):
     'data_type : BOOLEAN'
     p[0] = { 'type' : 'BOOLEAN', 'value': p[0]}
-
-def p_data_type_string(p):
-    'data_type : STRING'
-    p[0] = { 'type' : 'STRING', 'value': p[0]}
 
 def p_data_type_null(p):
     'data_type : NULL'
@@ -457,11 +467,11 @@ def p_data_type_infinity(p):
 
 def p_data_type_array(p):
     'data_type : array'
-    p[0] = { 'type' : 'array', 'value': p[0]}
+    p[0] = { 'type' : 'ARRAY', 'value': p[0]}
 
 def p_data_type_object(p):
     'data_type : object'
-    p[0] = { 'type' : 'object', 'value': p[0]}
+    p[0] = { 'type' : 'OBJECT', 'value': p[0]}
 
 ########################################
 ############# ERROR ####################

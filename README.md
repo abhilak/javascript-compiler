@@ -1,43 +1,52 @@
-# Practical JavaScript Compiler
-- We'll be working on creating a JavaScript practical compiler.
-    - The version we are targeting is ES5.
-    - Only one type of number is allowed (compliant with the specs)
-    - There is no forwards compatibility.
-        - class
-        - const
-        - extends
-        - field
-        - final
-        - import
-        - package
-        - private
-        - protected
-        - public
-        - super
-    - Library routines are not implemented.
-        - OOP features are not implemented because it is a library feature.
-    - Some features are not supported:
-        - RegEx
-        - Ternary Operator
-    - Some warts of javascript are not supported
-        - with
-        - eval
-        - Semicolon insertion
-        - comma at the end of arrays and objects.
-        - Overloading of '+' is not allowed
-        - '==' and '===' mean the same thing
-        - '!=' and '!==' mean the same thing
-- The target architecture is SPIM.
-- The implementation language is python.
-
 # Todo
 - add support for blocks
 - Symbol table
     - typeof operator
 - relational expressions
 - unary minus
+- expressions in assignments
+- value of arrays and objects
 
-# Milestones
+# Practical JavaScript Compiler
+
+## Technical Specifications
+- Version                              : EC5.1
+- Target                               : SPIM
+- Lexer Generator                      : PLY
+- Parser Generator                     : PLY
+- Implementation                       : Python
+
+## Idiosyncracies of JavaScript 
+- Only one number type
+- function language
+- function scope
+
+## Features not implemented
+- Unused keywords
+    - class
+    - const
+    - extends
+    - field
+    - final
+    - import
+    - package
+    - private
+    - protected
+    - public
+    - super
+- Library routines are not implemented.
+    - OOP features are not implemented because it is a library feature.
+- RegEx
+- Ternary Operator
+
+## Warts of the language
+- with
+- eval
+- Semicolon insertion
+- comma at the end of arrays and objects.
+- '+' is not overloaded for strings and numbers.
+- '==' and '===' mean the same thing
+- '!=' and '!==' mean the same thing
 
 ## Features Implemented till now
 - Declaration of variables
