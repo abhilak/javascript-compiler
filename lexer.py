@@ -432,8 +432,17 @@ def p_expression_num(p):
 # Precedence of operators
 precedence = (
         ('left', 'OP_PLUS', 'OP_MINUS'),
-        ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS')
+        ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS'),
+        ('right', 'UMINUS', 'UPLUS'),
         )
+
+def p_num_expression_unary(p):
+    '''num_expression : OP_MINUS num_expression %prec UMINUS
+                      | OP_PLUS num_expression %prec UPLUS'''
+    if p[1] == '-':
+        p[0] = -p[2]
+    else :
+        p[0] = +p[2]
 
 def p_num_expression_binop(p):
     '''num_expression : num_expression OP_PLUS num_expression

@@ -1,6 +1,8 @@
 (1+2)+3*4;
 "srij" + "an" + "a";
 true;
+-(1+2)+3*4;
+-2 + 4;
 
 /* Removed support for the below in the new version
 # "srijan" + 1;
