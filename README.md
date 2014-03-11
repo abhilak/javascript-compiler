@@ -3,7 +3,7 @@
 - function expressions and statements
 - types and variables
 - find NaN, null in python
-    - NaN is not equalt to NaN and is toxic
+    - NaN is not equals to NaN and is toxic
 - assignment shorthands
 - string to number conversion using unary +
 - boolean conversion using unary !
