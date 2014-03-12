@@ -58,16 +58,11 @@
 - eval
 - Semicolon insertion
 - comma at the end of arrays and objects
-- '==' and '===' mean the same thing
-- '!=' and '!==' mean the same thing
+- '==' and '===' mean the same thing, strict checking
+- '!=' and '!==' mean the same thing, strict checking
 - '++' and '--' are not supported
 
 ## Features Implemented till now
-- Declaration of variables
-    - Objects and arrays are supported
-- Assignment of values to variables
-- Addition, Subtratction, Multiplication, Division of numbers
-- String concatenation
 
 # Usage
 - run python lexer.py <testFileName>

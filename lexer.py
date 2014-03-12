@@ -43,6 +43,7 @@ tokens = [
         "OP_COLON",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
+        "OP_NOT",
         "OP_PLUS",
         "OP_MINUS",
         "OP_MULTIPLICATION",
@@ -193,6 +194,10 @@ def t_IDENTIFIER(t):
 ########################################
 def t_OP_ASSIGNMENT(t):
     r"=|"r"\+=|"r"-=|"r"\*=|"r"/=|"r"%="
+    return t
+
+def t_OP_NOT(t):
+    r"!"
     return t
 
 def t_OP_COLON(t):
@@ -366,13 +371,14 @@ def p_expression_statement(p):
 precedence = (
         ('left', 'OP_PLUS', 'OP_MINUS'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS'),
-        ('right', 'UMINUS', 'UPLUS', 'OP_TYPEOF'),
+        ('right', 'UMINUS', 'UPLUS', 'OP_TYPEOF', 'OP_NOT'),
         )
 
 def p_expression_unary(p):
     '''expression : OP_MINUS expression %prec UMINUS
                   | OP_PLUS expression %prec UPLUS
-                  | OP_TYPEOF expression'''
+                  | OP_TYPEOF expression
+                  | OP_NOT expression'''
 
     global line_number
 
