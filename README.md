@@ -2,10 +2,7 @@
 - relational expressions
 - function expressions and statements
 - types and variables
-- find NaN, null in python
-    - NaN is not equals to NaN and is toxic
 - assignment shorthands
-- string to number conversion using unary +
 - boolean conversion using unary !
 - truthy and falsy values
 - taking input
@@ -61,7 +58,6 @@
 - eval
 - Semicolon insertion
 - comma at the end of arrays and objects
-- '+' is not overloaded for strings and numbers
 - '==' and '===' mean the same thing
 - '!=' and '!==' mean the same thing
 - '++' and '--' are not supported

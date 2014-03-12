@@ -5,6 +5,7 @@ from sys import argv
 
 ######################################################################################################
 symbol_table = {}
+line_number = 1
 
 ########################################
 ############# TOKENS ###################
@@ -319,6 +320,7 @@ def test_lex(input_file):
 def p_start(p):
     '''start : block
              | statements'''
+
 def p_block(p): 
     '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
 
@@ -331,12 +333,15 @@ def p_statment(p):
                  | declaration
                  | expression_statement'''
 
+    # Update line_number
+    global line_number
+    line_number += 1 
+
 ########################################
 ############# DECLARATION ##############
 ########################################
 def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
-    symbol_table[p[2]] = { 'type' : 'UNDEFINED', 'value': None}
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -344,175 +349,210 @@ def p_declaration_statement(p):
 def p_assignment_statment(p):
     '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
                   | IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
-    if p[1] == 'var':
-        symbol_table[p[2]] = { 'type' : p[4]['type'], 'value' : p[4]['value']}
-    else :
-        symbol_table[p[1]] = { 'type' : p[3]['type'], 'value' : p[4]['value']}
-    print
-    pprint.pprint( symbol_table )
 
 ########################################
 ######## EXPRESSION STATEMENT ##########
 ########################################
 def p_expression_statement(p):
     'expression_statement : expression SEP_SEMICOLON'
-    p[0] = p[1]
-    print p[0]
 
-########################################
-######## TYPEOF EXPRESSIONS ############
-########################################
-def p_expression_typeof(p):
-    'expression : OP_TYPEOF expression'
-    p[0] = { 'type' : 'STRING', 'value' : p[2]['type'] }
-
-########################################
-######## OBJECT EXPRESSIONS ############
-########################################
-def p_expression_object(p):
-    'expression : object'
-    p[0] = { 'type' : 'OBJECT', 'value': p[1]}
-
-def p_object(p):
-    '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
-              | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
-    if p[2] == '}':
-        p[0] = {} 
-    else :
-        p[0] = p[2]
-
-def p_items(p):
-    'items : property SEP_COMMA items'
-    if p[3] == None:
-        p[0] = p[1]
-    else :
-        p[0] = dict(p[1], **p[3])
-
-def p_items_base(p):
-    'items : property'
-    p[0] = p[1]
-
-def p_property(p):
-    '''property : STRING OP_COLON expression'''
-    p[0] = { p[1] : p[3]['value'] }
-
-########################################
-######## ARRAY EXPRESSION ##############
-########################################
-def p_expression_array(p):
-    'expression : array'
-    p[0] = { 'type' : 'ARRAY', 'value': p[1]}
-
-def p_array(p):
-    '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
-             | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
-    if p[2] == ']':
-        p[0] = []
-    else :
-        p[0] = p[2]
-
-def p_list(p):
-    'list : expression SEP_COMMA list'
-    if p[3] == None:
-        p[0] = [ p[1]['value'] ]
-    else :
-        p[0] = [ p[1]['value'] ] + p[3]
-
-def p_list_base(p):
-    'list : expression'''
-    p[0] = [ p[1]['value'] ]
+    # Type rules
+    p[0] = { 'type' : p[1]['type'] }
 
 ########################################
 ########## NUMERIC EXPRESSIONS #########
 ########################################
-def p_expression_num(p):
-    'expression : num_expression'
-    p[0] = { 'type' : 'NUMBER', 'value': p[1]}
-
 # Precedence of operators
 precedence = (
         ('left', 'OP_PLUS', 'OP_MINUS'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS'),
-        ('right', 'UMINUS', 'UPLUS'),
+        ('right', 'UMINUS', 'UPLUS', 'OP_TYPEOF'),
         )
 
-def p_num_expression_unary(p):
-    '''num_expression : OP_MINUS num_expression %prec UMINUS
-                      | OP_PLUS num_expression %prec UPLUS'''
-    if p[1] == '-':
-        p[0] = -p[2]
-    else :
-        p[0] = +p[2]
+def p_expression_unary(p):
+    '''expression : OP_MINUS expression %prec UMINUS
+                  | OP_PLUS expression %prec UPLUS
+                  | OP_TYPEOF expression'''
 
-def p_num_expression_binop(p):
-    '''num_expression : num_expression OP_PLUS num_expression
-                      | num_expression OP_MINUS num_expression
-                      | num_expression OP_MULTIPLICATION num_expression
-                      | num_expression OP_DIVISION num_expression
-                      | num_expression OP_MODULUS num_expression'''
-    if p[2] == '+'  : p[0] = p[1] + p[3]
-    elif p[2] == '-': p[0] = p[1] - p[3]
-    elif p[2] == '*': p[0] = p[1] * p[3]
-    elif p[2] == '/': p[0] = p[1] / p[3]
-    elif p[2] == '%': p[0] = p[1] % p[3]
+    global line_number
 
-def p_num_expression_group(p):
-    'num_expression : SEP_OPEN_PARENTHESIS num_expression SEP_CLOSE_PARENTHESIS'
-    p[0] = p[2]
+    # Type rules
+    if p[1] == '+':
+        if p[2]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'NUMBER' }
+        elif p[2]['type'] == 'STRING':
+            p[0] = { 'type' : 'STRING' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line ", line_number, ": Type Error"
+    elif p[1] == '-':
+        if p[2]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'NUMBER' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line", line_number, ": Type Error"
+    elif p[1] == 'typeof':
+        p[0] = { 'type' : 'STRING' }
 
-def p_num_expression_base(p):
-    'num_expression : NUMBER'
-    p[0] = p[1]
+def p_expression_binop(p):
+    '''expression : expression OP_PLUS expression
+                  | expression OP_MINUS expression
+                  | expression OP_MULTIPLICATION expression
+                  | expression OP_DIVISION expression
+                  | expression OP_MODULUS expression'''
+
+    global line_number
+
+    # Type rules
+    if p[2] == '+':
+        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'NUMBER' }
+        elif p[1]['type'] == 'STRING' and p[3]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'STRING' }
+        elif p[3]['type'] == 'STRING' and p[1]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'STRING' }
+        elif p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
+            p[0] = { 'type' : 'STRING' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line", line_number, ": Type Error"
+    elif p[2] == '-':
+        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'NUMBER' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line", line_number, ": Type Error"
+    elif p[2] == '*':
+        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'NUMBER' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line", line_number, ": Type Error"
+    elif p[2] == '/':
+        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'NUMBER' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line", line_number, ": Type Error"
+    elif p[2] == '%':
+        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
+            p[0] = { 'type' : 'NUMBER' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line ", line_number, ": Type Error"
+
+def p_expression_group(p):
+    'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
+
+    # Type rules
+    p[0] = { 'type' : p[2]['type'] }
+
+def p_expression_base_type(p):
+    'expression : base_type'
+
+    # Type rules
+    p[0] = { 'type' : p[1]['type'] }
 
 ########################################
-########## STRING EXPRESSIONS ##########
+########## BASE TYPES ##################
 ########################################
-def p_expression_string(p):
-    'expression : str_expression'
-    p[0] = { 'type' : 'STRING', 'value': p[1]}
+def p_base_type_number(p):
+    'base_type : NUMBER'
 
-def p_str_expression_binop(p):
-    '''str_expression : str_expression OP_PLUS str_expression'''
-    p[0] = p[1] + p[3]
+    # Type rules
+    p[0] = { 'type' : 'NUMBER' }
 
-def p_str_expression_base(p):
-    '''str_expression : STRING'''
-    p[0] = p[1]
+def p_base_type_inf(p):
+    'base_type : INFINITY'
+    p[0] = { 'type' : 'NUMBER'}
 
-########################################
-######## RELATIONAL EXPRESSIONS ########
-########################################
-def p_expression_relational(p):
-    'expression : rel_expression'
-    p[0] = { 'type' : 'BOOLEAN', 'value': p[1]}
+def p_base_type_boolean(p):
+    'base_type : BOOLEAN'
 
-def p_rel_expression_base(p):
-    'rel_expression : BOOLEAN'
-    p[0] = p[1]
+    # Type rules
+    p[0] = { 'type' : 'BOOLEAN' }
 
-########################################
-########## SPECIAL-TYPES ###############
-########################################
-def p_expression_special_type(p):
-    'expression : special_type'
-    p[0] = p[1]
+def p_base_type_string(p):
+    'base_type : STRING'
 
-def p_special_type_undefined(p):
-    'special_type : UNDEFINED'
-    p[0] = { 'type' : 'UNDEFINED', 'value': None}
+    # Type rules
+    p[0] = { 'type' : 'STRING' }
 
-def p_special_type_infinity(p):
-    'special_type : INFINITY'
-    p[0] = { 'type' : 'INFINITY', 'value': float("inf")}
+def p_base_type_undefine(p):
+    'base_type : UNDEFINED'
 
-def p_data_type_null(p):
-    'data_type : NULL'
-    p[0] = { 'type' : 'NULL', 'value': p[1]}
+    # Type rules
+    p[0] = { 'type' : 'UNDEFINED'}
 
-def p_data_type_nan(p):
-    'data_type : NAN'
-    p[0] = { 'type' : 'NAN', 'value': p[1]}
+def p_base_type_null(p):
+    'base_type : NULL'
 
+    # Type rules
+    p[0] = { 'type' : 'NULL'}
+
+def p_base_type_nan(p):
+    'base_type : NAN'
+
+    # Type rules
+    p[0] = { 'type' : 'NAN'}
+
+# ########################################
+# ######## OBJECT EXPRESSIONS ############
+# ########################################
+# def p_expression_object(p):
+#     'expression : object'
+#     p[0] = { 'type' : 'OBJECT', 'value': p[1]}
+#
+# def p_object(p):
+#     '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
+#               | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
+#     if p[2] == '}':
+#         p[0] = {} 
+#     else :
+#         p[0] = p[2]
+#
+# def p_items(p):
+#     'items : property SEP_COMMA items'
+#     if p[3] == None:
+#         p[0] = p[1]
+#     else :
+#         p[0] = dict(p[1], **p[3])
+#
+# def p_items_base(p):
+#     'items : property'
+#     p[0] = p[1]
+#
+# def p_property(p):
+#     '''property : STRING OP_COLON expression'''
+#     p[0] = { p[1] : p[3]['value'] }
+#
+
+# ########################################
+# ######## ARRAY EXPRESSION ##############
+# ########################################
+# def p_expression_array(p):
+#     'expression : array'
+#     p[0] = { 'type' : 'ARRAY', 'value': p[1]}
+#
+# def p_array(p):
+#     '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
+#              | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
+#     if p[2] == ']':
+#         p[0] = []
+#     else :
+#         p[0] = p[2]
+#
+# def p_list(p):
+#     'list : expression SEP_COMMA list'
+#     if p[3] == None:
+#         p[0] = [ p[1]['value'] ]
+#     else :
+#         p[0] = [ p[1]['value'] ] + p[3]
+#
+# def p_list_base(p):
+#     'list : expression'''
+#     p[0] = [ p[1]['value'] ]
+#
 ########################################
 ############# ERROR ####################
 ########################################
