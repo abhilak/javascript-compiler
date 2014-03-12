@@ -351,6 +351,13 @@ def p_statment(p):
 def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
 
+    # Put the identifier into the symbol_table
+    if not symbol_table.has_key(str(p[2])):
+        symbol_table[ str(p[2]) ] = { 'type' : 'UNDEFINED'}
+    else :
+        print "line ", line_number, ": Redefinition Error:", p[2]
+
+    # Optional flags
     global showStatement
     if showStatement:
         print "declaration"
@@ -362,6 +369,19 @@ def p_assignment_statment(p):
     '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
                   | IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
 
+    # Put the identifier into the symbol_table
+    if p[1] == 'var' :
+        if not symbol_table.has_key(str(p[2])):
+            symbol_table[ str(p[2]) ] = { 'type' : p[4]['type']}
+        else :
+            print "line ", line_number, ": Redefinition Error:", p[2]
+    else :
+        if not symbol_table.has_key(str(p[1])):
+            symbol_table[ str(p[1]) ] = { 'type' : p[3]['type']}
+        else :
+            print "line ", line_number, ": Redefinition Error:", p[1]
+
+    # Optional flags
     global showStatement
     if showStatement:
         print "assignment"
