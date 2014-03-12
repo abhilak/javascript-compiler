@@ -365,7 +365,13 @@ def p_expression_statement(p):
     p[0] = { 'type' : p[1]['type'] }
 
 ########################################
-########## NUMERIC EXPRESSIONS #########
+############# IF THEN ELSE #############
+########################################
+def p_if_then_else(p):
+    'if_then : IF expression block'
+
+########################################
+############## EXPRESSIONS #############
 ########################################
 # Precedence of operators
 precedence = (
@@ -447,6 +453,24 @@ def p_expression_binop(p):
             p[0] = { 'type' : 'TYPE_ERROR' }
             print "line ", line_number, ": Type Error"
 
+# def p_expression_relational(p):
+#     '''expression : expression OP_AND expression
+#                   | expression OP_OR expression
+#                   | expression OP_GREATER_THEN expression
+#                   | expression OP_GREATER_THEN_E expression
+#                   | expression OP_LESS_THEN expression
+#                   | expression OP_LESS_THEN_E expression
+#                   | expression OP_EQUALS expression
+#                   | expression OP_NOT_EQUALS expression'''
+#
+#     global line_number
+#
+#     if p[0] == '===' or p[0] == '==':
+#         if p[1]['type'] == p[3]['type']:
+#             p[0] = { 'type' : 'BOOLEAN' }
+#         else:
+#             print "line", line_number, ": Type Error"
+#
 def p_expression_group(p):
     'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
 
@@ -502,11 +526,11 @@ def p_base_type_nan(p):
     # Type rules
     p[0] = { 'type' : 'NAN'}
 
-# ########################################
-# ######## OBJECT EXPRESSIONS ############
-# ########################################
+########################################
+######## OBJECT EXPRESSIONS ############
+########################################
 # def p_expression_object(p):
-#     'expression : object'
+#     'data_type : object'
 #     p[0] = { 'type' : 'OBJECT', 'value': p[1]}
 #
 # def p_object(p):
@@ -537,7 +561,7 @@ def p_base_type_nan(p):
 # ######## ARRAY EXPRESSION ##############
 # ########################################
 # def p_expression_array(p):
-#     'expression : array'
+#     'data_type : array'
 #     p[0] = { 'type' : 'ARRAY', 'value': p[1]}
 #
 # def p_array(p):
@@ -558,7 +582,7 @@ def p_base_type_nan(p):
 # def p_list_base(p):
 #     'list : expression'''
 #     p[0] = [ p[1]['value'] ]
-#
+
 ########################################
 ############# ERROR ####################
 ########################################
