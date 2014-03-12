@@ -1,0 +1,7 @@
+var n;
+var n = 10;
+
+if ( true ) {
+    var n;
+}
+

@@ -6,6 +6,7 @@ from sys import argv
 ######################################################################################################
 symbol_table = {}
 line_number = 1
+showStatement = 1
 
 ########################################
 ############# TOKENS ###################
@@ -192,6 +193,14 @@ def t_IDENTIFIER(t):
 ########################################
 ############# OPERATORS ################
 ########################################
+def t_OP_EQUALS(t):
+    r"==|"r"==="
+    return t
+
+def t_OP_NOT_EQUALS(t):
+    r"!=|"r"!=="
+    return t
+
 def t_OP_ASSIGNMENT(t):
     r"=|"r"\+=|"r"-=|"r"\*=|"r"/=|"r"%="
     return t
@@ -224,28 +233,20 @@ def t_OP_MODULUS(t):
     r"%"
     return t
 
-def t_OP_EQUALS(t):
-    r"==|"r"==="
-    return t
-
-def t_OP_NOT_EQUALS(t):
-    r"!=|"r"!=="
+def t_OP_GREATER_THEN_E(t):
+    r">="
     return t
 
 def t_OP_GREATER_THEN(t):
     r">"
     return t
 
-def t_OP_GREATER_THEN_E(t):
-    r">="
+def t_OP_LESS_THEN_E(t):
+    r"<="
     return t
 
 def t_OP_LESS_THEN(t):
     r"<"
-    return t
-
-def t_OP_LESS_THEN_E(t):
-    r"<="
     return t
 
 def t_OP_AND(t):
@@ -336,7 +337,9 @@ def p_statments(p):
 def p_statment(p):
     '''statement : assignment
                  | declaration
-                 | expression_statement'''
+                 | expression_statement
+                 | if_then_else
+                 | if_then'''
 
     # Update line_number
     global line_number
@@ -348,6 +351,10 @@ def p_statment(p):
 def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
 
+    global showStatement
+    if showStatement:
+        print "declaration"
+
 ########################################
 ############# ASSIGNMENT ###############
 ########################################
@@ -355,20 +362,50 @@ def p_assignment_statment(p):
     '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
                   | IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
 
+    global showStatement
+    if showStatement:
+        print "assignment"
+
 ########################################
 ######## EXPRESSION STATEMENT ##########
 ########################################
 def p_expression_statement(p):
     'expression_statement : expression SEP_SEMICOLON'
 
+    global showStatement
+    if showStatement:
+        print "expression statement"
+
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
+
+########################################
+############# IF THEN ##################
+########################################
+def p_if_then(p):
+    'if_then : IF expression block'
+
+    global showStatement
+    if showStatement:
+        print "if then"
+
+    # Type rules
+    if p[2]['type'] != 'BOOLEAN':
+        print "line", line_number, ": Condition of if is not an expression"
 
 ########################################
 ############# IF THEN ELSE #############
 ########################################
 def p_if_then_else(p):
-    'if_then : IF expression block'
+    'if_then_else : IF expression block ELSE block'
+
+    global showStatement
+    if showStatement:
+        print "if then else"
+
+    # Type rules
+    if p[2]['type'] != 'BOOLEAN':
+        print "line", line_number, ": Condition of if is not an expression"
 
 ########################################
 ############## EXPRESSIONS #############
