@@ -1,3 +1,11 @@
+- All lists are of a fixed size.
+- No need of an input, a main will do the initializations.
+- new can be handled using sbreak.
+- anonymous function can be handled by giving out unique names.
+- eval is left for the end: Done using the runtime
+- Handling exceptions using a runtime object.
+- overloading is left for the end: 
+
 # Todo
 - relational expressions
 - function expressions and statements
