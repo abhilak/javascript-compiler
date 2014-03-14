@@ -1,3 +1,13 @@
+# Todo
+- relational expressions
+- function expressions and statements
+- assignment shorthands
+- boolean conversion using unary !
+- truthy and falsy values
+- string concat using another operator
+- Symbol table implementation
+
+# First Meeting
 - All lists are of a fixed size.
 - No need of an input, a main will do the initializations.
 - new can be handled using sbreak.
@@ -5,15 +15,8 @@
 - eval is left for the end: Done using the runtime
 - Handling exceptions using a runtime object.
 - overloading is left for the end: 
-
-# Todo
-- relational expressions
-- function expressions and statements
-- types and variables
-- assignment shorthands
-- boolean conversion using unary !
-- truthy and falsy values
-- taking input
+- The concept of an event loop as in Node?
+- A runtime library for lists, hasmaps and inheritance.
 
 # Practical JavaScript Compiler
 
