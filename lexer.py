@@ -102,8 +102,8 @@ def t_STRING(t):
     return t
 
 def t_NUMBER(t):
-    r"\d+(\.\d+)?"
-    t.value = float(t.value)
+    r"\d+"
+    t.value = int(t.value)
     return t
 
 ########################################
