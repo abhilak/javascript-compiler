@@ -41,6 +41,7 @@ tokens = [
         "OP_INSTANCEOF", 
         "OP_TYPEOF", 
         "OP_ASSIGNMENT",
+        "OP_STRING_CONCAT",
         "OP_COLON",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
@@ -203,6 +204,10 @@ def t_OP_NOT_EQUALS(t):
 
 def t_OP_ASSIGNMENT(t):
     r"=|"r"\+=|"r"-=|"r"\*=|"r"/=|"r"%="
+    return t
+
+def t_OP_STRING_CONCAT(t):
+    r"\*\*"
     return t
 
 def t_OP_NOT(t):
@@ -436,7 +441,7 @@ precedence = (
         ('left', 'OP_AND'),
         ('left', 'OP_EQUALS', 'OP_NOT_EQUALS'),
         ('left', 'OP_LESS_THEN', 'OP_GREATER_THEN', 'OP_LESS_THEN_E', 'OP_GREATER_THEN_E'),
-        ('left', 'OP_PLUS', 'OP_MINUS'),
+        ('left', 'OP_PLUS', 'OP_MINUS', 'OP_STRING_CONCAT'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS'),
         ('right', 'UMINUS', 'UPLUS', 'OP_TYPEOF', 'OP_NOT'),
         )
@@ -469,6 +474,7 @@ def p_expression_unary(p):
 
 def p_expression_binop(p):
     '''expression : expression OP_PLUS expression
+                  | expression OP_STRING_CONCAT expression
                   | expression OP_MINUS expression
                   | expression OP_MULTIPLICATION expression
                   | expression OP_DIVISION expression
@@ -480,10 +486,6 @@ def p_expression_binop(p):
     if p[2] == '+':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             p[0] = { 'type' : 'NUMBER' }
-        elif p[1]['type'] == 'STRING' and p[3]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'STRING' }
-        elif p[3]['type'] == 'STRING' and p[1]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'STRING' }
         elif p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
             p[0] = { 'type' : 'STRING' }
         else:
@@ -510,6 +512,12 @@ def p_expression_binop(p):
     elif p[2] == '%':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             p[0] = { 'type' : 'NUMBER' }
+        else:
+            p[0] = { 'type' : 'TYPE_ERROR' }
+            print "line ", line_number, ": Type Error"
+    elif p[2] == '**':
+        if p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
+            p[0] = { 'type' : 'STRING' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
             print "line ", line_number, ": Type Error"
