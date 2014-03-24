@@ -1,10 +1,8 @@
 # Todo
-- relational expressions
 - function expressions and statements
 - assignment shorthands
 - boolean conversion using unary !
 - truthy and falsy values
-- string concat using another operator
 - Symbol table implementation
 
 # First Meeting

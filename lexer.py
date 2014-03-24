@@ -534,12 +534,21 @@ def p_expression_relational(p):
 
     global line_number
 
-#     if p[0] == '===' or p[0] == '==':
-#         if p[1]['type'] == p[3]['type']:
-#             p[0] = { 'type' : 'BOOLEAN' }
-#         else:
-#             print "line", line_number, ": Type Error"
-#
+    if p[0] == '===' or p[0] == '==' or p[0] == '!==' or p[0] == '!=':
+        if p[1]['type'] == p[3]['type']:
+            p[0] = { 'type' : 'BOOLEAN' }
+        else:
+            print "line", line_number, ": Type Error"
+    
+    # we do not support overloading as of yet
+    # Type coercion if either of the expressions is a boolean
+    if p[1]['type'] == 'BOOLEAN':
+        p[0] = { 'type': 'BOOLEAN' }
+    elif p[3]['type'] == 'BOOLEAN':
+        p[0] = { 'type': 'BOOLEAN' }
+    else:
+        p[0] = { 'type': 'BOOLEAN' }
+
 def p_expression_group(p):
     'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
 
@@ -594,6 +603,12 @@ def p_base_type_nan(p):
 
     # Type rules
     p[0] = { 'type' : 'NAN'}
+
+def p_base_type_id(p):
+    'base_type : IDENTIFIER'
+
+    # Type rules
+    p[0] = { 'type' : symbol_table[p[1]]}
 
 ########################################
 ######## OBJECT EXPRESSIONS ############
