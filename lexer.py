@@ -432,6 +432,10 @@ def p_if_then_else(p):
 ########################################
 # Precedence of operators
 precedence = (
+        ('left', 'OP_OR'),
+        ('left', 'OP_AND'),
+        ('left', 'OP_EQUALS', 'OP_NOT_EQUALS'),
+        ('left', 'OP_LESS_THEN', 'OP_GREATER_THEN', 'OP_LESS_THEN_E', 'OP_GREATER_THEN_E'),
         ('left', 'OP_PLUS', 'OP_MINUS'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS'),
         ('right', 'UMINUS', 'UPLUS', 'OP_TYPEOF', 'OP_NOT'),
@@ -510,18 +514,18 @@ def p_expression_binop(p):
             p[0] = { 'type' : 'TYPE_ERROR' }
             print "line ", line_number, ": Type Error"
 
-# def p_expression_relational(p):
-#     '''expression : expression OP_AND expression
-#                   | expression OP_OR expression
-#                   | expression OP_GREATER_THEN expression
-#                   | expression OP_GREATER_THEN_E expression
-#                   | expression OP_LESS_THEN expression
-#                   | expression OP_LESS_THEN_E expression
-#                   | expression OP_EQUALS expression
-#                   | expression OP_NOT_EQUALS expression'''
-#
-#     global line_number
-#
+def p_expression_relational(p):
+    '''expression : expression OP_AND expression
+                  | expression OP_OR expression
+                  | expression OP_GREATER_THEN expression
+                  | expression OP_GREATER_THEN_E expression
+                  | expression OP_LESS_THEN expression
+                  | expression OP_LESS_THEN_E expression
+                  | expression OP_EQUALS expression
+                  | expression OP_NOT_EQUALS expression'''
+
+    global line_number
+
 #     if p[0] == '===' or p[0] == '==':
 #         if p[1]['type'] == p[3]['type']:
 #             p[0] = { 'type' : 'BOOLEAN' }
