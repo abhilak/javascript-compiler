@@ -27,9 +27,6 @@ tokens = [
         "WHILE", 
         "FOR", 
         "IN", 
-        "DO", 
-        "SWITCH", 
-        "CASE", 
         "BREAK", 
         "CONTINUE", 
         "FUNCTION", 
@@ -39,7 +36,6 @@ tokens = [
         "CATCH", 
         "FINALLY", 
         "IDENTIFIER",
-        "OP_INSTANCEOF", 
         "OP_TYPEOF", 
         "OP_ASSIGNMENT",
         "OP_STRING_CONCAT",
@@ -139,14 +135,6 @@ def t_DO(t):
     r"do"
     return t
 
-def t_SWITCH(t):
-    r"switch"
-    return t
-
-def t_CASE(t):
-    r"case"
-    return t
-
 def t_BREAK(t):
     r"BREAK"
     return t
@@ -179,22 +167,13 @@ def t_FINALLY(t):
     r"finally"
     return t
 
-# typeof is an operator but needs to be defined before
-# identifiers
+########################################
+############# OPERATORS ################
+########################################
 def t_OP_TYPEOF(t):
     r"typeof"
     return t
 
-########################################
-############# IDENTIFIER ###############
-########################################
-def t_IDENTIFIER(t):
-    r"[a-zA-Z$_][\w$]*"
-    return t
-
-########################################
-############# OPERATORS ################
-########################################
 def t_OP_EQUALS(t):
     r"===|"r"=="
     return t
@@ -261,6 +240,13 @@ def t_OP_AND(t):
 
 def t_OP_OR(t):
     r"\|\|"
+    return t
+
+########################################
+############# IDENTIFIER ###############
+########################################
+def t_IDENTIFIER(t):
+    r"[a-zA-Z$_][\w$]*"
     return t
 
 ########################################
@@ -347,7 +333,7 @@ def p_statment(p):
                  | if_then_else
                  | if_then'''
 
-    # Update line_number
+    # Update lineNumber
     debug.incrementLineNumber()
 
 ########################################
@@ -396,8 +382,8 @@ def p_if_then(p):
     debug.printStatement("IF THEN")
 
     # Type rules
-    if p[2]['type'] != 'BOOLEAN':
-        print "line", line_number, ": Condition of if is not an expression"
+    if p[3]['type'] != 'BOOLEAN':
+        pass
 
 ########################################
 ############# IF THEN ELSE #############
@@ -408,8 +394,8 @@ def p_if_then_else(p):
     debug.printStatement("IF THEN ELSE")
 
     # Type rules
-    if p[2]['type'] != 'BOOLEAN':
-        print "line", line_number, ": Condition of if is not an expression"
+    if p[3]['type'] != 'BOOLEAN':
+        pass
 
 ########################################
 ############## EXPRESSIONS #############
@@ -430,8 +416,6 @@ def p_expression_unary(p):
                   | OP_PLUS expression %prec UPLUS
                   | OP_TYPEOF expression
                   | OP_NOT expression'''
-
-    global line_number
 
     # Type rules
     if p[1] == '+':
@@ -509,8 +493,6 @@ def p_expression_relational(p):
                   | expression OP_EQUALS expression
                   | expression OP_NOT_EQUALS expression'''
 
-    global line_number
-
     if p[0] == '===' or p[0] == '==' or p[0] == '!==' or p[0] == '!=':
         if p[1]['type'] == p[3]['type']:
             p[0] = { 'type' : 'BOOLEAN' }
@@ -537,6 +519,15 @@ def p_expression_base_type(p):
 
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
+
+def p_expression_identifier(p):
+    'expression : IDENTIFIER'
+
+    # Type rules
+    if ST.symbol_table.has_key(str(p[1])):
+        p[0] = { 'type' : ST.symbol_table[ str(p[1]) ]['type']}
+    else:
+        debug.printError("Undefined Variable")
 
 ########################################
 ########## BASE TYPES ##################
@@ -580,17 +571,6 @@ def p_base_type_nan(p):
 
     # Type rules
     p[0] = { 'type' : 'NAN'}
-
-def p_base_type_id(p):
-    'base_type : IDENTIFIER'
-
-    global line_number
-
-    # Type rules
-    if ST.symbol_table.has_key(str(p[1])):
-        p[0] = { 'type' : ST.symbol_table[ str(p[1]) ]['type']}
-    else:
-        debug.printError("Undefined Variable")
 
 ########################################
 ######## OBJECT EXPRESSIONS ############

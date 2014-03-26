@@ -1,11 +1,16 @@
-# Todo
+# Practical JavaScript Compiler
+
+## Todo
+- runtime for lists
 - function expressions and statements
-- assignment shorthands
 - boolean conversion using unary !
 - truthy and falsy values
 - Symbol table implementation
+- 3 address code
+- List
 
-# First Meeting
+## Meetings
+### First Meeting
 - All lists are of a fixed size.
 - No need of an input, a main will do the initializations.
 - new can be handled using sbreak.
@@ -15,8 +20,6 @@
 - overloading is left for the end: 
 - The concept of an event loop as in Node?
 - A runtime library for lists, hasmaps and inheritance.
-
-# Practical JavaScript Compiler
 
 ## Technical Specifications
 - Version                              : EC5.1
@@ -34,6 +37,14 @@
       as compared to JS results.
 
 ## Features not implemented
+- Data types:
+    - Only one number type: Integers
+- Language Constructs
+    - Ternary Operator
+    - with
+    - do while
+    - switch case
+    - RegEx
 - OOP features of ES5.1
     - new
     - this
@@ -44,7 +55,6 @@
     - & | ^ ~ >> << >>>
     - &= |= ^= >>= <<= >>>=
 ```
-
 - Unused keywords
     - class
     - const
@@ -59,11 +69,8 @@
     - super
 - Library routines are not implemented.
     - OOP features are not implemented because it is a library feature.
-- RegEx
-- Ternary Operator
 
 ## Warts of the language
-- with
 - eval
 - Semicolon insertion
 - comma at the end of arrays and objects
@@ -71,24 +78,13 @@
 - '!=' and '!==' mean the same thing, strict checking
 - '++' and '--' are not supported
 
-## Features Implemented till now
-
 # Usage
-- run python lexer.py <testFileName>
+- run python lexer.py -y <testFileName>
 
-# Build Instruction
-- lexer.py contains the token definitions
-    - the variable **lexer** stores the lexer
-    - to start lexing, we need to give **lexer** a string and call **lexer.token** for a token
+## Tests
+- All the test files need to added under the tests folder
 
 ## Dependencies
 - Python 2.7 and higher
 - [ply](https://github.com/dabeaz/ply)
-
-## Compiling and Building
-- The builds are only for a Linux compliant machine (preferably Ubuntu)
-- Use the makefile provided (instructions will be added as and when new components will be added)
-
-## Tests
-- All the test files need to added under the tests folder
 

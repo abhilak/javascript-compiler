@@ -5,3 +5,7 @@ if ( true ) {
     var n;
 }
 
+if ( n1 == 10 ) {
+    var n2;
+}
+
