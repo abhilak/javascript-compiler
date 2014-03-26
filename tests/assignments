@@ -2,7 +2,8 @@
 var n;
 var me = "srijan";
 var num = 1;
-var bool = true;
+numer = 2;
+var bool = true + "srijan";
 
 /* var hol = []; */
 /* var holy = [123, 123, "srijan"]; */

@@ -1,3 +1,16 @@
+// Some exmaples of relaitonal expressions
 1 >= 2;
 1 >=2 && 3;
 (1 >=2) && 3 || "string";
+
+// Declaring a variable and then using it
+var n = "srijan";
+n === "srijan";
+
+// Defining a varible twice and then using it
+n = "srs";
+n === "srs";
+
+// Using a variable without delcration
+m == "srijan";
+

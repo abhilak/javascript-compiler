@@ -9,3 +9,7 @@ def printStatement(statement):
 def incrementLineNumber():
     global lineNumber
     lineNumber += 1
+
+def printError(name):
+    global lineNumber
+    print "line ", lineNumber, ":", name

@@ -1,12 +1,13 @@
 #!/usr/bin/python
 import pprint
 from ply import lex, yacc
-from sys import argv
+from sys import argv, exit
+from helpers import symbol_table as ST
+from helpers import debug
 
 ######################################################################################################
-symbol_table = {}
-line_number = 1
-showStatement = 1
+# To print the name of statements
+debug.showStatement = 1
 
 ########################################
 ############# TOKENS ###################
@@ -195,11 +196,11 @@ def t_IDENTIFIER(t):
 ############# OPERATORS ################
 ########################################
 def t_OP_EQUALS(t):
-    r"==|"r"==="
+    r"===|"r"=="
     return t
 
 def t_OP_NOT_EQUALS(t):
-    r"!=|"r"!=="
+    r"!==|"r"!="
     return t
 
 def t_OP_ASSIGNMENT(t):
@@ -347,8 +348,7 @@ def p_statment(p):
                  | if_then'''
 
     # Update line_number
-    global line_number
-    line_number += 1 
+    debug.incrementLineNumber()
 
 ########################################
 ############# DECLARATION ##############
@@ -357,15 +357,9 @@ def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
 
     # Put the identifier into the symbol_table
-    if not symbol_table.has_key(str(p[2])):
-        symbol_table[ str(p[2]) ] = { 'type' : 'UNDEFINED'}
-    else :
-        print "line ", line_number, ": Redefinition Error:", p[2]
+    ST.symbol_table[ str(p[2]) ] = { 'type' : 'UNDEFINED'}
 
-    # Optional flags
-    global showStatement
-    if showStatement:
-        print "declaration"
+    debug.printStatement("DECLARATION")
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -376,20 +370,11 @@ def p_assignment_statment(p):
 
     # Put the identifier into the symbol_table
     if p[1] == 'var' :
-        if not symbol_table.has_key(str(p[2])):
-            symbol_table[ str(p[2]) ] = { 'type' : p[4]['type']}
-        else :
-            print "line ", line_number, ": Redefinition Error:", p[2]
+        ST.symbol_table[ str(p[2]) ] = { 'type' : p[4]['type']}
     else :
-        if not symbol_table.has_key(str(p[1])):
-            symbol_table[ str(p[1]) ] = { 'type' : p[3]['type']}
-        else :
-            print "line ", line_number, ": Redefinition Error:", p[1]
+        ST.symbol_table[ str(p[1]) ] = { 'type' : p[3]['type']}
 
-    # Optional flags
-    global showStatement
-    if showStatement:
-        print "assignment"
+    debug.printStatement("ASSIGNMENT")
 
 ########################################
 ######## EXPRESSION STATEMENT ##########
@@ -397,9 +382,7 @@ def p_assignment_statment(p):
 def p_expression_statement(p):
     'expression_statement : expression SEP_SEMICOLON'
 
-    global showStatement
-    if showStatement:
-        print "expression statement"
+    debug.printStatement("EXPRESSION STATEMENT")
 
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
@@ -408,11 +391,9 @@ def p_expression_statement(p):
 ############# IF THEN ##################
 ########################################
 def p_if_then(p):
-    'if_then : IF expression block'
+    'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS block'
 
-    global showStatement
-    if showStatement:
-        print "if then"
+    debug.printStatement("IF THEN")
 
     # Type rules
     if p[2]['type'] != 'BOOLEAN':
@@ -422,11 +403,9 @@ def p_if_then(p):
 ############# IF THEN ELSE #############
 ########################################
 def p_if_then_else(p):
-    'if_then_else : IF expression block ELSE block'
+    'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS block ELSE block'
 
-    global showStatement
-    if showStatement:
-        print "if then else"
+    debug.printStatement("IF THEN ELSE")
 
     # Type rules
     if p[2]['type'] != 'BOOLEAN':
@@ -462,13 +441,13 @@ def p_expression_unary(p):
             p[0] = { 'type' : 'STRING' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line ", line_number, ": Type Error"
+            debug.printError("Type Error")
     elif p[1] == '-':
         if p[2]['type'] == 'NUMBER':
             p[0] = { 'type' : 'NUMBER' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line", line_number, ": Type Error"
+            debug.printError("Type Error")
     elif p[1] == 'typeof':
         p[0] = { 'type' : 'STRING' }
 
@@ -480,8 +459,6 @@ def p_expression_binop(p):
                   | expression OP_DIVISION expression
                   | expression OP_MODULUS expression'''
 
-    global line_number
-
     # Type rules
     if p[2] == '+':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
@@ -490,37 +467,37 @@ def p_expression_binop(p):
             p[0] = { 'type' : 'STRING' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line", line_number, ": Type Error"
+            debug.printError("Type Error")
     elif p[2] == '-':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             p[0] = { 'type' : 'NUMBER' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line", line_number, ": Type Error"
+            debug.printError("Type Error")
     elif p[2] == '*':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             p[0] = { 'type' : 'NUMBER' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line", line_number, ": Type Error"
+            debug.printError("Type Error")
     elif p[2] == '/':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             p[0] = { 'type' : 'NUMBER' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line", line_number, ": Type Error"
+            debug.printError("Type Error")
     elif p[2] == '%':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             p[0] = { 'type' : 'NUMBER' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line ", line_number, ": Type Error"
+            debug.printError("Type Error")
     elif p[2] == '**':
         if p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
             p[0] = { 'type' : 'STRING' }
         else:
             p[0] = { 'type' : 'TYPE_ERROR' }
-            print "line ", line_number, ": Type Error"
+            debug.printError("Type Error")
 
 def p_expression_relational(p):
     '''expression : expression OP_AND expression
@@ -538,7 +515,7 @@ def p_expression_relational(p):
         if p[1]['type'] == p[3]['type']:
             p[0] = { 'type' : 'BOOLEAN' }
         else:
-            print "line", line_number, ": Type Error"
+            debug.printError("Type Error")
     
     # we do not support overloading as of yet
     # Type coercion if either of the expressions is a boolean
@@ -607,8 +584,13 @@ def p_base_type_nan(p):
 def p_base_type_id(p):
     'base_type : IDENTIFIER'
 
+    global line_number
+
     # Type rules
-    p[0] = { 'type' : symbol_table[p[1]]}
+    if ST.symbol_table.has_key(str(p[1])):
+        p[0] = { 'type' : ST.symbol_table[ str(p[1]) ]['type']}
+    else:
+        debug.printError("Undefined Variable")
 
 ########################################
 ######## OBJECT EXPRESSIONS ############
