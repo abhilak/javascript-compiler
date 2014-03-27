@@ -14,6 +14,9 @@ def lookup(identifier):
     return lookupScope(identifier, currentScope - 1)
 
 def lookupScope(identifier, scopeLocation):
+    if scopeLocation == -1:
+        return None
+
     global scope
 
     # add the scope to the symbol_table
@@ -45,3 +48,7 @@ def addAttribute(identifier, attributeName, attributeValue):
     entry = lookup(identifier)
     entry[attributeName] = attributeValue
 
+# function to delete a scope
+def deleteScope(functionName):
+    global scope
+    scope.pop()
