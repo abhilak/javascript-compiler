@@ -6,8 +6,6 @@ from helpers import symbol_table as ST
 from helpers import debug
 
 ######################################################################################################
-# To print the name of statements
-debug.showStatement = 1
 
 ########################################
 ############# TOKENS ###################
