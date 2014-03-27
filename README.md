@@ -43,6 +43,7 @@
 ## Features not implemented
 - Data types:
     - Only one number type: Integers
+    - No NaN, INFINITY and NULL
 - Language Constructs
     - Ternary Operator
     - with

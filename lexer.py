@@ -572,10 +572,6 @@ def p_base_type_number(p):
     # Type rules
     p[0] = { 'type' : 'NUMBER' }
 
-def p_base_type_inf(p):
-    'base_type : INFINITY'
-    p[0] = { 'type' : 'NUMBER'}
-
 def p_base_type_boolean(p):
     'base_type : BOOLEAN'
 
@@ -593,18 +589,6 @@ def p_base_type_undefine(p):
 
     # Type rules
     p[0] = { 'type' : 'UNDEFINED'}
-
-def p_base_type_null(p):
-    'base_type : NULL'
-
-    # Type rules
-    p[0] = { 'type' : 'NULL'}
-
-def p_base_type_nan(p):
-    'base_type : NAN'
-
-    # Type rules
-    p[0] = { 'type' : 'NAN'}
 
 ########################################
 ######## OBJECT EXPRESSIONS ############
