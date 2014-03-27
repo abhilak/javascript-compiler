@@ -297,18 +297,6 @@ def t_error(t):
     raise TypeError("Unknown text '%s'" % (t.value,))
 
 ######################################################################################################
-# A function to test the lexer
-def test_lex(input_file):
-    # Open the passed argument as an input file and then pass it to lex
-    program = open(input_file).read()
-    lex.input(program)
-
-    # This iterates over the function lex.token and converts the returned object into an iterator
-    print "\tTYPE \t\t\t\t\t\t VALUE"
-    print "\t---- \t\t\t\t\t\t -----"
-    for tok in iter(lex.token, None):
-        print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
-
 ######################################################################################################
 
 ########################################
@@ -334,6 +322,7 @@ def p_statment(p):
 
     # Update lineNumber
     debug.incrementLineNumber()
+    pprint.pprint(ST.symbol_table)
 
 ########################################
 ############# DECLARATION ##############
@@ -342,7 +331,8 @@ def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
 
     # Put the identifier into the symbol_table
-    ST.symbol_table[ str(p[2]) ] = { 'type' : 'UNDEFINED'}
+    ST.addIdentifier(p[2])
+    ST.addAttribute(p[2], 'type', 'UNDEFINED')
 
     debug.printStatement("DECLARATION")
 
@@ -351,42 +341,32 @@ def p_declaration_statement(p):
 ########################################
 def p_assignment_statment(p):
     '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
-                  | IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
+                  | MARK_VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
 
     # Put the identifier into the symbol_table
-    if p[1] == 'var' :
-        ST.symbol_table[ str(p[2]) ] = { 'type' : p[4]['type']}
-    else :
-        ST.symbol_table[ str(p[1]) ] = { 'type' : p[3]['type']}
-
+    ST.addIdentifier(p[2])
+    ST.addAttribute(p[2], 'type', p[4]['type'])
     debug.printStatement("ASSIGNMENT")
+
+def p_mark_var(p):
+    'MARK_VAR : empty'
 
 ########################################
 ############## FUNCTIONS ###############
 ########################################
 def p_function_statement(p):
-    '''function_statement : FUNCTION IDENTIFIER SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block
-                          | FUNCTION IDENTIFIER SEP_OPEN_PARENTHESIS SEP_CLOSE_PARENTHESIS block
-                          | FUNCTION SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block
-                          | FUNCTION SEP_OPEN_PARENTHESIS SEP_CLOSE_PARENTHESIS block'''
+    '''function_statement : FUNCTION IDENTIFIER scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block
+                          | FUNCTION anonName scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block'''
 
-    # Anonymous function
-    if p[2] == '(':
-        # Empty arguments
-        if p[3] == ')':
-            arguments = []
-        else:
-            arguments = p[3]
+    # Add identifiers to local scope
+    for identifier in p[5]:
+        ST.addIdentifier(identifier)
+        ST.addAttribute(identifier, 'type', 'UNDEFINED')
 
-        debug.printArguments(features.nameAnon() , arguments)
-    else:
-        # Empty arguments
-        if p[4] == ')':
-            arguments = []
-        else:
-            arguments = p[4]
-
-        debug.printArguments( p[2], arguments)
+    # get the function name
+    functionName = p[2]
+    debug.printArguments(functionName , p[5])
+    ST.deleteScope(functionName)
 
 def p_arg_list(p):
     'argList : IDENTIFIER SEP_COMMA argList'
@@ -400,6 +380,22 @@ def p_arg_list(p):
 def p_arg_list_base(p):
     'argList : IDENTIFIER'''
     p[0] = [ p[1] ]
+
+def p_arg_list_empty(p):
+    'argList : empty'''
+    p[0] = [ ]
+
+def p_scope(p):
+    'scope : empty'
+
+    # Create a function scope
+    ST.addScope(p[-1])
+
+def p_anon_name(p):
+    'anonName : empty'
+
+    # Create the name of the function
+    p[0] = features.nameAnon()
 
 ########################################
 ############# IF THEN ##################
@@ -552,8 +548,9 @@ def p_expression_identifier(p):
     'expression : IDENTIFIER'
 
     # Type rules
-    if ST.symbol_table.has_key(str(p[1])):
-        p[0] = { 'type' : ST.symbol_table[ str(p[1]) ]['type']}
+    entry = ST.lookup(p[1])
+    if entry != None:
+        p[0] = { 'type' : entry['type']}
     else:
         debug.printError("Undefined Variable")
 
@@ -589,6 +586,12 @@ def p_base_type_undefine(p):
 
     # Type rules
     p[0] = { 'type' : 'UNDEFINED'}
+
+########################################
+################ EMPTY #################
+########################################
+def p_empty(p):
+    'empty :'
 
 ########################################
 ######## OBJECT EXPRESSIONS ############
@@ -654,15 +657,30 @@ def p_error(p):
     raise TypeError("unknown text at %r" % (p.value,))
 
 ######################################################################################################
-if __name__ == "__main__":
-    # Here the lexer is initialized so that it can be used in another file
-    lex.lex()
-
-    filename, flag, input_file = argv 
+# A function to test the lexer
+def test_lex(input_file):
+    # Open the passed argument as an input file and then pass it to lex
     program = open(input_file).read()
+    lex.input(program)
 
+    # This iterates over the function lex.token and converts the returned object into an iterator
+    print "\tTYPE \t\t\t\t\t\t VALUE"
+    print "\t---- \t\t\t\t\t\t -----"
+    for tok in iter(lex.token, None):
+        print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
+
+# a function to test the parser
+def test_yacc(input_file):
+    program = open(input_file).read()
+    lex.lex()
+    yacc.yacc()
+    yacc.parse(program)
+
+if __name__ == "__main__":
+    filename, flag, input_file = argv 
+
+    # according to the given flag, perform operations
     if flag == '-l': 
         test_lex(input_file)
     else:
-        yacc.yacc()
-        yacc.parse(program)
+        test_yacc(input_file)
