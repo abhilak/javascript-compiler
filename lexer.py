@@ -328,7 +328,6 @@ def p_statments(p):
 def p_statment(p):
     '''statement : assignment
                  | declaration
-                 | expression_statement
                  | function_statement
                  | if_then_else
                  | if_then'''
@@ -361,17 +360,6 @@ def p_assignment_statment(p):
         ST.symbol_table[ str(p[1]) ] = { 'type' : p[3]['type']}
 
     debug.printStatement("ASSIGNMENT")
-
-########################################
-######## EXPRESSION STATEMENT ##########
-########################################
-def p_expression_statement(p):
-    'expression_statement : expression SEP_SEMICOLON'
-
-    debug.printStatement("EXPRESSION STATEMENT")
-
-    # Type rules
-    p[0] = { 'type' : p[1]['type'] }
 
 ########################################
 ############## FUNCTIONS ###############
@@ -568,6 +556,12 @@ def p_expression_identifier(p):
         p[0] = { 'type' : ST.symbol_table[ str(p[1]) ]['type']}
     else:
         debug.printError("Undefined Variable")
+
+def p_expression_function(p):
+    'expression : function_statement'
+
+    # Type rules
+    p[0] = { 'type': 'FUNCTION' }
 
 ########################################
 ########## BASE TYPES ##################

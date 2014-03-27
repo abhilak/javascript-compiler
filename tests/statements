@@ -21,7 +21,7 @@ function (id, srijan) {
 }
 
 // A function with empty arguments
-function () {
+var name = function () {
     if ( n1 == 10 ) {
         var n2;
     }
