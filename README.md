@@ -2,10 +2,10 @@
 
 ## Todo
 - runtime for lists
-- function expressions and statements
+- function expressions and siaf
+- Symbol table implementation
 - boolean conversion using unary !
 - truthy and falsy values
-- Symbol table implementation
 - 3 address code
 - List
 

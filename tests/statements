@@ -5,7 +5,26 @@ if ( true ) {
     var n;
 }
 
-if ( n1 == 10 ) {
-    var n2;
+
+// A normal function
+function fit (id, srijan) {
+    if ( n1 == 10 ) {
+        var n2;
+    }
 }
+
+// Anonymous Function
+function (id, srijan) {
+    if ( n1 == 10 ) {
+        var n2;
+    }
+}
+
+// A function with empty arguments
+function () {
+    if ( n1 == 10 ) {
+        var n2;
+    }
+}
+
 

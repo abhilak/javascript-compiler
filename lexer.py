@@ -4,6 +4,7 @@ from ply import lex, yacc
 from sys import argv, exit
 from helpers import symbol_table as ST
 from helpers import debug
+from helpers import features
 
 ######################################################################################################
 
@@ -328,6 +329,7 @@ def p_statment(p):
     '''statement : assignment
                  | declaration
                  | expression_statement
+                 | function_statement
                  | if_then_else
                  | if_then'''
 
@@ -370,6 +372,46 @@ def p_expression_statement(p):
 
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
+
+########################################
+############## FUNCTIONS ###############
+########################################
+def p_function_statement(p):
+    '''function_statement : FUNCTION IDENTIFIER SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block
+                          | FUNCTION IDENTIFIER SEP_OPEN_PARENTHESIS SEP_CLOSE_PARENTHESIS block
+                          | FUNCTION SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block
+                          | FUNCTION SEP_OPEN_PARENTHESIS SEP_CLOSE_PARENTHESIS block'''
+
+    # Anonymous function
+    if p[2] == '(':
+        # Empty arguments
+        if p[3] == ')':
+            arguments = []
+        else:
+            arguments = p[3]
+
+        debug.printArguments(features.nameAnon() , arguments)
+    else:
+        # Empty arguments
+        if p[4] == ')':
+            arguments = []
+        else:
+            arguments = p[4]
+
+        debug.printArguments( p[2], arguments)
+
+def p_arg_list(p):
+    'argList : IDENTIFIER SEP_COMMA argList'
+    
+    # Creating the argList to be passed to the function
+    if p[3] == None:
+        p[0] = [ p[1] ]
+    else :
+        p[0] = [ p[1] ] + p[3]
+
+def p_arg_list_base(p):
+    'argList : IDENTIFIER'''
+    p[0] = [ p[1] ]
 
 ########################################
 ############# IF THEN ##################
