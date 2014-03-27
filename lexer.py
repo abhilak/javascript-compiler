@@ -336,6 +336,9 @@ def p_declaration_statement(p):
 
     debug.printStatement("DECLARATION")
 
+    # Type rules
+    p[0] = { 'type' : 'UNDEFINED' }
+
 ########################################
 ############# ASSIGNMENT ###############
 ########################################
@@ -347,6 +350,9 @@ def p_assignment_statment(p):
     ST.addIdentifier(p[2])
     ST.addAttribute(p[2], 'type', p[4]['type'])
     debug.printStatement("ASSIGNMENT")
+
+    # Type rules
+    p[0] = { 'type' : 'UNDEFINED' }
 
 def p_mark_var(p):
     'MARK_VAR : empty'
@@ -367,6 +373,9 @@ def p_function_statement(p):
     functionName = p[2]
     debug.printArguments(functionName , p[5])
     ST.deleteScope(functionName)
+
+    # Type rules
+    p[0] = { 'type' : 'FUNCTION' }
 
 def p_arg_list(p):
     'argList : IDENTIFIER SEP_COMMA argList'
@@ -398,6 +407,10 @@ def p_anon_name(p):
     p[0] = features.nameAnon()
 
 ########################################
+######## FUNCTIONS CALLS ###############
+########################################
+
+########################################
 ############# IF THEN ##################
 ########################################
 def p_if_then(p):
@@ -408,6 +421,7 @@ def p_if_then(p):
     # Type rules
     if p[3]['type'] != 'BOOLEAN':
         pass
+    p[0] = { 'type' : 'UNDEFINED' }
 
 ########################################
 ############# IF THEN ELSE #############
@@ -420,6 +434,11 @@ def p_if_then_else(p):
     # Type rules
     if p[3]['type'] != 'BOOLEAN':
         pass
+    p[0] = { 'type' : 'UNDEFINED' }
+
+########################################
+########## WHILE STATEMENT #############
+########################################
 
 ########################################
 ############## EXPRESSIONS #############
@@ -442,22 +461,30 @@ def p_expression_unary(p):
                   | OP_NOT expression'''
 
     # Type rules
+    expType = 'UNDEFINED'
+    flag = 0
     if p[1] == '+':
         if p[2]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'NUMBER' }
+            expType = 'NUMBER'
         elif p[2]['type'] == 'STRING':
-            p[0] = { 'type' : 'STRING' }
+            expType = 'STRING'
         else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
+            flag = 1
     elif p[1] == '-':
         if p[2]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'NUMBER' }
+            expType = 'NUMBER'
         else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
+            flag = 1
     elif p[1] == 'typeof':
-        p[0] = { 'type' : 'STRING' }
+        expType = 'STRING'
+
+    # In case of type errors
+    if flag:
+        expType = 'TYPE_ERROR'
+        debug.printError("Type Error")
+
+    # Return type of the statment
+    p[0] = { 'type' : expType }
 
 def p_expression_binop(p):
     '''expression : expression OP_PLUS expression
@@ -468,44 +495,25 @@ def p_expression_binop(p):
                   | expression OP_MODULUS expression'''
 
     # Type rules
-    if p[2] == '+':
+    expType = 'UNDEFINED'
+    flag = 0
+    if p[2] == '+' or p[2] == '-' or p[2] == '*' or p[2] == '/' or p[2] == '%':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'NUMBER' }
-        elif p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
-            p[0] = { 'type' : 'STRING' }
+            expType = 'NUMBER'
         else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
-    elif p[2] == '-':
-        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'NUMBER' }
-        else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
-    elif p[2] == '*':
-        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'NUMBER' }
-        else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
-    elif p[2] == '/':
-        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'NUMBER' }
-        else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
-    elif p[2] == '%':
-        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
-            p[0] = { 'type' : 'NUMBER' }
-        else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
-    elif p[2] == '**':
+            flag = 1
+    else :
         if p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
             p[0] = { 'type' : 'STRING' }
         else:
-            p[0] = { 'type' : 'TYPE_ERROR' }
-            debug.printError("Type Error")
+            flag = 1
+
+    # Type Error
+    if flag:
+        expType = 'TYPE_ERROR'
+        debug.printError("Type Error")
+
+    p[0] = { 'type' : expType }
 
 def p_expression_relational(p):
     '''expression : expression OP_AND expression
@@ -517,20 +525,18 @@ def p_expression_relational(p):
                   | expression OP_EQUALS expression
                   | expression OP_NOT_EQUALS expression'''
 
+
+    # Type rules
+    expType = 'UNDEFINED'
+    flag = 0
     if p[0] == '===' or p[0] == '==' or p[0] == '!==' or p[0] == '!=':
         if p[1]['type'] == p[3]['type']:
-            p[0] = { 'type' : 'BOOLEAN' }
+            expType = 'BOOLEAN'
         else:
             debug.printError("Type Error")
     
     # we do not support overloading as of yet
     # Type coercion if either of the expressions is a boolean
-    if p[1]['type'] == 'BOOLEAN':
-        p[0] = { 'type': 'BOOLEAN' }
-    elif p[3]['type'] == 'BOOLEAN':
-        p[0] = { 'type': 'BOOLEAN' }
-    else:
-        p[0] = { 'type': 'BOOLEAN' }
 
 def p_expression_group(p):
     'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'

@@ -2,12 +2,10 @@
 
 ## Issues
 - function assignments, we have to return a ref for the ST entry!! (Gives an error right now)
-- ST implementation is ad-hoc
 
 ## Todo
-- Symbol table implementation
-    - First we need to implement the ST before we can proceed with function call to check if the function exits
-    - siaf
+- siaf
+- function calls
 - boolean conversion using unary !
 - truthy and falsy values
 - 3 address code
