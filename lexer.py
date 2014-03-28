@@ -308,6 +308,7 @@ def p_start(p):
 
 def p_block(p): 
     '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
+# -------------------------- Increment line number -------------
 
 def p_statments(p):
     '''statements : statement statements
@@ -323,6 +324,7 @@ def p_statment(p):
     # Update lineNumber
     debug.incrementLineNumber()
     pprint.pprint(ST.symbol_table)
+    print ST.offset
 
 ########################################
 ############# DECLARATION ##############
@@ -331,8 +333,7 @@ def p_declaration_statement(p):
     '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
 
     # Put the identifier into the symbol_table
-    ST.addIdentifier(p[2])
-    ST.addAttribute(p[2], 'type', 'UNDEFINED')
+    ST.addIdentifier(p[2], 'UNDEFINED')
 
     debug.printStatement("DECLARATION")
 
@@ -346,28 +347,34 @@ def p_assignment_statment(p):
     '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
                   | MARK_VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
 
-    # Put the identifier into the symbol_table
-    ST.addIdentifier(p[2])
-    ST.addAttribute(p[2], 'type', p[4]['type'])
-    debug.printStatement("ASSIGNMENT")
+    # In case the var is not present
+    statmentType = 'UNDEFINED'
+    if p[0] == None :
+        identifierEntry = ST.lookup(p[2])
+        if identifierEntry == None:
+            statmentType = 'Reference_Error'
+            debug.printError('Undefined Variable')
+        else:
+            # Put the identifier into the symbol_table
+            ST.addIdentifier(p[2], p[4]['type'])
+            statmentType = p[4]['type']
+
+    debug.printStatement("ASSIGNMENT of %s" %p[2])
 
     # Type rules
-    p[0] = { 'type' : 'UNDEFINED' }
+    p[0] = { 'type' :  statmentType }
 
 def p_mark_var(p):
     'MARK_VAR : empty'
+
+    p[0] = None
 
 ########################################
 ############## FUNCTIONS ###############
 ########################################
 def p_function_statement(p):
-    '''function_statement : FUNCTION IDENTIFIER scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block
-                          | FUNCTION anonName scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS block'''
-
-    # Add identifiers to local scope
-    for identifier in p[5]:
-        ST.addIdentifier(identifier)
-        ST.addAttribute(identifier, 'type', 'UNDEFINED')
+    '''function_statement : FUNCTION IDENTIFIER M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block
+                          | FUNCTION M_anonName M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block'''
 
     # get the function name
     functionName = p[2]
@@ -395,16 +402,27 @@ def p_arg_list_empty(p):
     p[0] = [ ]
 
 def p_scope(p):
-    'scope : empty'
+    'M_scope : empty'
 
     # Create a function scope
     ST.addScope(p[-1])
 
+    # To increment the lineNumber for the header of the function
+    debug.incrementLineNumber()
+    pprint.pprint(ST.symbol_table)
+
 def p_anon_name(p):
-    'anonName : empty'
+    'M_anonName : empty'
 
     # Create the name of the function
     p[0] = features.nameAnon()
+
+def p_insert_args(p):
+    'M_insertArgs : empty'
+
+    # Add identifiers to local scope
+    for argument in p[-2]:
+        ST.addIdentifier(argument, 'UNDEFINED')
 
 ########################################
 ######## FUNCTIONS CALLS ###############
@@ -419,9 +437,12 @@ def p_if_then(p):
     debug.printStatement("IF THEN")
 
     # Type rules
+    errorFlag = 0
+    statmentType = 'UNDEFINED'
     if p[3]['type'] != 'BOOLEAN':
-        pass
-    p[0] = { 'type' : 'UNDEFINED' }
+        errorFlag = 1
+        statmentType = 'TYPE_ERROR'
+    p[0] = { 'type' : statmentType }
 
 ########################################
 ############# IF THEN ELSE #############
@@ -432,9 +453,12 @@ def p_if_then_else(p):
     debug.printStatement("IF THEN ELSE")
 
     # Type rules
+    errorFlag = 0
+    statmentType = 'UNDEFINED'
     if p[3]['type'] != 'BOOLEAN':
-        pass
-    p[0] = { 'type' : 'UNDEFINED' }
+        errorFlag = 1
+        statmentType = 'TYPE_ERROR'
+    p[0] = { 'type' : statmentType }
 
 ########################################
 ########## WHILE STATEMENT #############
@@ -462,24 +486,24 @@ def p_expression_unary(p):
 
     # Type rules
     expType = 'UNDEFINED'
-    flag = 0
+    errorFlag = 0
     if p[1] == '+':
         if p[2]['type'] == 'NUMBER':
             expType = 'NUMBER'
         elif p[2]['type'] == 'STRING':
             expType = 'STRING'
         else:
-            flag = 1
+            errorFlag = 1
     elif p[1] == '-':
         if p[2]['type'] == 'NUMBER':
             expType = 'NUMBER'
         else:
-            flag = 1
+            errorFlag = 1
     elif p[1] == 'typeof':
         expType = 'STRING'
 
     # In case of type errors
-    if flag:
+    if errorFlag:
         expType = 'TYPE_ERROR'
         debug.printError("Type Error")
 
@@ -496,20 +520,20 @@ def p_expression_binop(p):
 
     # Type rules
     expType = 'UNDEFINED'
-    flag = 0
+    errorFlag = 0
     if p[2] == '+' or p[2] == '-' or p[2] == '*' or p[2] == '/' or p[2] == '%':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             expType = 'NUMBER'
         else:
-            flag = 1
+            errorFlag = 1
     else :
         if p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
             p[0] = { 'type' : 'STRING' }
         else:
-            flag = 1
+            errorFlag = 1
 
     # Type Error
-    if flag:
+    if errorFlag:
         expType = 'TYPE_ERROR'
         debug.printError("Type Error")
 
@@ -525,17 +549,17 @@ def p_expression_relational(p):
                   | expression OP_EQUALS expression
                   | expression OP_NOT_EQUALS expression'''
 
-
     # Type rules
     expType = 'UNDEFINED'
-    flag = 0
+    errorFlag = 0
     if p[0] == '===' or p[0] == '==' or p[0] == '!==' or p[0] == '!=':
         if p[1]['type'] == p[3]['type']:
             expType = 'BOOLEAN'
         else:
             debug.printError("Type Error")
     
-    # we do not support overloading as of yet
+    p[0] = { 'type' : expType }
+
     # Type coercion if either of the expressions is a boolean
 
 def p_expression_group(p):
@@ -573,31 +597,57 @@ def p_base_type_number(p):
     'base_type : NUMBER'
 
     # Type rules
-    p[0] = { 'type' : 'NUMBER' }
+    p[0] = { 'type' : 'NUMBER', 'value' : int(p[1]) }
 
 def p_base_type_boolean(p):
     'base_type : BOOLEAN'
 
     # Type rules
-    p[0] = { 'type' : 'BOOLEAN' }
+    p[0] = { 'type' : 'BOOLEAN' , 'value' : bool(p[1]) }
 
 def p_base_type_string(p):
     'base_type : STRING'
 
     # Type rules
-    p[0] = { 'type' : 'STRING' }
+    p[0] = { 'type' : 'STRING' , 'value' : p[1] }
 
 def p_base_type_undefine(p):
     'base_type : UNDEFINED'
 
     # Type rules
-    p[0] = { 'type' : 'UNDEFINED'}
+    p[0] = { 'type' : 'UNDEFINED', 'value' : 'UNDEFINED'}
 
 ########################################
 ################ EMPTY #################
 ########################################
 def p_empty(p):
     'empty :'
+
+# ########################################
+# ######## ARRAY EXPRESSION ##############
+# ########################################
+# def p_expression_array(p):
+#     'data_type : array'
+#     p[0] = { 'type' : 'ARRAY', 'value': p[1]}
+#
+# def p_array(p):
+#     'array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET'
+#      p[0] = p[2]
+#
+# def p_list(p):
+#     'list : expression SEP_COMMA list'
+#     if p[3] == None:
+#         p[0] = [ p[1] ]
+#     else :
+#         p[0] = [ p[1] ] + p[3]
+#
+# def p_list_base(p):
+#     'list : expression'''
+#     p[0] = [ p[1] ]
+#
+# def p_list_empty(p):
+#     'list : empty'''
+#     p[0] = [ ]
 
 ########################################
 ######## OBJECT EXPRESSIONS ############
@@ -630,32 +680,6 @@ def p_empty(p):
 #     p[0] = { p[1] : p[3]['value'] }
 #
 
-# ########################################
-# ######## ARRAY EXPRESSION ##############
-# ########################################
-# def p_expression_array(p):
-#     'data_type : array'
-#     p[0] = { 'type' : 'ARRAY', 'value': p[1]}
-#
-# def p_array(p):
-#     '''array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET
-#              | SEP_OPEN_BRACKET SEP_CLOSE_BRACKET'''
-#     if p[2] == ']':
-#         p[0] = []
-#     else :
-#         p[0] = p[2]
-#
-# def p_list(p):
-#     'list : expression SEP_COMMA list'
-#     if p[3] == None:
-#         p[0] = [ p[1]['value'] ]
-#     else :
-#         p[0] = [ p[1]['value'] ] + p[3]
-#
-# def p_list_base(p):
-#     'list : expression'''
-#     p[0] = [ p[1]['value'] ]
-
 ########################################
 ############# ERROR ####################
 ########################################
@@ -683,9 +707,9 @@ def test_yacc(input_file):
     yacc.parse(program)
 
 if __name__ == "__main__":
-    filename, flag, input_file = argv 
+    filename, flag , input_file = argv 
 
-    # according to the given flag, perform operations
+    # according to the given errorFlag, perform operations
     if flag == '-l': 
         test_lex(input_file)
     else:
