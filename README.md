@@ -1,9 +1,7 @@
 # Practical JavaScript Compiler
 
-## Issues
-- function assignments, we have to return a ref for the ST entry!! (Gives an error right now)
-
 ## Todo
+- line numbers in case of the closing brace assuming that we have the opening one on the same line
 - siaf
 - function calls
 - boolean conversion using unary !

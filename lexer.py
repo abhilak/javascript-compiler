@@ -308,7 +308,9 @@ def p_start(p):
 
 def p_block(p): 
     '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
-# -------------------------- Increment line number -------------
+
+    # Update the lineNumber for the closing brace
+    debug.incrementLineNumber()
 
 def p_statments(p):
     '''statements : statement statements
