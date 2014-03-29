@@ -1,4 +1,5 @@
-function name(list) {
+function name(list, name) {
     list = 1;
-    n1 = 2;
+    var n1 = 2;
+    name = 'srijan';
 }

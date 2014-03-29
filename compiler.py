@@ -61,7 +61,7 @@ def p_assignment_statment(p):
         if identifierEntry == None:
             statmentType = 'Reference_Error'
             debug.printStatement('line %d: Undefined Variable' %p.lineno(2))
-            raise SyntaxError
+            # raise SyntaxError
         else:
             # Put the identifier into the symbol_table
             ST.addIdentifier(p[2], p[4]['type'])
@@ -212,7 +212,7 @@ def p_expression_unary(p):
     # In case of type errors
     if errorFlag:
         expType = 'TYPE_ERROR'
-        raise TypeError
+        # raise TypeError
 
     # Return type of the statment
     p[0] = { 'type' : expType }
@@ -243,7 +243,7 @@ def p_expression_binop(p):
     if errorFlag:
         expType = 'TYPE_ERROR'
         debug.printStatement('%s Type Error' %p.lineno(1))
-        raise TypeError
+        # raise TypeError
 
     p[0] = { 'type' : expType }
 
@@ -265,7 +265,7 @@ def p_expression_relational(p):
             expType = 'BOOLEAN'
         else:
             debug.printStatement('%d Type Error' %p.lineno(1))
-            raise TypeError
+            # raise TypeError
     
     p[0] = { 'type' : expType }
 
@@ -292,7 +292,7 @@ def p_expression_identifier(p):
         p[0] = { 'type' : entry['type']}
     else:
         debug.printStatement('%d Undefined Variable' %p.lineno(1))
-        raise SyntaxError
+        # raise SyntaxError
 
 def p_expression_function(p):
     'expression : function_statement'
@@ -398,9 +398,10 @@ def p_error(p):
     # Read ahead looking for a closing '}'
     while 1:
         tok = yacc.token()             # Get the next token
-        if not tok or tok.type == 'SEP_CLOSE_BRACE': 
+        if not tok or tok.type == 'SEP_SEMICOLON': 
             break
-    yacc.restart() 
+    # yacc.restart() 
+    # yacc.errok()
 
 ######################################################################################################
 # a function to test the parser
