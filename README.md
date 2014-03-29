@@ -1,9 +1,11 @@
 # Practical JavaScript Compiler
 
 ## Todo
-- line numbers in case of the closing brace assuming that we have the opening one on the same line
-- siaf
-- function calls
+- Statments:
+    - function calls
+    - list implementation and for in loop
+    - siaf
+    - continue, return, break
 - boolean conversion using unary !
 - truthy and falsy values
 - 3 address code
@@ -46,6 +48,7 @@
     - do while
     - switch case
     - RegEx
+    - try, catch, finally and throw
 - OOP features of ES5.1
     - new
     - this
