@@ -1,8 +1,15 @@
+import pprint
+
+showSymbolTable = 0
 symbol_table = { }
 
 # Two stacks one for offset and other for the current scope
 offset = [0]
 scope = [symbol_table]
+
+def printSymbolTable():
+    if showSymbolTable:
+        pprint.pprint(symbol_table)
 
 # function to lookup an element in the stack
 def lookup(identifier):

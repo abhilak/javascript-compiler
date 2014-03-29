@@ -1,6 +1,7 @@
 #!/usr/bin/python
+from ply import lex
 import pprint
-from ply import lex, yacc
+from ply import yacc
 from sys import argv, exit
 from helpers import symbol_table as ST
 from helpers import debug
@@ -309,9 +310,6 @@ def p_start(p):
 def p_block(p): 
     '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
 
-    # Update the lineNumber for the closing brace
-    debug.incrementLineNumber()
-
 def p_statments(p):
     '''statements : statement statements
                   | statement'''
@@ -323,10 +321,8 @@ def p_statment(p):
                  | if_then_else
                  | if_then'''
 
-    # Update lineNumber
-    debug.incrementLineNumber()
-    pprint.pprint(ST.symbol_table)
-    print ST.offset
+    # print line number
+    ST.printSymbolTable()
 
 ########################################
 ############# DECLARATION ##############
@@ -337,7 +333,8 @@ def p_declaration_statement(p):
     # Put the identifier into the symbol_table
     ST.addIdentifier(p[2], 'UNDEFINED')
 
-    debug.printStatement("DECLARATION")
+    # print the name of the statement
+    debug.printStatement("DECLARATION of %s" %p[2])
 
     # Type rules
     p[0] = { 'type' : 'UNDEFINED' }
@@ -355,12 +352,14 @@ def p_assignment_statment(p):
         identifierEntry = ST.lookup(p[2])
         if identifierEntry == None:
             statmentType = 'Reference_Error'
-            debug.printError('Undefined Variable')
+            debug.printStatement('line %d: Undefined Variable' %p.lineno(2))
+            raise SyntaxError
         else:
             # Put the identifier into the symbol_table
             ST.addIdentifier(p[2], p[4]['type'])
             statmentType = p[4]['type']
 
+    # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
 
     # Type rules
@@ -378,7 +377,7 @@ def p_function_statement(p):
     '''function_statement : FUNCTION IDENTIFIER M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block
                           | FUNCTION M_anonName M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block'''
 
-    # get the function name
+    # print the name of the statement
     functionName = p[2]
     debug.printArguments(functionName , p[5])
     ST.deleteScope(functionName)
@@ -409,9 +408,7 @@ def p_scope(p):
     # Create a function scope
     ST.addScope(p[-1])
 
-    # To increment the lineNumber for the header of the function
-    debug.incrementLineNumber()
-    pprint.pprint(ST.symbol_table)
+    ST.printSymbolTable()
 
 def p_anon_name(p):
     'M_anonName : empty'
@@ -507,7 +504,7 @@ def p_expression_unary(p):
     # In case of type errors
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError("Type Error")
+        raise TypeError
 
     # Return type of the statment
     p[0] = { 'type' : expType }
@@ -537,7 +534,8 @@ def p_expression_binop(p):
     # Type Error
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError("Type Error")
+        debug.printStatement('%s Type Error' %p.lineno(1))
+        raise TypeError
 
     p[0] = { 'type' : expType }
 
@@ -558,7 +556,8 @@ def p_expression_relational(p):
         if p[1]['type'] == p[3]['type']:
             expType = 'BOOLEAN'
         else:
-            debug.printError("Type Error")
+            debug.printStatement('%d Type Error' %p.lineno(1))
+            raise TypeError
     
     p[0] = { 'type' : expType }
 
@@ -584,7 +583,8 @@ def p_expression_identifier(p):
     if entry != None:
         p[0] = { 'type' : entry['type']}
     else:
-        debug.printError("Undefined Variable")
+        debug.printStatement('%d Undefined Variable' %p.lineno(1))
+        raise SyntaxError
 
 def p_expression_function(p):
     'expression : function_statement'
@@ -686,19 +686,26 @@ def p_empty(p):
 ############# ERROR ####################
 ########################################
 def p_error(p):
-    raise TypeError("unknown text at %r" % (p.value,))
+    print "Whoa. You are seriously hosed."
+    # Read ahead looking for a closing '}'
+    while 1:
+        tok = yacc.token()             # Get the next token
+        if not tok or tok.type == 'SEP_CLOSE_BRACE': 
+            break
+    yacc.restart() 
 
 ######################################################################################################
 # A function to test the lexer
 def test_lex(input_file):
     # Open the passed argument as an input file and then pass it to lex
+    lexer = lex.lex()
     program = open(input_file).read()
-    lex.input(program)
+    lexer.input(program)
 
     # This iterates over the function lex.token and converts the returned object into an iterator
     print "\tTYPE \t\t\t\t\t\t VALUE"
     print "\t---- \t\t\t\t\t\t -----"
-    for tok in iter(lex.token, None):
+    for tok in iter(lexer.token, None):
         print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
 
 # a function to test the parser

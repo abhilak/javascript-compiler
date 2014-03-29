@@ -13,13 +13,3 @@ def printArguments(function_name, arguments):
     global printArguments
     if printArguments:
         print 'Argument of function "', function_name, '" are:', arguments
-
-# function that increments the line number
-def incrementLineNumber():
-    global lineNumber
-    lineNumber += 1
-
-# function to print the line numbe and the name of the error
-def printError(name):
-    global lineNumber
-    print "line ", lineNumber, ":", name
