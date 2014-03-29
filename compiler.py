@@ -16,16 +16,16 @@ def p_start(p):
              | statements'''
 
 def p_block(p): 
-    '''block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'''
+    'block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'
 
 def p_statments(p):
     '''statements : statement statements
                   | statement'''
-
 def p_statment(p):
     '''statement : assignment
                  | declaration
                  | function_statement
+                 | return_statement
                  | if_then_else
                  | if_then'''
 
@@ -130,6 +130,15 @@ def p_insert_args(p):
     # Add identifiers to local scope
     for argument in p[-2]:
         ST.addIdentifier(argument, 'UNDEFINED')
+
+########################################
+######## RETURN STATEMENT ##############
+########################################
+def p_return_statement(p):
+    'return_statement : RETURN expression'
+
+    # Type rules
+    p[0] = { 'type' : p[2]['type'] }
 
 ########################################
 ######## FUNCTIONS CALLS ###############
