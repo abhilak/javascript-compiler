@@ -5,7 +5,7 @@ from sys import argv, exit
 from helpers import symbol_table as ST
 from helpers import debug
 from helpers import features
-from JSlexer import *
+from JSlexer import tokens, lexer
 
 ######################################################################################################
 ########################################
@@ -60,7 +60,7 @@ def p_assignment_statment(p):
         identifierEntry = ST.lookup(p[2])
         if identifierEntry == None:
             statmentType = 'Reference_Error'
-            debug.printStatement('line %d: Undefined Variable' %p.lineno(2))
+            debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
             # raise SyntaxError
         else:
             # Put the identifier into the symbol_table
@@ -87,7 +87,7 @@ def p_function_statement(p):
 
     # print the name of the statement
     functionName = p[2]
-    debug.printArguments(functionName , p[5])
+    debug.printStatement('Arguments of "%s" are: %s' %(functionName, p[5]))
     ST.deleteScope(functionName)
 
     # Type rules
@@ -291,8 +291,7 @@ def p_expression_identifier(p):
     if entry != None:
         p[0] = { 'type' : entry['type']}
     else:
-        debug.printStatement('%d Undefined Variable' %p.lineno(1))
-        # raise SyntaxError
+        debug.printStatement('%d Undefined Variable %s' %(p.lineno(1), p[1]))
 
 def p_expression_function(p):
     'expression : function_statement'
@@ -401,15 +400,15 @@ def p_error(p):
         if not tok or tok.type == 'SEP_SEMICOLON': 
             break
     # yacc.restart() 
-    # yacc.errok()
+    yacc.errok()
 
 ######################################################################################################
 # a function to test the parser
 def test_yacc(input_file):
     program = open(input_file).read()
-    lex.lex()
     parser = yacc.yacc()
-    parser.parse(program)
+    parser.parse(program, lexer=lexer)
+    # parser.parse(program, lexer=lexer, debug=1)
 
 if __name__ == "__main__":
     filename, input_file = argv 

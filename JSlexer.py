@@ -1,34 +1,41 @@
 #!/usr/bin/python
 from ply import lex
+from sys import argv
+
+########################################
+############# RESERVED #################
+########################################
+reserved = {
+    'var' : 'VAR',
+    'if' : 'IF',
+    'else' : 'ELSE',
+    'while' : 'WHILE',
+    'for' : 'FOR',
+    'in' : 'IN',
+    'do' : 'DO',
+    'break' : 'BREAK',
+    'continue' : 'CONTINUE',
+    'function' : 'FUNCTION',
+    'return' : 'RETURN',
+    'throw' : 'THROW',
+    'try' : 'TRY',
+    'catch' : 'CATCH',
+    'finally' : 'FINALLY',
+    'typeof' : 'OP_TYPEOF',
+    'true' : 'BOOLEAN',
+    'undefined' : 'UNDEFINED',
+    'false' : 'BOOLEAN'
+}
 
 ########################################
 ############# TOKENS ###################
 ########################################
 tokens = [
         "COMMENT",
+        "WHITESPACE",
         "STRING",
-        "BOOLEAN",
-        "NULL",
-        "NAN",
-        "UNDEFINED",
-        "INFINITY",
         "NUMBER",
-        "VAR", 
-        "IF", 
-        "ELSE", 
-        "WHILE", 
-        "FOR", 
-        "IN", 
-        "BREAK", 
-        "CONTINUE", 
-        "FUNCTION", 
-        "RETURN", 
-        "THROW", 
-        "TRY", 
-        "CATCH", 
-        "FINALLY", 
         "IDENTIFIER",
-        "OP_TYPEOF", 
         "OP_ASSIGNMENT",
         "OP_STRING_CONCAT",
         "OP_COLON",
@@ -53,39 +60,22 @@ tokens = [
         "SEP_CLOSE_BRACKET",
         "SEP_OPEN_PARENTHESIS",
         "SEP_CLOSE_PARENTHESIS",
-        "SEP_COMMA",
-        "WHITESPACE"
-        ]
+        "SEP_COMMA"
+        ] + list(reserved.values())
 
 ########################################
 ############# COMMENTS #################
 ########################################
-def t_COMMENT(t):
-    r"//[^\n]+|" r"/\*[^(\*/)]+(\*/)"
+t_ignore_COMMENT = r"//[^\n]+|" r"/\*[^(\*/)]+(\*/)"
+
+########################################
+############# WHITESPACE ###############
+########################################
+t_ignore_WHITESPACE = r"\s"
 
 ########################################
 ############# TYPES ####################
 ########################################
-def t_BOOLEAN(t):
-    r"true|false"
-    return t
-
-def t_UNDEFINED(t): 
-    r"undefined"
-    return t
-
-def t_INFINITY(t): 
-    r"inf"
-    return t
-
-def t_NULL(t): 
-    r"null"
-    return t
-
-def t_NAN(t): 
-    r"NAN"
-    return t
-
 def t_STRING(t): 
     r"(?P<start>\"|')[^\"']*(?P=start)"
     t.value = t.value.replace("\"", "").replace("'", "")
@@ -97,75 +87,8 @@ def t_NUMBER(t):
     return t
 
 ########################################
-############# CONSTRUCTS ###############
-########################################
-def t_VAR(t): 
-    r"var"
-    return t
-
-def t_IF(t):
-    r"if"
-    return t
-
-def t_ELSE(t):
-    r"else"
-    return t
-
-def t_WHILE(t):
-    r"while"
-    return t
-
-def t_FOR(t):
-    r"for"
-    return t
-
-def t_IN(t):
-    r"in"
-    return t
-
-def t_DO(t):
-    r"do"
-    return t
-
-def t_BREAK(t):
-    r"BREAK"
-    return t
-
-def t_CONTINUE(t):
-    r"CONTINUE"
-    return t
-
-def t_FUNCTION(t):
-    r"function"
-    return t
-
-def t_RETURN(t):
-    r"return"
-    return t
-
-def t_THROW(t):
-    r"throw"
-    return t
-
-def t_TRY(t):
-    r"try"
-    return t
-
-def t_CATCH(t):
-    r"catch"
-    return t
-
-def t_FINALLY(t):
-    r"finally"
-    return t
-
-########################################
 ############# OPERATORS ################
 ########################################
-def t_OP_TYPEOF(t):
-    r"typeof"
-    return t
-
 def t_OP_EQUALS(t):
     r"===|"r"=="
     return t
@@ -239,6 +162,7 @@ def t_OP_OR(t):
 ########################################
 def t_IDENTIFIER(t):
     r"[a-zA-Z$_][\w$]*"
+    t.type = reserved.get(t.value,'IDENTIFIER')    # Check for reserved words
     return t
 
 ########################################
@@ -278,22 +202,20 @@ def t_SEP_COMMA(t):
     return t
 
 ########################################
-############# WHITESPACE ###############
-########################################
-def t_WHITESPACE(t): 
-    r"\s"
-
-########################################
 ############# ERROR ####################
 ########################################
 def t_error(t):
-    raise TypeError("Unknown text '%s'" % (t.value,))
+    print "Illegal character '%s'" % t.value[0]
+    t.lexer.skip(1)
 
 ######################################################################################################
+# Create a lexer which uses the above defined rules, this can be used by the parser
+lexer = lex.lex()
+
 # A function to test the lexer
 def test_lex(input_file):
     # Open the passed argument as an input file and then pass it to lex
-    lexer = lex.lex()
+    global lexer
     program = open(input_file).read()
     lexer.input(program)
 
