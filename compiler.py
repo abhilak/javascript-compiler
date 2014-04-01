@@ -45,14 +45,14 @@ def p_declaration_statement(p):
     debug.printStatement("DECLARATION of %s" %p[2])
 
     # Type rules
-    p[0] = { 'type' : 'UNDEFINED' }
+    p[0] = { 'type' : 'VOID' }
 
 ########################################
 ############# ASSIGNMENT ###############
 ########################################
 def p_assignment_statment(p):
     '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
-                  | MARK_VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
+                  | M_VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
 
     # In case the var is not present
     statmentType = 'UNDEFINED'
@@ -74,7 +74,7 @@ def p_assignment_statment(p):
     p[0] = { 'type' :  statmentType }
 
 def p_mark_var(p):
-    'MARK_VAR : empty'
+    'M_VAR : empty'
 
     p[0] = None
 
@@ -145,6 +145,24 @@ def p_return_statement(p):
 ########################################
 
 ########################################
+######## BREAK STATEMENT ###############
+########################################
+def p_break_statement(p):
+    'break_statement : BREAK'
+
+    # Type rules
+    p[0] = { 'type' : 'VOID' }
+
+########################################
+######## CONTINUE STATEMENT ############
+########################################
+def p_continue_statement(p):
+    'continue_statement : BREAK'
+
+    # Type rules
+    p[0] = { 'type' : 'VOID' }
+
+########################################
 ############# IF THEN ##################
 ########################################
 def p_if_then(p):
@@ -154,7 +172,7 @@ def p_if_then(p):
 
     # Type rules
     errorFlag = 0
-    statmentType = 'UNDEFINED'
+    statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
         errorFlag = 1
         statmentType = 'TYPE_ERROR'
@@ -170,7 +188,7 @@ def p_if_then_else(p):
 
     # Type rules
     errorFlag = 0
-    statmentType = 'UNDEFINED'
+    statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
         errorFlag = 1
         statmentType = 'TYPE_ERROR'
