@@ -45,7 +45,7 @@ def p_declaration_statement(p):
     debug.printStatement("DECLARATION of %s" %p[2])
 
     # Type rules
-    p[0] = { 'type' : 'VOID' }
+    p[0] = { 'type' : 'UNDEFINED' }
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -157,7 +157,7 @@ def p_break_statement(p):
 ######## CONTINUE STATEMENT ############
 ########################################
 def p_continue_statement(p):
-    'continue_statement : BREAK'
+    'continue_statement : CONTINUE'
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
@@ -351,39 +351,32 @@ def p_base_type_undefine(p):
     'base_type : UNDEFINED'
 
     # Type rules
-    p[0] = { 'type' : 'UNDEFINED', 'value' : 'UNDEFINED'}
+    p[0] = { 'type' : 'UNDEFINED', 'value' : 'undefined'}
+
+########################################
+######## ARRAY EXPRESSION ##############
+########################################
+def p_expression_array(p):
+    'base_type : array'
+    p[0] = { 'type' : 'ARRAY' }
+
+def p_array(p):
+    'array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET'
+
+def p_list(p):
+    'list : expression SEP_COMMA list'
+
+def p_list_base(p):
+    'list : expression'''
+
+def p_list_empty(p):
+    'list : empty'''
 
 ########################################
 ################ EMPTY #################
 ########################################
 def p_empty(p):
     'empty :'
-
-# ########################################
-# ######## ARRAY EXPRESSION ##############
-# ########################################
-# def p_expression_array(p):
-#     'data_type : array'
-#     p[0] = { 'type' : 'ARRAY', 'value': p[1]}
-#
-# def p_array(p):
-#     'array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET'
-#      p[0] = p[2]
-#
-# def p_list(p):
-#     'list : expression SEP_COMMA list'
-#     if p[3] == None:
-#         p[0] = [ p[1] ]
-#     else :
-#         p[0] = [ p[1] ] + p[3]
-#
-# def p_list_base(p):
-#     'list : expression'''
-#     p[0] = [ p[1] ]
-#
-# def p_list_empty(p):
-#     'list : empty'''
-#     p[0] = [ ]
 
 ########################################
 ######## OBJECT EXPRESSIONS ############
