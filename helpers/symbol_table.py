@@ -9,6 +9,7 @@ scope = [symbol_table]
 
 def printSymbolTable():
     if showSymbolTable:
+        print
         pprint.pprint(symbol_table)
 
 # function to lookup an element in the stack

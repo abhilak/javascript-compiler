@@ -53,6 +53,9 @@ def p_declaration_statement(p):
     # Type rules
     p[0] = { 'type' : 'VOID' }
 
+    # Emit code
+    p[0]['nextlist'] = []
+
 ########################################
 ############# ASSIGNMENT ###############
 ########################################
@@ -85,6 +88,9 @@ def p_assignment_statment(p):
 
     # Type rules
     p[0]['type'] =  statmentType
+
+    # Emit code
+    p[0]['nextlist'] = []
 
 def p_mark_var(p):
     'M_VAR : empty'
@@ -234,12 +240,13 @@ precedence = (
         ('left', 'OP_LESS_THEN', 'OP_GREATER_THEN', 'OP_LESS_THEN_E', 'OP_GREATER_THEN_E'),
         ('left', 'OP_PLUS', 'OP_MINUS', 'OP_STRING_CONCAT'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS'),
-        ('right', 'UMINUS', 'UPLUS', 'OP_TYPEOF', 'OP_NOT'),
+        ('right', 'UMINUS', 'OP_TYPEOF', 'OP_NOT'),
         )
+
+######## UNARY EXPRESSIONS ############
 
 def p_expression_unary(p):
     '''expression : OP_MINUS expression %prec UMINUS
-                  | OP_PLUS expression %prec UPLUS
                   | OP_TYPEOF expression'''
 
     # Type rules
@@ -251,16 +258,7 @@ def p_expression_unary(p):
     p[0]['place'] = TAC.newTemp()
 
     # Conditional branch to figure out what code to emit and check types
-    if p[1] == '+':
-        if p[2]['type'] == 'NUMBER':
-            expType = 'NUMBER'
-            p[0]['place'] = p[2]['place']
-        elif p[2]['type'] == 'STRING':
-            expType = 'STRING'
-            TAC.emit(p[0]['place'], p[2]['place'] , '' , 'str+')
-        else:
-            errorFlag = 1
-    elif p[1] == '-':
+    if p[1] == '-':
         if p[2]['type'] == 'NUMBER':
             expType = 'NUMBER'
             TAC.emit(p[0]['place'], p[2]['place'] , '' , 'uni-')
@@ -277,6 +275,8 @@ def p_expression_unary(p):
 
     # Return type of the statment
     p[0]['type'] = expType
+
+######## BINARY EXPRESSIONS ############
 
 def p_expression_binop(p):
     '''expression : expression OP_PLUS expression
@@ -311,10 +311,12 @@ def p_expression_binop(p):
     # Type Error
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printStatement('%s Type Error' %p.lineno(1))
+        debug.printStatement('line %d: Type Error' %p.lineno(1))
         # raise TypeError
 
     p[0]['type'] = expType
+
+######## RELATIONAL EXPRESSION ############
 
 def p_expression_relational(p):
     '''expression : expression OP_GREATER_THEN expression
@@ -332,36 +334,75 @@ def p_expression_relational(p):
         expType = 'BOOLEAN'
     else:
         expType = 'TYPE_ERROR'
-        debug.printStatement('%d Type Error' %p.lineno(1))
+        debug.printStatement('line %d: Type Error' %p.lineno(1))
         # raise TypeError
     
     p[0] = { 'type' : expType }
 
-    #-----------------------------------------------------------
-    # Type coercion if either of the expressions is a boolean
-    #-----------------------------------------------------------
+    # Backpatching code
+    p[0]['trueList'] = [TAC.nextQuad]
+    p[0]['falseList'] = [TAC.nextQuad + 1]
+
+    # Emit code
+    TAC.emit(p[1]['place'] + p[2] + p[1]['place'], 'goto', -1, 'COND_GOTO')
+    TAC.emit(-1, '', '', 'GOTO')
+
+######## LOGICAL EXPRESSION ##############
 
 def p_expression_logical_and(p):
-    'expression : expression OP_AND expression'
+    'expression : expression OP_AND M_quad expression'
 
     # Type rules
     expType = 'BOOLEAN'
     p[0] = { 'type' : expType }
 
-def p_expression_logical_and(p):
-    'expression : expression OP_OR expression'
+    # Backpatching code
+    p[0]['trueList'] = []
+    p[0]['falseList'] = []
+
+    # Emit code
+    if p[1]['type'] == p[2]['type'] == 'BOOLEAN':
+        TAC.backPatch(p[1]['trueList'], p[3]['quad'])
+        p[0]['falseList'] = TAC.merge(p[1]['falseList'], p[3]['falseList'])
+        p[0]['trueList'] = p[3]['trueList']
+
+def p_expression_logical_or(p):
+    'expression : expression OP_OR M_quad expression'
 
     # Type rules
     expType = 'BOOLEAN'
     p[0] = { 'type' : expType }
+
+    # Backpatching code
+    p[0]['trueList'] = []
+    p[0]['falseList'] = []
+
+    # Emit code
+    if p[1]['type'] == p[2]['type'] == 'BOOLEAN':
+        TAC.backPatch(p[1]['falseList'], p[3]['quad'])
+        p[0]['trueList'] = TAC.merge(p[1]['trueList'], p[3]['trueList'])
+        p[0]['falseList'] = p[3]['falseList']
 
 def p_expression_logical_not(p):
     'expression : OP_NOT expression'
 
     # Type rules
-    # ------------------- Coerce ---------------- #
     expType = 'BOOLEAN'
+
+    # Backpatching code
+    p[0]['trueList'] = []
+    p[0]['falseList'] = []
+
+    if p[2]['type'] != 'BOOLEAN':
+        expType = 'TYPE_ERROR'
+        debug.printStatement('line %d: Type Erro' %p.lineno(1))
+    else:
+        p[0]['trueList'] = p[2]['falseList']
+        p[0]['falseList'] = p[2]['trueList']
+
     p[0] = { 'type' : expType }
+
+######## GROUP EXPRESSION ##############
 
 def p_expression_group(p):
     'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
@@ -372,18 +413,36 @@ def p_expression_group(p):
     # emit code
     p[0]['place'] = p[2]['place']
 
+    # Backpatching code
+    if p[1]['type'] == 'BOOLEAN':
+        p[0]['trueList'] = p[2]['trueList']
+        p[0]['falseList'] = p[2]['falseList']
+
+######## BASE TYPE EXPRESSION ###########
+
 def p_expression_base_type(p):
     'expression : base_type'
 
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
 
-    # emit code
-    p[0]['place'] = TAC.newTemp()
-    TAC.emit(p[0]['place'], p[1]['value'], '', '=')
+    # emit code for backPatch
+    if p[1]['value'] == 'true':
+        p[0]['trueList'].append(TAC.nextQuad)
+        p[0]['falseList'] = []
+        TAC.emit(-1, '', '', 'GOTO')
+    elif p[1]['value'] == 'false':
+        p[0]['trueList'] = []
+        p[0]['falseList'].append(TAC.nextQuad)
+        TAC.emit(-1, '', '', 'GOTO')
+    else:
+        p[0]['place'] = TAC.newTemp()
+        TAC.emit(p[0]['place'], p[1]['value'], '', '=')
 
     # print the code
     TAC.printCode()
+
+######## IDENTIFIER EXPRESSION ###########
 
 def p_expression_identifier(p):
     'expression : IDENTIFIER'
@@ -400,15 +459,10 @@ def p_expression_identifier(p):
     identifierEntry = ST.lookup(p[2])
     p[0]['place'] = identifierEntry['place']
 
-def p_expression_function(p):
-    'expression : function_statement'
-
-    # Type rules
-    p[0] = { 'type': 'FUNCTION' }
-
 ########################################
 ########## BASE TYPES ##################
 ########################################
+
 def p_base_type_number(p):
     'base_type : NUMBER'
 
@@ -433,10 +487,17 @@ def p_base_type_undefine(p):
     # Type rules
     p[0] = { 'type' : 'UNDEFINED', 'value' : 'UNDEFINED'}
 
-########################################
+######## FUNCTION EXPRESSION ###########
+
+def p_base_type_function(p):
+    'base_type : function_statement'
+
+    # Type rules
+    p[0] = { 'type': 'FUNCTION' }
+
 ######## ARRAY EXPRESSION ##############
-########################################
-def p_expression_array(p):
+
+def p_base_type_array(p):
     'base_type : array'
     p[0] = { 'type' : 'ARRAY' }
 
