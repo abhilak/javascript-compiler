@@ -307,12 +307,12 @@ def p_expression_binop(p):
     p[0]['type'] = expType
 
 def p_expression_relational(p):
-    'expression : expression OP_GREATER_THEN expression
-                | expression OP_GREATER_THEN_E expression
-                | expression OP_LESS_THEN expression
-                | expression OP_LESS_THEN_E expression
-                | expression OP_EQUALS expression
-                | expression OP_NOT_EQUALS expression'''
+    '''expression : expression OP_GREATER_THEN expression
+                  | expression OP_GREATER_THEN_E expression
+                  | expression OP_LESS_THEN expression
+                  | expression OP_LESS_THEN_E expression
+                  | expression OP_EQUALS expression
+                  | expression OP_NOT_EQUALS expression'''
 
     # Type rules
     expType = 'UNDEFINED'
