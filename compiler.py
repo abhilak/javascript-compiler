@@ -15,12 +15,24 @@ def p_start(p):
     '''start : block
              | statements'''
 
+    # print the code
+    TAC.printCode()
+
 def p_block(p): 
     'block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'
 
+    # Emit code
+    p[0] = {}
+    # p[0]['nextList'] = p[2]['nextList']
+
 def p_statments(p):
     '''statements : statement statements
-                  | statement'''
+                  | statement M_statements'''
+
+    # Emit code
+    p[0] = {}
+    # p[0]['nextList'] = TAC.merge(p[1]['nextList'], p[2]['nextList'])
+
 def p_statment(p):
     '''statement : assignment
                  | declaration
@@ -28,6 +40,10 @@ def p_statment(p):
                  | return_statement
                  | if_then_else
                  | if_then'''
+
+    # Emit code
+    p[0] = {}
+    # p[0]['nextList'] = p[1]['nextList']
 
     # print line number
     ST.printSymbolTable()
@@ -37,6 +53,13 @@ def p_mark_quad(p):
     'M_quad : empty'
 
     p[0] = { 'quad' : TAC.nextQuad }
+
+# Marker for blanck statements
+def p_mark_statements(p):
+    'M_statements : empty'
+
+    # emit code
+    p[0] = { 'nextList' : [] }
 
 ########################################
 ############# DECLARATION ##############
@@ -54,7 +77,7 @@ def p_declaration_statement(p):
     p[0] = { 'type' : 'VOID' }
 
     # Emit code
-    p[0]['nextlist'] = []
+    p[0]['nextList'] = []
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -90,7 +113,7 @@ def p_assignment_statment(p):
     p[0]['type'] =  statmentType
 
     # Emit code
-    p[0]['nextlist'] = []
+    p[0]['nextList'] = []
 
 def p_mark_var(p):
     'M_VAR : empty'
@@ -111,6 +134,9 @@ def p_function_statement(p):
 
     # Type rules
     p[0] = { 'type' : 'FUNCTION' }
+
+    # Emit code
+    p[0]['nextList'] = []
 
 def p_arg_list(p):
     'argList : IDENTIFIER SEP_COMMA argList'
@@ -159,6 +185,9 @@ def p_return_statement(p):
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
 
+    # Emit code
+    p[0]['nextList'] = []
+
 ########################################
 ######## FUNCTIONS CALLS ###############
 ########################################
@@ -172,6 +201,9 @@ def p_break_statement(p):
     # Type rules
     p[0] = { 'type' : 'VOID' }
 
+    # Emit code
+    p[0]['nextList'] = []
+
 ########################################
 ######## CONTINUE STATEMENT ############
 ########################################
@@ -180,6 +212,9 @@ def p_continue_statement(p):
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
+
+    # Emit code
+    p[0]['nextList'] = []
 
 ########################################
 ############# IF THEN ##################
@@ -197,6 +232,9 @@ def p_if_then(p):
         statmentType = 'TYPE_ERROR'
     p[0] = { 'type' : statmentType }
 
+    # Emit code
+    p[0]['nextList'] = []
+
 ########################################
 ############# IF THEN ELSE #############
 ########################################
@@ -213,6 +251,9 @@ def p_if_then_else(p):
         statmentType = 'TYPE_ERROR'
     p[0] = { 'type' : statmentType }
 
+    # Emit code
+    p[0]['nextList'] = []
+
 ########################################
 ########## WHILE STATEMENT #############
 ########################################
@@ -228,6 +269,9 @@ def p_while(p):
         errorFlag = 1
         statmentType = 'TYPE_ERROR'
     p[0] = { 'type' : statmentType }
+
+    # Emit code
+    p[0]['nextList'] = []
 
 ########################################
 ############## EXPRESSIONS #############
@@ -344,8 +388,8 @@ def p_expression_relational(p):
     p[0]['falseList'] = [TAC.nextQuad + 1]
 
     # Emit code
-    TAC.emit(p[1]['place'] + p[2] + p[1]['place'], 'goto', -1, 'COND_GOTO')
-    TAC.emit(-1, '', '', 'GOTO')
+    TAC.emit(p[1]['place'] + p[2] + p[3]['place'], 'goto', -1, 'COND_GOTO')
+    TAC.emit('', '', -1, 'GOTO')
 
 ######## LOGICAL EXPRESSION ##############
 
@@ -356,15 +400,11 @@ def p_expression_logical_and(p):
     expType = 'BOOLEAN'
     p[0] = { 'type' : expType }
 
-    # Backpatching code
-    p[0]['trueList'] = []
-    p[0]['falseList'] = []
-
     # Emit code
-    if p[1]['type'] == p[2]['type'] == 'BOOLEAN':
+    if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
         TAC.backPatch(p[1]['trueList'], p[3]['quad'])
-        p[0]['falseList'] = TAC.merge(p[1]['falseList'], p[3]['falseList'])
-        p[0]['trueList'] = p[3]['trueList']
+        p[0]['falseList'] = TAC.merge(p[1]['falseList'], p[4]['falseList'])
+        p[0]['trueList'] = p[4]['trueList']
 
 def p_expression_logical_or(p):
     'expression : expression OP_OR M_quad expression'
@@ -378,10 +418,10 @@ def p_expression_logical_or(p):
     p[0]['falseList'] = []
 
     # Emit code
-    if p[1]['type'] == p[2]['type'] == 'BOOLEAN':
+    if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
         TAC.backPatch(p[1]['falseList'], p[3]['quad'])
-        p[0]['trueList'] = TAC.merge(p[1]['trueList'], p[3]['trueList'])
-        p[0]['falseList'] = p[3]['falseList']
+        p[0]['trueList'] = TAC.merge(p[1]['trueList'], p[4]['trueList'])
+        p[0]['falseList'] = p[4]['falseList']
 
 def p_expression_logical_not(p):
     'expression : OP_NOT expression'
@@ -430,17 +470,14 @@ def p_expression_base_type(p):
     if p[1]['value'] == 'true':
         p[0]['trueList'].append(TAC.nextQuad)
         p[0]['falseList'] = []
-        TAC.emit(-1, '', '', 'GOTO')
+        TAC.emit('', '', -1, 'GOTO')
     elif p[1]['value'] == 'false':
         p[0]['trueList'] = []
         p[0]['falseList'].append(TAC.nextQuad)
-        TAC.emit(-1, '', '', 'GOTO')
+        TAC.emit('', '', -1, 'GOTO')
     else:
         p[0]['place'] = TAC.newTemp()
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
-
-    # print the code
-    TAC.printCode()
 
 ######## IDENTIFIER EXPRESSION ###########
 

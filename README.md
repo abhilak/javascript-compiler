@@ -8,10 +8,8 @@
     - function calls
     - list implementation and for in loop
     - siaf
-    - continue, return, break
-- boolean conversion using unary !
-- truthy and falsy values
-- 3 address code
+- backpatch
+    - if, while, nextList
 - runtime for lists
 
 ## Meetings

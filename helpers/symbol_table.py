@@ -1,6 +1,6 @@
 import pprint
 
-showSymbolTable = True
+showSymbolTable = False
 symbol_table = { }
 
 # Two stacks one for offset and other for the current scope
@@ -62,6 +62,8 @@ def addIdentifier(identifier, IdentifierType):
         IdentifierWidth = 100
     elif IdentifierType == 'UNDEFINED':
         IdentifierWidth = 0
+    elif IdentifierType == 'ARRAY':
+        IdentifierWidth = 1000
 
     # Update the entry
     if not currentScope.has_key(identifier):
