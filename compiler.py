@@ -66,10 +66,8 @@ def p_assignment_statment(p):
     # To store information
     p[0] = {}
 
-    print ST.lookup(p[2])
-    if p[0] == None :
+    if p[1] == None :
         identifierEntry = ST.lookup(p[2])
-        print identifierEntry
         if identifierEntry == None:
             statmentType = 'REFERENCE_ERROR'
             debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
@@ -80,8 +78,7 @@ def p_assignment_statment(p):
             statmentType = p[4]['type']
 
             # Emit code
-            p[1]['place'] = p[4]['place']
-            ST.addAttribute('place', p[4]['place'])
+            ST.addAttribute(p[2], 'place', p[4]['place'])
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
@@ -400,7 +397,8 @@ def p_expression_identifier(p):
         debug.printStatement('%d Undefined Variable %s' %(p.lineno(1), p[1]))
 
     # Emit code
-    p[0]['place'] = p[1]['place']
+    identifierEntry = ST.lookup(p[2])
+    p[0]['place'] = identifierEntry['place']
 
 def p_expression_function(p):
     'expression : function_statement'
