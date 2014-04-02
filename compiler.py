@@ -6,6 +6,7 @@ from helpers import symbol_table as ST
 from helpers import debug
 from helpers import features
 from JSlexer import tokens, lexer
+from helpers import threeAddrCode as TAC
 
 ######################################################################################################
 ########################################
@@ -32,6 +33,12 @@ def p_statment(p):
     # print line number
     ST.printSymbolTable()
 
+# Marker to mark the nextQuad value
+def p_mark_quad():
+    'M_quad : empty'
+
+    p[0] = { 'quad' : TAC.nextQuad }
+
 ########################################
 ############# DECLARATION ##############
 ########################################
@@ -56,6 +63,10 @@ def p_assignment_statment(p):
 
     # In case the var is not present
     statmentType = 'UNDEFINED'
+
+    # To store information
+    p[0] = {}
+
     if p[0] == None :
         identifierEntry = ST.lookup(p[2])
         if identifierEntry == None:
@@ -67,11 +78,15 @@ def p_assignment_statment(p):
             ST.addIdentifier(p[2], p[4]['type'])
             statmentType = p[4]['type']
 
+            # Emit code
+            p[1]['place'] = p[4]['place']
+            ST.addAttribute('place', p[4]['place'])
+
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
 
     # Type rules
-    p[0] = { 'type' :  statmentType }
+    p[0]['type'] =  statmentType
 
 def p_mark_var(p):
     'M_VAR : empty'
@@ -221,20 +236,30 @@ def p_expression_unary(p):
     # Type rules
     expType = 'UNDEFINED'
     errorFlag = 0
+
+    # Emit code
+    p[0] = {}
+    p[0]['place'] = TAC.newTemp()
+
+    # Conditional branch to figure out what code to emit and check types
     if p[1] == '+':
         if p[2]['type'] == 'NUMBER':
             expType = 'NUMBER'
+            p[0]['place'] = p[2]['place']
         elif p[2]['type'] == 'STRING':
             expType = 'STRING'
+            TAC.emit(p[0]['place'], p[2]['place'] , '' , 'str+')
         else:
             errorFlag = 1
     elif p[1] == '-':
         if p[2]['type'] == 'NUMBER':
             expType = 'NUMBER'
+            TAC.emit(p[0]['place'], p[2]['place'] , '' , 'uni-')
         else:
             errorFlag = 1
     elif p[1] == 'typeof':
         expType = 'STRING'
+        TAC.emit(p[0]['place'], p[2]['type'] , '' , '=')
 
     # In case of type errors
     if errorFlag:
@@ -242,7 +267,7 @@ def p_expression_unary(p):
         # raise TypeError
 
     # Return type of the statment
-    p[0] = { 'type' : expType }
+    p[0]['type'] = expType
 
 def p_expression_binop(p):
     '''expression : expression OP_PLUS expression
@@ -255,14 +280,22 @@ def p_expression_binop(p):
     # Type rules
     expType = 'UNDEFINED'
     errorFlag = 0
+
+    # To store information
+    p[0] = {}
+    p[0]['place'] = TAC.newTemp()
+
+    # To emit codes
     if p[2] == '+' or p[2] == '-' or p[2] == '*' or p[2] == '/' or p[2] == '%':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             expType = 'NUMBER'
+            TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
         else:
             errorFlag = 1
     else :
         if p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
-            p[0] = { 'type' : 'STRING' }
+            expType = 'STRING'
+            TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
         else:
             errorFlag = 1
 
@@ -272,7 +305,7 @@ def p_expression_binop(p):
         debug.printStatement('%s Type Error' %p.lineno(1))
         # raise TypeError
 
-    p[0] = { 'type' : expType }
+    p[0]['type'] = expType
 
 def p_expression_relational(p):
     '''expression : expression OP_AND expression
@@ -296,7 +329,9 @@ def p_expression_relational(p):
     
     p[0] = { 'type' : expType }
 
+    #-----------------------------------------------------------
     # Type coercion if either of the expressions is a boolean
+    #-----------------------------------------------------------
 
 def p_expression_group(p):
     'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
@@ -304,21 +339,32 @@ def p_expression_group(p):
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
 
+    # emit code
+    p[0]['place'] = p[2]['place']
+
 def p_expression_base_type(p):
     'expression : base_type'
 
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
 
+    # emit code
+    p[0]['place'] = TAC.newTemp()
+    TAC.emit(p[0]['place'], p[1]['value'], '', '=')
+
 def p_expression_identifier(p):
     'expression : IDENTIFIER'
 
     # Type rules
+    p[0] = {}
     entry = ST.lookup(p[1])
     if entry != None:
         p[0] = { 'type' : entry['type']}
     else:
         debug.printStatement('%d Undefined Variable %s' %(p.lineno(1), p[1]))
+
+    # Emit code
+    p[0]['place'] = p[1]['place']
 
 def p_expression_function(p):
     'expression : function_statement'
