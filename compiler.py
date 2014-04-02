@@ -8,7 +8,6 @@ from helpers import features
 from JSlexer import tokens, lexer
 from helpers import threeAddrCode as TAC
 
-######################################################################################################
 ########################################
 ############# STATEMENTS ###############
 ########################################
@@ -43,7 +42,7 @@ def p_mark_quad():
 ############# DECLARATION ##############
 ########################################
 def p_declaration_statement(p):
-    '''declaration : VAR IDENTIFIER SEP_SEMICOLON'''
+    'declaration : VAR IDENTIFIER SEP_SEMICOLON'
 
     # Put the identifier into the symbol_table
     ST.addIdentifier(p[2], 'UNDEFINED')
@@ -52,7 +51,7 @@ def p_declaration_statement(p):
     debug.printStatement("DECLARATION of %s" %p[2])
 
     # Type rules
-    p[0] = { 'type' : 'UNDEFINED' }
+    p[0] = { 'type' : 'VOID' }
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -62,7 +61,7 @@ def p_assignment_statment(p):
                   | M_VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
 
     # In case the var is not present
-    statmentType = 'UNDEFINED'
+    statmentType = 'VOID'
 
     # To store information
     p[0] = {}
@@ -70,7 +69,7 @@ def p_assignment_statment(p):
     if p[0] == None :
         identifierEntry = ST.lookup(p[2])
         if identifierEntry == None:
-            statmentType = 'Reference_Error'
+            statmentType = 'REFERENCE_ERROR'
             debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
             # raise SyntaxError
         else:
@@ -324,6 +323,7 @@ def p_expression_relational(p):
         if p[1]['type'] == p[3]['type']:
             expType = 'BOOLEAN'
         else:
+            expType = 'TYPE_ERROR'
             debug.printStatement('%d Type Error' %p.lineno(1))
             # raise TypeError
     
@@ -397,7 +397,7 @@ def p_base_type_undefine(p):
     'base_type : UNDEFINED'
 
     # Type rules
-    p[0] = { 'type' : 'UNDEFINED', 'value' : 'undefined'}
+    p[0] = { 'type' : 'UNDEFINED', 'value' : 'UNDEFINED'}
 
 ########################################
 ######## ARRAY EXPRESSION ##############
