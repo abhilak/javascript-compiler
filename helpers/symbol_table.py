@@ -1,6 +1,6 @@
 import pprint
 
-showSymbolTable = 0
+showSymbolTable = True
 symbol_table = { }
 
 # Two stacks one for offset and other for the current scope

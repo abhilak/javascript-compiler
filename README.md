@@ -1,5 +1,8 @@
 # Practical JavaScript Compiler
 
+## Issues
+- The type of if and while needs to be coerced to boolean if they are not already during code generation
+
 ## Todo
 - Statments:
     - function calls

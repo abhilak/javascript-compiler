@@ -15,9 +15,7 @@ reserved = {
     'function' : 'FUNCTION',
     'return' : 'RETURN',
     'typeof' : 'OP_TYPEOF',
-    'true' : 'BOOLEAN',
-    'undefined' : 'UNDEFINED',
-    'false' : 'BOOLEAN'
+    'undefined' : 'UNDEFINED'
 }
 
 ########################################
@@ -28,6 +26,7 @@ tokens = [
         "WHITESPACE",
         "STRING",
         "NUMBER",
+        "BOOLEAN",
         "IDENTIFIER",
         "OP_ASSIGNMENT",
         "OP_STRING_CONCAT",
@@ -77,6 +76,11 @@ def t_STRING(t):
 def t_NUMBER(t):
     r"\d+"
     t.value = int(t.value)
+    return t
+
+def t_BOOLEAN(t):
+    r"true|false"
+    t.value = bool(t.value)
     return t
 
 ########################################

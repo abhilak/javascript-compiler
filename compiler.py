@@ -33,7 +33,7 @@ def p_statment(p):
     ST.printSymbolTable()
 
 # Marker to mark the nextQuad value
-def p_mark_quad():
+def p_mark_quad(p):
     'M_quad : empty'
 
     p[0] = { 'quad' : TAC.nextQuad }
@@ -66,8 +66,10 @@ def p_assignment_statment(p):
     # To store information
     p[0] = {}
 
+    print ST.lookup(p[2])
     if p[0] == None :
         identifierEntry = ST.lookup(p[2])
+        print identifierEntry
         if identifierEntry == None:
             statmentType = 'REFERENCE_ERROR'
             debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
@@ -211,6 +213,18 @@ def p_if_then_else(p):
 ########################################
 ########## WHILE STATEMENT #############
 ########################################
+def p_while(p):
+    'while : WHILE SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS block'
+
+    debug.printStatement('WHILE')
+
+    # Type rules
+    errorFlag = 0
+    statmentType = 'VOID'
+    if p[3]['type'] != 'BOOLEAN':
+        errorFlag = 1
+        statmentType = 'TYPE_ERROR'
+    p[0] = { 'type' : statmentType }
 
 ########################################
 ############## EXPRESSIONS #############
@@ -229,8 +243,7 @@ precedence = (
 def p_expression_unary(p):
     '''expression : OP_MINUS expression %prec UMINUS
                   | OP_PLUS expression %prec UPLUS
-                  | OP_TYPEOF expression
-                  | OP_NOT expression'''
+                  | OP_TYPEOF expression'''
 
     # Type rules
     expType = 'UNDEFINED'
@@ -345,6 +358,14 @@ def p_expression_logical_and(p):
     expType = 'BOOLEAN'
     p[0] = { 'type' : expType }
 
+def p_expression_logical_not(p):
+    'expression : OP_NOT expression'
+
+    # Type rules
+    # ------------------- Coerce ---------------- #
+    expType = 'BOOLEAN'
+    p[0] = { 'type' : expType }
+
 def p_expression_group(p):
     'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
 
@@ -363,6 +384,9 @@ def p_expression_base_type(p):
     # emit code
     p[0]['place'] = TAC.newTemp()
     TAC.emit(p[0]['place'], p[1]['value'], '', '=')
+
+    # print the code
+    TAC.printCode()
 
 def p_expression_identifier(p):
     'expression : IDENTIFIER'
