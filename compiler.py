@@ -274,9 +274,7 @@ def p_expression_binop(p):
     p[0] = { 'type' : expType }
 
 def p_expression_relational(p):
-    '''expression : expression OP_AND expression
-                  | expression OP_OR expression
-                  | expression OP_GREATER_THEN expression
+    '''expression : expression OP_GREATER_THEN expression
                   | expression OP_GREATER_THEN_E expression
                   | expression OP_LESS_THEN expression
                   | expression OP_LESS_THEN_E expression
@@ -286,17 +284,33 @@ def p_expression_relational(p):
     # Type rules
     expType = 'UNDEFINED'
     errorFlag = 0
-    if p[0] == '===' or p[0] == '==' or p[0] == '!==' or p[0] == '!=':
-        if p[1]['type'] == p[3]['type']:
-            expType = 'BOOLEAN'
-        else:
-            expType = 'TYPE_ERROR'
-            debug.printStatement('%d Type Error' %p.lineno(1))
-            # raise TypeError
+
+    if p[1]['type'] == p[3]['type']:
+        expType = 'BOOLEAN'
+    else:
+        expType = 'TYPE_ERROR'
+        debug.printStatement('%d Type Error' %p.lineno(1))
+        # raise TypeError
     
     p[0] = { 'type' : expType }
 
+    #-----------------------------------------------------------
     # Type coercion if either of the expressions is a boolean
+    #-----------------------------------------------------------
+
+def p_expression_logical_and(p):
+    'expression : expression OP_AND expression'
+
+    # Type rules
+    expType = 'BOOLEAN'
+    p[0] = { 'type' : expType }
+
+def p_expression_logical_and(p):
+    'expression : expression OP_OR expression'
+
+    # Type rules
+    expType = 'BOOLEAN'
+    p[0] = { 'type' : expType }
 
 def p_expression_group(p):
     'expression : SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
