@@ -3,13 +3,5 @@ var n;
 var me = "srijan";
 var num = 1;
 numer = 2;
-var bool = true + "srijan";
-
-/* var hol = []; */
-/* var holy = [123, 123, "srijan"]; */
-/* To support these */
-/* var nme = {}; */
-/* var ne = { "other" : 123, "name" : "srijan" }; */
-/* var temp = typeof "string"; */
 }
 
