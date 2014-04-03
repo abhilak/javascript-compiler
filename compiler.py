@@ -23,27 +23,26 @@ def p_block(p):
 
     # Emit code
     p[0] = {}
-    # p[0]['nextList'] = p[2]['nextList']
+    p[0]['nextList'] = []
 
 def p_statments(p):
     '''statements : statement statements
                   | statement M_statements'''
 
-    # Emit code
-    p[0] = {}
-    # p[0]['nextList'] = TAC.merge(p[1]['nextList'], p[2]['nextList'])
-
 def p_statment(p):
-    '''statement : assignment
-                 | declaration
-                 | function_statement
-                 | return_statement
-                 | if_then_else
-                 | if_then'''
+    '''statement : assignment M_quad
+                 | declaration M_quad
+                 | function_statement M_quad
+                 | return_statement M_quad
+                 | if_then_else M_quad
+                 | if_then M_quad'''
 
     # Emit code
     p[0] = {}
-    # p[0]['nextList'] = p[1]['nextList']
+    p[0]['nextList'] = []
+
+    # Backpatch statements here
+    TAC.backPatch(p[1]['nextList'], p[2]['quad'])
 
     # print line number
     ST.printSymbolTable()
@@ -220,7 +219,7 @@ def p_continue_statement(p):
 ############# IF THEN ##################
 ########################################
 def p_if_then(p):
-    'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS block'
+    'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block'
 
     debug.printStatement("IF THEN")
 
@@ -233,13 +232,16 @@ def p_if_then(p):
     p[0] = { 'type' : statmentType }
 
     # Emit code
-    p[0]['nextList'] = []
+    # Backpatch the truelist of the expression
+    print p[3]
+    TAC.backPatch(p[3]['trueList'] , p[5]['quad'])
+    p[0]['nextList'] = TAC.merge(p[3]['falseList'], p[6]['nextList'])
 
 ########################################
 ############# IF THEN ELSE #############
 ########################################
 def p_if_then_else(p):
-    'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS block ELSE block'
+    'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block ELSE M_quad block'
 
     debug.printStatement("IF THEN ELSE")
 
@@ -252,7 +254,10 @@ def p_if_then_else(p):
     p[0] = { 'type' : statmentType }
 
     # Emit code
-    p[0]['nextList'] = []
+    # Backpatch the truelist of the expression and the falselist as well
+    TAC.backPatch(p[3]['trueList'] , p[5]['quad'])
+    TAC.backPatch(p[3]['falseList'], p[8]['quad'])
+    p[0]['nextList'] = TAC.merge(p[6]['nextList'], p[8]['nextList'])
 
 ########################################
 ########## WHILE STATEMENT #############
@@ -398,30 +403,50 @@ def p_expression_logical_and(p):
 
     # Type rules
     expType = 'BOOLEAN'
-    p[0] = { 'type' : expType }
 
-    # Emit code
+    # Backpatching code
+    p[0] = {}
+    p[0]['trueList'] = []
+    p[0]['falseList'] = []
+
     if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
+        expType = 'BOOLEAN'
+
+        # Emit code
         TAC.backPatch(p[1]['trueList'], p[3]['quad'])
         p[0]['falseList'] = TAC.merge(p[1]['falseList'], p[4]['falseList'])
         p[0]['trueList'] = p[4]['trueList']
+    else:
+        expType = 'TYPE_ERROR'
+        debug.printStatement('line %d: Type Erro' %p.lineno(1))
+
+    # Type of the expression
+    p[0]['type'] = expType
 
 def p_expression_logical_or(p):
     'expression : expression OP_OR M_quad expression'
 
     # Type rules
-    expType = 'BOOLEAN'
-    p[0] = { 'type' : expType }
+    expType = 'UNDEFINED'
 
     # Backpatching code
+    p[0] = {}
     p[0]['trueList'] = []
     p[0]['falseList'] = []
 
-    # Emit code
     if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
+        expType = 'BOOLEAN'
+
+        # Emit code
         TAC.backPatch(p[1]['falseList'], p[3]['quad'])
         p[0]['trueList'] = TAC.merge(p[1]['trueList'], p[4]['trueList'])
         p[0]['falseList'] = p[4]['falseList']
+    else:
+        expType = 'TYPE_ERROR'
+        debug.printStatement('line %d: Type Erro' %p.lineno(1))
+
+    # Type of the expression
+    p[0]['type'] = expType
 
 def p_expression_logical_not(p):
     'expression : OP_NOT expression'
@@ -430,6 +455,7 @@ def p_expression_logical_not(p):
     expType = 'BOOLEAN'
 
     # Backpatching code
+    p[0] = {}
     p[0]['trueList'] = []
     p[0]['falseList'] = []
 
@@ -440,7 +466,8 @@ def p_expression_logical_not(p):
         p[0]['trueList'] = p[2]['falseList']
         p[0]['falseList'] = p[2]['trueList']
 
-    p[0] = { 'type' : expType }
+    # Type of the expression
+    p[0]['type'] = expType
 
 ######## GROUP EXPRESSION ##############
 

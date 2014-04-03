@@ -28,7 +28,9 @@ def printCode():
 
 # Function to merge two lists
 def merge(list1, list2):
-    return list1.extend(list2)
+    list3 = list(list1)
+    list3.extend(list2)
+    return list3
 
 # Function to backpatch
 def backPatch(locationList, location):
