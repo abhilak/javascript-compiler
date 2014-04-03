@@ -2,6 +2,7 @@
 
 ## Issues
 - Function arguments can include functions as well
+- main is not working as of yet, some issue in TAC
 
 ## Todo
 - Statments:

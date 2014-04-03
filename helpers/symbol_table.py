@@ -1,7 +1,7 @@
 import pprint
 
-showSymbolTable = False
-symbol_table = { }
+showSymbolTable = True
+symbol_table = {'__scopeName__': 'main' }
 
 # Two stacks one for offset and other for the current scope
 offset = [0]
@@ -34,13 +34,18 @@ def lookupScope(identifier, scopeLocation):
     else:
         return lookupScope(identifier, scopeLocation - 1)
 
+# function to return currentScope name
+def getCurrentScope():
+    global scope
+    return scope[len(scope) - 1]['__scopeName__']
+
 # function to add a Scope
 def addScope(functionName):
     global scope
 
     # add the scope to the symbol_table
     currentScope = scope[len(scope) - 1]
-    currentScope[functionName] = {}
+    currentScope[functionName] = {'__scopeName__': functionName, '__parentName__': currentScope['__scopeName__'] }
     scope.append(currentScope[functionName])
 
     # Marks a new relative address
@@ -68,8 +73,8 @@ def addIdentifier(identifier, IdentifierType):
     # Update the entry
     if not currentScope.has_key(identifier):
         currentScope[identifier] = {}
-    currentScope[identifier]['offset'] = IdentifierWidth
-    currentScope[identifier]['type'] = IdentifierType
+    currentScope[identifier]['__offset__'] = IdentifierWidth
+    currentScope[identifier]['__type__'] = IdentifierType
 
     # increment the offset of the top
     currentOffset = offset.pop() + IdentifierWidth
@@ -78,7 +83,18 @@ def addIdentifier(identifier, IdentifierType):
 # add an attribute to the identifier
 def addAttribute(identifier, attributeName, attributeValue):
     entry = lookup(identifier)
-    entry[attributeName] = attributeValue
+    entry['__' + attributeName + '__'] = attributeValue
+
+def getAttribute(identifier, attributeName):
+    identifierEntry = lookup(identifier)
+    return identifier['__' + attributeName + '__']
+
+def exists(identifier):
+    identifierEntry = lookup(identifier)
+    if identifier != None:
+        return True
+    else:
+        return False
 
 # function to delete a scope
 def deleteScope(functionName):
@@ -86,5 +102,5 @@ def deleteScope(functionName):
     
     # Update the width of the function
     currentScope = scope.pop()
-    currentScope['width'] = offset.pop()
+    currentScope['__width__'] = offset.pop()
     

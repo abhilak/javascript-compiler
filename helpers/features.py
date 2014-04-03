@@ -4,4 +4,4 @@ count = 0
 def nameAnon():
     global count
     count += 1
-    return 'anon' + str(count)
+    return '____anon' + str(count)

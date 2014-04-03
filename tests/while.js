@@ -6,4 +6,13 @@ function temp(list, name) {
             continue;
         }
     }
+
+    function nameSpace() {
+        x = 2;
+        break;
+    }
+}
+
+function other(name) {
+    var x = 2;
 }
