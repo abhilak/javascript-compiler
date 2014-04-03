@@ -25,18 +25,12 @@ def p_block(p):
     p[0] = {}
     p[0]['nextList'] = []
 
-    # For statements waiting till the loop end
-    if p[2].has_key('loopEndList'):
-        p[0]['loopEndList'] = p[1]['loopEndList']
-
 def p_statments(p):
     '''statements : statement statements
                   | statement M_statements'''
 
     # For statements waiting till the loop end
     p[0] = {}
-    if p[1].has_key('loopEndList'):
-        p[0]['loopEndList'] = p[1]['loopEndList']
 
 def p_statment(p):
     '''statement : assignment M_quad
@@ -50,10 +44,6 @@ def p_statment(p):
     # Emit code
     p[0] = {}
     p[0]['nextList'] = []
-
-    # For statements waiting till the loop end
-    if p[1].has_key('loopEndList'):
-        p[0]['loopEndList'] = p[1]['loopEndList']
 
     # Backpatch statements here
     TAC.backPatch(p[1]['nextList'], p[2]['quad'])
@@ -222,8 +212,6 @@ def p_break_statement(p):
 
     # Emit code
     p[0]['nextList'] = []
-    p[0]['loopEndList'] = [TAC.nextQuad]
-    TAC.emit('', '', -1, 'goto');
 
 ########################################
 ######## CONTINUE STATEMENT ############
@@ -300,16 +288,6 @@ def p_while(p):
     # Emit code
     # Backpatch the truelist of the expression
     p[0]['nextList'] = []
-
-    # For statements waiting til the loop exit
-    if p[7].has_key('loopEndList'):
-        p[0]['nextList'] = TAC.merge(p[7]['nextList'], p[6]['loopEndList'])
-    TAC.backPatch(p[4]['trueList'] , p[6]['quad'])
-    p[0]['nextList'] = TAC.merge(p[0]['nextList'] , p[4]['falseList'])
-    p[0]['nextList'] = TAC.merge(p[0]['nextList'], p[7]['nextList'])
-
-    # Go to the loop beginning
-    TAC.emit('', '', p[2]['quad'], 'goto')
 
 ########################################
 ############## EXPRESSIONS #############
