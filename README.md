@@ -3,14 +3,15 @@
 ## Issues
 - When a block has no statement, we get an error
 
+## Unique Stuff
+- Function references
+- Clean up of bad breaks and continues using NOOP
+
 ## Todo
 - Statments:
-    - function calls
     - list implementation and for in loop
-    - siaf
-- backpatch
-    - while, continue, return
 - runtime for lists
+- JUMP and =REF should be backPatched
 
 ## Meetings
 ### First Meeting
@@ -56,6 +57,7 @@
     - RegEx
     - try, catch, finally and throw
     - for 
+    - SIAF
 - OOP features of ES5.1
     - new
     - this
