@@ -117,25 +117,27 @@ def p_assignment_statment(p):
     # To store information
     p[0] = {}
 
-    if p[1] == None :
-        identifierEntry = ST.exists(p[2])
-        if identifierEntry == True:
-            statmentType = 'REFERENCE_ERROR'
-            debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
-            # raise SyntaxError
-    else:
-        identifierEntry = ST.exists(p[2])
-        if identifierEntry == False:
-            # Put the identifier into the symbol_table
-            ST.addIdentifier(p[2], p[4]['type'])
-            statmentType = p[4]['type']
+    identifierEntry = ST.exists(p[2])
+    if identifierEntry == False:
+        # Put the identifier into the symbol_table
+        ST.addIdentifier(p[2], p[4]['type'])
+        statmentType = p[4]['type']
 
-            # Emit code
-            ST.addAttribute(p[2], 'place', p[4]['place'])
-        else:
-            statmentType = 'REFERENCE_ERROR'
-            debug.printStatement('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
-            # raise SyntaxError
+        # In case of an assignment, this is a function reference, so we store the name of the function
+        if p[4]['type'] == 'FUNCTION':
+            ST.addAttribute(p[2], 'reference', p[4]['name'])
+
+        # Emit code
+        ST.addAttribute(p[2], 'place', p[4]['place'])
+
+        # If they are booleans then noop their lists as this is not a relational expression
+        if statmentType == 'BOOLEAN':
+            TAC.noop(ST.getCurrentScope(), p[4]['trueList'])
+            TAC.noop(ST.getCurrentScope(), p[4]['falseList'])
+    else:
+        statmentType = 'REFERENCE_ERROR'
+        debug.printStatement('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
+        # raise SyntaxError
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
@@ -225,6 +227,8 @@ def p_return_statement(p):
 
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
+
+    # Assign a returnType to the function
     ST.addAttribute(ST.getCurrentScope(), 'returnType', p[2]['type'])
 
     # Emit code
@@ -241,12 +245,23 @@ def p_function_call(p):
     p[0] = {}
 
     # Semantic actions
+    # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[1]))
         # raise SyntaxError
     else:
-        TAC.emit(ST.getCurrentScope(), '', '', p[1], 'JUMP')
+        # We check whether the identifier is a function or a reference
+        if ST.getAttribute(p[1], 'type') == 'FUNCTION':
+            referenceName = ST.getAttribute(p[1], 'reference')
+            if referenceName != None:
+                TAC.emit(ST.getCurrentScope(), '', '', referenceName, 'JUMP')
+            else:
+                TAC.emit(ST.getCurrentScope(), '', '', p[1], 'JUMP')
+        else:
+            p[0]['type'] = 'REFERENCE_ERROR'
+            debug.printStatement('line %d: Not a function "%s"' %(p.lineno(2), p[1]))
+            # raise SyntaxError
 
     # Emit code
     p[0]['nextList'] = []
@@ -604,7 +619,6 @@ def p_expression_base_type(p):
     'expression : base_type'
 
     # Type rules
-    print p[1]
     p[0] = { 'type' : p[1]['type'] }
 
     p[0]['place'] = TAC.newTemp()
@@ -614,6 +628,7 @@ def p_expression_base_type(p):
     # emit code for backPatch
     if p[1]['type'] == 'FUNCTION':
         TAC.emit(ST.getCurrentScope(), p[0]['place'], '', p[1]['name'], '=REF')
+        p[0]['name'] = p[1]['name']
     else:
         if p[1]['value'] == 'true':
             p[0]['trueList'] = list([TAC.getNextQuad(ST.getCurrentScope()) + 1])
@@ -633,9 +648,9 @@ def p_expression_identifier(p):
 
     # Type rules
     p[0] = {}
-    entry = ST.exists(p[1])
-    if entry != False:
-        p[0]['type'] = entry['type']
+    identifierEntry = ST.exists(p[1])
+    if identifierEntry!= False:
+        p[0]['type'] = ST.getAttribute(p[1], 'type')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
@@ -643,6 +658,13 @@ def p_expression_identifier(p):
 
     # Emit code
     p[0]['place'] = ST.getAttribute(p[1], 'place')
+    p[0]['trueList'] = []
+    p[0]['falseList'] = []
+    p[0]['nextList'] = []
+
+    if p[0]['type'] == 'BOOLEAN':
+        p[0]['falseList'] = list([TAC.getNextQuad(ST.getCurrentScope())])
+        TAC.emit(ST.getCurrentScope(), ST.getAttribute(p[1], 'place') , 'GOTO', -1, 'COND_GOTO_Z')
 
 ########################################
 ########## BASE TYPES ##################

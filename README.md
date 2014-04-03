@@ -1,8 +1,7 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- Function arguments can include functions as well
-- main is not working as of yet, some issue in TAC
+- When a block has no statement, we get an error
 
 ## Todo
 - Statments:

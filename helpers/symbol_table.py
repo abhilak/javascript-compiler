@@ -1,7 +1,7 @@
 import pprint
 
 showSymbolTable = False
-symbol_table = {'__scopeName__': 'main' }
+symbol_table = {'__scopeName__': 'main', '__type__':'FUNCTION', '__returnType__': 'UNDEFINED' }
 
 # Two stacks one for offset and other for the current scope
 offset = [0]
@@ -48,7 +48,8 @@ def addScope(functionName):
     currentScope[functionName] = {
             '__scopeName__': functionName, 
             '__parentName__': currentScope['__scopeName__'],
-            '__returnType__': 'UNDEFINED'
+            '__returnType__': 'UNDEFINED',
+            '__type__': 'FUNCTION'
             }
     scope.append(currentScope[functionName])
 
@@ -73,6 +74,8 @@ def addIdentifier(identifier, IdentifierType):
         IdentifierWidth = 0
     elif IdentifierType == 'ARRAY':
         IdentifierWidth = 1000
+    elif IdentifierType == 'FUNCTION':
+        IdentifierWidth = 4
 
     # Update the entry
     if not currentScope.has_key(identifier):
@@ -91,7 +94,10 @@ def addAttribute(identifier, attributeName, attributeValue):
 
 def getAttribute(identifier, attributeName):
     identifierEntry = lookup(identifier)
-    return identifier['__' + attributeName + '__']
+    if identifierEntry.has_key('__' + attributeName + '__'):
+        return identifierEntry['__' + attributeName + '__']
+    else:
+        return None
 
 def exists(identifier):
     identifierEntry = lookup(identifier)
