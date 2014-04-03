@@ -15,6 +15,9 @@ def p_start(p):
     '''start : block
              | statements'''
 
+    # Emit code
+    p[0] = {}
+
     # print the code
     TAC.printCode()
 
@@ -25,6 +28,12 @@ def p_block(p):
     p[0] = {}
     p[0]['nextList'] = []
 
+    # For break statement
+    if p[2].has_key('loopEndList'):
+        p[0]['loopEndList'] = p[1]['loopEndList']
+    elif p[2].has_key('loopBeginList'):
+        p[0]['loopBeginList'] = p[1]['loopBeginList']
+
 def p_statments(p):
     '''statements : statement statements
                   | statement M_statements'''
@@ -32,14 +41,21 @@ def p_statments(p):
     # For statements waiting till the loop end
     p[0] = {}
 
+    # For break statement
+    if p[1].has_key('loopEndList'):
+        p[0]['loopEndList'] = p[1]['loopEndList']
+    elif p[1].has_key('loopBeginList'):
+        p[0]['loopBeginList'] = p[1]['loopBeginList']
+
 def p_statment(p):
     '''statement : assignment M_quad
                  | declaration M_quad
-                 | function_statement M_quad
-                 | break_statement M_quad
-                 | return_statement M_quad
+                 | if_then M_quad
                  | if_then_else M_quad
-                 | if_then M_quad'''
+                 | break_statement M_quad
+                 | continue_statement M_quad
+                 | return_statement M_quad
+                 | function_statement M_quad'''
 
     # Emit code
     p[0] = {}
@@ -47,6 +63,12 @@ def p_statment(p):
 
     # Backpatch statements here
     TAC.backPatch(p[1]['nextList'], p[2]['quad'])
+
+    # For break statement
+    if p[1].has_key('loopEndList'):
+        p[0]['loopEndList'] = p[1]['loopEndList']
+    elif p[1].has_key('loopBeginList'):
+        p[0]['loopBeginList'] = p[1]['loopBeginList']
 
     # print line number
     ST.printSymbolTable()
@@ -205,26 +227,29 @@ def p_return_statement(p):
 ######## BREAK STATEMENT ###############
 ########################################
 def p_break_statement(p):
-    'break_statement : BREAK'
+    'break_statement : BREAK SEP_SEMICOLON'
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
 
     # Emit code
     p[0]['nextList'] = []
+    p[0]['loopEndList'] = [TAC.nextQuad]
+    TAC.emit('', '', -1, 'GOTO')
 
 ########################################
 ######## CONTINUE STATEMENT ############
 ########################################
 def p_continue_statement(p):
-    'continue_statement : CONTINUE'
+    'continue_statement : CONTINUE SEP_SEMICOLON'
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
 
     # Emit code
     p[0]['nextList'] = []
-    # TAC.emit('', '', -1, 'goto');
+    p[0]['loopBeginList'] = [TAC.nextQuad]
+    TAC.emit('', '', -1, 'GOTO')
 
 ########################################
 ############# IF THEN ##################
@@ -288,6 +313,12 @@ def p_while(p):
     # Emit code
     # Backpatch the truelist of the expression
     p[0]['nextList'] = []
+
+    # Backpatch continue statements
+    # if p[7].has_key('loopBeginList'):
+    #     TAC.backPatch(p[7]['loopBeginList'], p[2]['quad'])
+    # if p[7].has_key('loopEndList'):
+    #     p[0]['nextList'] = p[7]['loopEndList']
 
 ########################################
 ############## EXPRESSIONS #############
@@ -404,7 +435,7 @@ def p_expression_relational(p):
     p[0]['falseList'] = [TAC.nextQuad + 1]
 
     # Emit code
-    TAC.emit(p[1]['place'] + p[2] + p[3]['place'], 'goto', -1, 'COND_GOTO')
+    TAC.emit(p[1]['place'] + p[2] + p[3]['place'], 'GOTO', -1, 'COND_GOTO')
     TAC.emit('', '', -1, 'GOTO')
 
 ######## LOGICAL EXPRESSION ##############
@@ -505,7 +536,6 @@ def p_expression_base_type(p):
     p[0] = { 'type' : p[1]['type'] }
 
     # emit code for backPatch
-    print p[1]
     if p[1]['value'] == 'true':
         p[0]['trueList'] = list([TAC.nextQuad])
         p[0]['falseList'] = []
