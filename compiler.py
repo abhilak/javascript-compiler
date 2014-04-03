@@ -52,7 +52,8 @@ def p_statment(p):
                  | break_statement M_quad
                  | continue_statement M_quad
                  | return_statement M_quad
-                 | function_statement M_quad'''
+                 | function_statement M_quad
+                 | function_call M_quad'''
 
     # Emit code
     p[0] = {}
@@ -124,7 +125,7 @@ def p_assignment_statment(p):
             # raise SyntaxError
     else:
         identifierEntry = ST.exists(p[2])
-        if identifierEntry == True:
+        if identifierEntry == False:
             # Put the identifier into the symbol_table
             ST.addIdentifier(p[2], p[4]['type'])
             statmentType = p[4]['type']
@@ -164,16 +165,15 @@ def p_function_statement(p):
     TAC.noop(ST.getCurrentScope(), p[8]['loopBeginList'])
 
     # print the name of the statement
-    functionName = p[2]
+    functionName = p[2] 
     debug.printStatement('Arguments of "%s" are: %s' %(functionName, p[5]))
     ST.deleteScope(functionName)
 
     # Type rules
-    p[0] = { 'type' : 'FUNCTION' }
+    p[0] = { 'type' : 'FUNCTION', 'name': p[2] }
 
     # Emit code
     p[0]['nextList'] = []
-
     p[0]['loopEndList'] = []
     p[0]['loopBeginList'] = []
 
@@ -200,7 +200,8 @@ def p_scope(p):
     # Create a function scope
     ST.addScope(p[-1])
     TAC.createFunctionCode(p[-1])
-
+    
+    # Debug Info
     ST.printSymbolTable()
 
 def p_anon_name(p):
@@ -224,6 +225,7 @@ def p_return_statement(p):
 
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
+    ST.addAttribute(ST.getCurrentScope(), 'returnType', p[2]['type'])
 
     # Emit code
     p[0]['nextList'] = []
@@ -233,6 +235,42 @@ def p_return_statement(p):
 ########################################
 ######## FUNCTIONS CALLS ###############
 ########################################
+def p_function_call(p):
+    'function_call : IDENTIFIER SEP_OPEN_PARENTHESIS actualParameters SEP_CLOSE_PARENTHESIS SEP_SEMICOLON'
+
+    p[0] = {}
+
+    # Semantic actions
+    if not ST.exists(p[1]):
+        p[0]['type'] = 'REFERENCE_ERROR'
+        debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[1]))
+        # raise SyntaxError
+    else:
+        TAC.emit(ST.getCurrentScope(), '', '', p[1], 'JUMP')
+
+    # Emit code
+    p[0]['nextList'] = []
+    p[0]['loopEndList'] = []
+    p[0]['loopBeginList'] = []
+
+def p_parameters(p):
+    'actualParameters : expression SEP_COMMA actualParameters'
+
+    # Emit code
+    TAC.emit(ST.getCurrentScope(), p[1]['place'], '', '', 'PARAM')
+
+def p_parameters_base(p):
+    'actualParameters : expression'
+
+    # Emit code
+    TAC.emit(ST.getCurrentScope(), p[1]['place'], '', '', 'PARAM')
+
+    p[0] = {}
+
+def p_parameters_empty(p):
+    'actualParameters : empty'
+
+    p[0] = {}
 
 ########################################
 ######## BREAK STATEMENT ###############
@@ -566,20 +604,27 @@ def p_expression_base_type(p):
     'expression : base_type'
 
     # Type rules
+    print p[1]
     p[0] = { 'type' : p[1]['type'] }
 
+    p[0]['place'] = TAC.newTemp()
+    p[0]['trueList'] = []
+    p[0]['falseList'] = []
+
     # emit code for backPatch
-    if p[1]['value'] == 'true':
-        p[0]['trueList'] = list([TAC.getNextQuad(ST.getCurrentScope())])
-        p[0]['falseList'] = []
-        TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
-    elif p[1]['value'] == 'false':
-        p[0]['trueList'] = []
-        p[0]['falseList'] = list([TAC.getNextQuad(ST.getCurrentScope())])
-        TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+    if p[1]['type'] == 'FUNCTION':
+        TAC.emit(ST.getCurrentScope(), p[0]['place'], '', p[1]['name'], '=REF')
     else:
-        p[0]['place'] = TAC.newTemp()
-        TAC.emit(ST.getCurrentScope(), p[0]['place'], p[1]['value'], '', '=')
+        if p[1]['value'] == 'true':
+            p[0]['trueList'] = list([TAC.getNextQuad(ST.getCurrentScope()) + 1])
+            TAC.emit(ST.getCurrentScope(), p[0]['place'], 1, '', '=')
+            TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+        elif p[1]['value'] == 'false':
+            p[0]['falseList'] = list([TAC.getNextQuad(ST.getCurrentScope()) + 1])
+            TAC.emit(ST.getCurrentScope(), p[0]['place'], 0, '', '=')
+            TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+        else :
+            TAC.emit(ST.getCurrentScope(), p[0]['place'], p[1]['value'], '', '=')
 
 ######## IDENTIFIER EXPRESSION ###########
 
@@ -590,9 +635,11 @@ def p_expression_identifier(p):
     p[0] = {}
     entry = ST.exists(p[1])
     if entry != False:
-        p[0] = { 'type' : entry['type']}
+        p[0]['type'] = entry['type']
     else:
-        debug.printStatement('%d Undefined Variable %s' %(p.lineno(1), p[1]))
+        p[0]['type'] = 'REFERENCE_ERROR'
+        debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
+        # raise SyntaxError
 
     # Emit code
     p[0]['place'] = ST.getAttribute(p[1], 'place')
@@ -631,7 +678,7 @@ def p_base_type_function(p):
     'base_type : function_statement'
 
     # Type rules
-    p[0] = { 'type': 'FUNCTION' }
+    p[0] = { 'type': 'FUNCTION', 'name': p[1]['name']}
 
 ######## ARRAY EXPRESSION ##############
 
@@ -698,8 +745,8 @@ def p_error(p):
         tok = yacc.token()             # Get the next token
         if not tok or tok.type == 'SEP_SEMICOLON': 
             break
-    # yacc.restart() 
-    yacc.errok()
+    yacc.restart() 
+    # yacc.errok()
 
 ######################################################################################################
 # a function to test the parser

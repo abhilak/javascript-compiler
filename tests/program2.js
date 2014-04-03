@@ -9,9 +9,18 @@ function temp(list, name) {
     }
 
     function nameSpace() {
-        x = 2;
+        var x = 2;
         break;
     }
+
+    nameSpace(2, function() {
+        var y2 = 3;
+        continue;
+        if ( true ) {
+            var y5 = 9;
+            continue;
+        }
+    });
 }
 
 function other(name) {

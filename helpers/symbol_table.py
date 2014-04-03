@@ -45,7 +45,11 @@ def addScope(functionName):
 
     # add the scope to the symbol_table
     currentScope = scope[len(scope) - 1]
-    currentScope[functionName] = {'__scopeName__': functionName, '__parentName__': currentScope['__scopeName__'] }
+    currentScope[functionName] = {
+            '__scopeName__': functionName, 
+            '__parentName__': currentScope['__scopeName__'],
+            '__returnType__': 'UNDEFINED'
+            }
     scope.append(currentScope[functionName])
 
     # Marks a new relative address
@@ -91,7 +95,7 @@ def getAttribute(identifier, attributeName):
 
 def exists(identifier):
     identifierEntry = lookup(identifier)
-    if identifier != None:
+    if identifierEntry != None:
         return True
     else:
         return False
