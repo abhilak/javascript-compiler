@@ -72,7 +72,7 @@ def p_statment(p):
 def p_mark_quad(p):
     'M_quad : empty'
 
-    p[0] = { 'quad' : TAC.nextQuad }
+    p[0] = { 'quad' : TAC.getNextQuad(ST.getCurrentScope())}
 
 # Marker for blanck statements
 def p_mark_statements(p):
@@ -159,6 +159,10 @@ def p_function_statement(p):
     '''function_statement : FUNCTION IDENTIFIER M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block
                           | FUNCTION M_anonName M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block'''
 
+    # Any remaining breaks and continues need to be purged
+    TAC.noop(ST.getCurrentScope(), p[8]['loopEndList'])
+    TAC.noop(ST.getCurrentScope(), p[8]['loopBeginList'])
+
     # print the name of the statement
     functionName = p[2]
     debug.printStatement('Arguments of "%s" are: %s' %(functionName, p[5]))
@@ -169,6 +173,7 @@ def p_function_statement(p):
 
     # Emit code
     p[0]['nextList'] = []
+
     p[0]['loopEndList'] = []
     p[0]['loopBeginList'] = []
 
@@ -243,7 +248,7 @@ def p_break_statement(p):
     # Emit code
     p[0]['nextList'] = []
     p[0]['loopBeginList'] = []
-    p[0]['loopEndList'] = [TAC.nextQuad]
+    p[0]['loopEndList'] = [TAC.getNextQuad(ST.getCurrentScope())]
     TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
 
 ########################################
@@ -260,7 +265,7 @@ def p_continue_statement(p):
     # Emit code
     p[0]['nextList'] = []
     p[0]['loopEndList'] = []
-    p[0]['loopBeginList'] = [TAC.nextQuad]
+    p[0]['loopBeginList'] = [TAC.getNextQuad(ST.getCurrentScope())]
     TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
 
 ########################################
@@ -459,8 +464,8 @@ def p_expression_relational(p):
     p[0] = { 'type' : expType }
 
     # Backpatching code
-    p[0]['trueList'] = [TAC.nextQuad]
-    p[0]['falseList'] = [TAC.nextQuad + 1]
+    p[0]['trueList'] = [TAC.getNextQuad(ST.getCurrentScope())]
+    p[0]['falseList'] = [TAC.getNextQuad(ST.getCurrentScope()) + 1]
 
     # Emit code
     TAC.emit(ST.getCurrentScope(), p[1]['place'] + p[2] + p[3]['place'], 'GOTO', -1, 'COND_GOTO')
@@ -565,12 +570,12 @@ def p_expression_base_type(p):
 
     # emit code for backPatch
     if p[1]['value'] == 'true':
-        p[0]['trueList'] = list([TAC.nextQuad])
+        p[0]['trueList'] = list([TAC.getNextQuad(ST.getCurrentScope())])
         p[0]['falseList'] = []
         TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
     elif p[1]['value'] == 'false':
         p[0]['trueList'] = []
-        p[0]['falseList'] = list([TAC.nextQuad])
+        p[0]['falseList'] = list([TAC.getNextQuad(ST.getCurrentScope())])
         TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
     else:
         p[0]['place'] = TAC.newTemp()

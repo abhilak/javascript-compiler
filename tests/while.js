@@ -1,3 +1,4 @@
+var y = 5;
 function temp(list, name) {
     while (1 > 2 && 3 < 4) {
         var x = 1;

@@ -1,8 +1,8 @@
 # An array to store the three address code
 import pprint
-code = {}
-quad = -1
-nextQuad = 0
+code = {'main': []}
+quad = {'main': -1}
+nextQuad = {'main': 0}
 
 tempBase = "t"
 tempCount = 0
@@ -14,15 +14,25 @@ def newTemp():
     tempCount = tempCount + 1
     return tempBase + str(tempCount)
 
+def incrementQuad(functionName):
+    global quad, nextQuad
+    quad[functionName] = nextQuad[functionName]
+    nextQuad[functionName] = nextQuad[functionName] + 1
+    return quad[functionName]
+
+def getNextQuad(functionName):
+    return nextQuad[functionName]
+
 # Function to emit code
 def emit(functionName, regDest, regSrc1, regSrc2, op):
-    global code, quad, nextQuad
-    quad = nextQuad
+    global code
+    incrementQuad(functionName)
     code[functionName].append([regDest, regSrc1, regSrc2, op])
-    nextQuad = nextQuad + 1
 
 def createFunctionCode(functionName):
     code[functionName] = []
+    quad[functionName] = -1
+    nextQuad[functionName] = 0
 
 # Function to print code
 def printCode():
@@ -43,3 +53,7 @@ def backPatch(functionName, locationList, location):
     for position in locationList:
         code[functionName][position][2] = location
     
+def noop(functionName, locationList):
+    global code
+    for position in locationList:
+        code[functionName][position][3] = 'NOOP'

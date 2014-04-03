@@ -1,6 +1,6 @@
 import pprint
 
-showSymbolTable = True
+showSymbolTable = False
 symbol_table = {'__scopeName__': 'main' }
 
 # Two stacks one for offset and other for the current scope
