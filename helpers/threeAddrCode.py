@@ -23,8 +23,8 @@ def emit(regDest, regSrc1, regSrc2, op):
 
 # Function to print code
 def printCode():
-    if printCodeValue:
-        pprint.pprint(code)
+    for i in range(len(code)):
+        print "%5d: \t" %i, code[i]
 
 # Function to merge two lists
 def merge(list1, list2):

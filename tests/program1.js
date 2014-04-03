@@ -1,10 +1,18 @@
 function name(list, name) {
     list = 1;
-    n4 = 8;
     var n1 = 2;
     name = 'srijan';
+    var x;
 
-    if ( 1 > 2 || 2 < 3 ) {
-        var n1 = 2;
+    if ( true ) {
+        x = 4;
+    }
+
+    if ( 1 > 3 || 2 > 4) {
+        x = 3;
+    }
+
+    if ( 1 < 3 && 2 < 4) {
+        x = 5;
     }
 }

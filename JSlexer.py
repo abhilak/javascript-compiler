@@ -80,7 +80,6 @@ def t_NUMBER(t):
 
 def t_BOOLEAN(t):
     r"true|false"
-    t.value = bool(t.value)
     return t
 
 ########################################

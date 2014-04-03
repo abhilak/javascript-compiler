@@ -1,7 +1,7 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- The type of if and while needs to be coerced to boolean if they are not already during code generation
+- Function arguments can include functions as well
 
 ## Todo
 - Statments:
@@ -9,7 +9,7 @@
     - list implementation and for in loop
     - siaf
 - backpatch
-    - if, while, nextList
+    - while, continue, return
 - runtime for lists
 
 ## Meetings

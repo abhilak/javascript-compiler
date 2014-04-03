@@ -25,14 +25,24 @@ def p_block(p):
     p[0] = {}
     p[0]['nextList'] = []
 
+    # For statements waiting till the loop end
+    if p[2].has_key('loopEndList'):
+        p[0]['loopEndList'] = p[1]['loopEndList']
+
 def p_statments(p):
     '''statements : statement statements
                   | statement M_statements'''
+
+    # For statements waiting till the loop end
+    p[0] = {}
+    if p[1].has_key('loopEndList'):
+        p[0]['loopEndList'] = p[1]['loopEndList']
 
 def p_statment(p):
     '''statement : assignment M_quad
                  | declaration M_quad
                  | function_statement M_quad
+                 | break_statement M_quad
                  | return_statement M_quad
                  | if_then_else M_quad
                  | if_then M_quad'''
@@ -40,6 +50,10 @@ def p_statment(p):
     # Emit code
     p[0] = {}
     p[0]['nextList'] = []
+
+    # For statements waiting till the loop end
+    if p[1].has_key('loopEndList'):
+        p[0]['loopEndList'] = p[1]['loopEndList']
 
     # Backpatch statements here
     TAC.backPatch(p[1]['nextList'], p[2]['quad'])
@@ -97,13 +111,19 @@ def p_assignment_statment(p):
             statmentType = 'REFERENCE_ERROR'
             debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
             # raise SyntaxError
-        else:
+    else:
+        identifierEntry = ST.lookup(p[2])
+        if identifierEntry == None:
             # Put the identifier into the symbol_table
             ST.addIdentifier(p[2], p[4]['type'])
             statmentType = p[4]['type']
 
             # Emit code
             ST.addAttribute(p[2], 'place', p[4]['place'])
+        else:
+            statmentType = 'REFERENCE_ERROR'
+            debug.printStatement('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
+            # raise SyntaxError
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
@@ -202,6 +222,8 @@ def p_break_statement(p):
 
     # Emit code
     p[0]['nextList'] = []
+    p[0]['loopEndList'] = [TAC.nextQuad]
+    TAC.emit('', '', -1, 'goto');
 
 ########################################
 ######## CONTINUE STATEMENT ############
@@ -214,6 +236,7 @@ def p_continue_statement(p):
 
     # Emit code
     p[0]['nextList'] = []
+    # TAC.emit('', '', -1, 'goto');
 
 ########################################
 ############# IF THEN ##################
@@ -233,7 +256,6 @@ def p_if_then(p):
 
     # Emit code
     # Backpatch the truelist of the expression
-    print p[3]
     TAC.backPatch(p[3]['trueList'] , p[5]['quad'])
     p[0]['nextList'] = TAC.merge(p[3]['falseList'], p[6]['nextList'])
 
@@ -263,7 +285,7 @@ def p_if_then_else(p):
 ########## WHILE STATEMENT #############
 ########################################
 def p_while(p):
-    'while : WHILE SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS block'
+    'while : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block'
 
     debug.printStatement('WHILE')
 
@@ -276,7 +298,18 @@ def p_while(p):
     p[0] = { 'type' : statmentType }
 
     # Emit code
+    # Backpatch the truelist of the expression
     p[0]['nextList'] = []
+
+    # For statements waiting til the loop exit
+    if p[7].has_key('loopEndList'):
+        p[0]['nextList'] = TAC.merge(p[7]['nextList'], p[6]['loopEndList'])
+    TAC.backPatch(p[4]['trueList'] , p[6]['quad'])
+    p[0]['nextList'] = TAC.merge(p[0]['nextList'] , p[4]['falseList'])
+    p[0]['nextList'] = TAC.merge(p[0]['nextList'], p[7]['nextList'])
+
+    # Go to the loop beginning
+    TAC.emit('', '', p[2]['quad'], 'goto')
 
 ########################################
 ############## EXPRESSIONS #############
@@ -494,13 +527,14 @@ def p_expression_base_type(p):
     p[0] = { 'type' : p[1]['type'] }
 
     # emit code for backPatch
+    print p[1]
     if p[1]['value'] == 'true':
-        p[0]['trueList'].append(TAC.nextQuad)
+        p[0]['trueList'] = list([TAC.nextQuad])
         p[0]['falseList'] = []
         TAC.emit('', '', -1, 'GOTO')
     elif p[1]['value'] == 'false':
         p[0]['trueList'] = []
-        p[0]['falseList'].append(TAC.nextQuad)
+        p[0]['falseList'] = list([TAC.nextQuad])
         TAC.emit('', '', -1, 'GOTO')
     else:
         p[0]['place'] = TAC.newTemp()
@@ -520,7 +554,7 @@ def p_expression_identifier(p):
         debug.printStatement('%d Undefined Variable %s' %(p.lineno(1), p[1]))
 
     # Emit code
-    identifierEntry = ST.lookup(p[2])
+    identifierEntry = ST.lookup(p[1])
     p[0]['place'] = identifierEntry['place']
 
 ########################################
@@ -537,7 +571,7 @@ def p_base_type_boolean(p):
     'base_type : BOOLEAN'
 
     # Type rules
-    p[0] = { 'type' : 'BOOLEAN' , 'value' : bool(p[1]) }
+    p[0] = { 'type' : 'BOOLEAN' , 'value' : p[1] }
 
 def p_base_type_string(p):
     'base_type : STRING'
