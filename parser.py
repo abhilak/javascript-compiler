@@ -2,10 +2,14 @@
 import pprint
 from ply import yacc
 from sys import argv, exit
-from helpers import symbol_table as ST
+from helpers import symbol_table as SymbolTable
 from helpers import debug
 from JSlexer import tokens, lexer
-from helpers import threeAddrCode as TAC
+from helpers import threeAddrCode as ThreeAddressCode
+
+# Singletons of the helper classes
+ST = SymbolTable.SymbolTable()
+TAC = ThreeAddressCode.ThreeAddressCode(ST)
 
 ########################################
 ############# STATEMENTS ###############
@@ -66,7 +70,7 @@ def p_statment(p):
     p[0]['loopBeginList'] = p[1]['loopBeginList']
 
     # print line number
-    ST.printSymbolTable()
+    TAC.printSymbolTable()
 
 # Marker to mark the nextQuad value
 def p_mark_quad(p):
@@ -222,7 +226,7 @@ def p_scope(p):
     TAC.createFunctionCode(p[0]['name'])
     
     # Debug Info
-    ST.printSymbolTable()
+    TAC.printSymbolTable()
 
 def p_anon_name(p):
     'M_anonName : empty'

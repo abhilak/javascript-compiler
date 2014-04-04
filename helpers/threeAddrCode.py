@@ -1,69 +1,73 @@
 # An array to store the three address code
 import pprint
-code = {'main': []}
-quad = {'main': -1}
-nextQuad = {'main': 0}
+import symbol_table as SymbolTable
 
-tempBase = "t"
-tempCount = 0
-printCodeValue = True
+class ThreeAddressCode:
+    def __init__(self, ST):
+        self.code = {'main': []}
+        self.quad = {'main': -1}
+        self.nextQuad = {'main': 0}
 
-# Function to create new temporaries
-def newTemp():
-    global tempBase, tempCount
-    tempCount = tempCount + 1
-    return tempBase + str(tempCount)
+        self.tempBase = "t"
+        self.tempCount = 0
+        self.printCodeValue = True
 
-# Increment the quad for a given function
-def incrementQuad(functionName):
-    global quad, nextQuad
-    quad[functionName] = nextQuad[functionName]
-    nextQuad[functionName] = nextQuad[functionName] + 1
-    return quad[functionName]
+        # Contains an instance of the SymbolTable
+        self.ST = ST
+        
+    # Function to create new temporaries
+    def newTemp(self):
+        self.tempCount = self.tempCount + 1
+        return self.tempBase + str(self.tempCount)
 
-# Get the next quad of a given function
-def getNextQuad(functionName):
-    return nextQuad[functionName]
+    # Increment the quad for a given function
+    def incrementQuad(self, functionName):
+        self.quad[functionName] = self.nextQuad[functionName]
+        self.nextQuad[functionName] = self.nextQuad[functionName] + 1
+        return self.quad[functionName]
 
-# This function will return the code length of a given function
-def getCodeLength(functionName):
-    global quad
-    return quad[functionName]
+    # Get the next quad of a given function
+    def getNextQuad(self, functionName):
+        return self.nextQuad[functionName]
 
-# Function to emit code
-def emit(functionName, regDest, regSrc1, regSrc2, op):
-    global code
-    incrementQuad(functionName)
-    code[functionName].append([regDest, regSrc1, regSrc2, op])
+    # This function will return the code length of a given function
+    def getCodeLength(self, functionName):
+        return self.quad[functionName]
 
-# This creates a new TAC for a given function name
-def createFunctionCode(functionName):
-    code[functionName] = []
-    quad[functionName] = -1
-    nextQuad[functionName] = 0
+    # Function to emit code
+    def emit(self, functionName, regDest, regSrc1, regSrc2, op):
+        self.incrementQuad(functionName)
+        self.code[functionName].append([regDest, regSrc1, regSrc2, op])
 
-# Function to print code
-def printCode():
-    for functionName in code.keys():
-        print "\n%s:" %functionName
-        for i in range(len(code[functionName])):
-            print "%5d: \t" %i, code[functionName][i]
+    # This creates a new TAC for a given function name
+    def createFunctionCode(self, functionName):
+        self.code[functionName] = []
+        self.quad[functionName] = -1
+        self.nextQuad[functionName] = 0
 
-# Function to merge two lists
-def merge(list1, list2):
-    list3 = list(list1)
-    list3.extend(list2)
-    return list3
+    # Function to print code
+    def printCode(self):
+        for functionName in self.code.keys():
+            print "\n%s:" %functionName
+            for i in range(len(self.code[functionName])):
+                print "%5d: \t" %i, self.code[functionName][i]
 
-# Function to backpatch
-def backPatch(functionName, locationList, location):
-    global code
-    for position in locationList:
-        code[functionName][position][2] = location
-    
-# This function converts every location in the locationList to null
-def noop(functionName, locationList):
-    global code
-    for position in locationList:
-        code[functionName][position][3] = 'NOOP'
+    # Function to merge two lists
+    def merge(self, list1, list2):
+        list3 = list(list1)
+        list3.extend(list2)
+        return list3
 
+    # Function to backpatch
+    def backPatch(self, functionName, locationList, location):
+        for position in locationList:
+            self.code[functionName][position][2] = location
+        
+    # This function converts every location in the locationList to null
+    def noop(self, functionName, locationList):
+        for position in locationList:
+            self.code[functionName][position][3] = 'NOOP'
+
+    # Print the SymbolTable
+    def printSymbolTable(self):
+        self.ST.printSymbolTable()
