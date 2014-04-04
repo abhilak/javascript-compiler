@@ -18,8 +18,21 @@ def p_start(p):
     '''start : block
              | statements'''
 
+    # Any remaining breaks and continues need to be purged
+    TAC.noop(p[1]['loopEndList'])
+    TAC.noop(p[1]['loopBeginList'])
+
+    # Here we have to have statements so that we can return back to the calling function
+    TAC.emit('', '' , -1, 'EXIT')
+
+    # Resolve all functions that are waiting
+    TAC.resolveWaitingFunctions()
+    
     # Emit code
     p[0] = {}
+
+    # print line number
+    TAC.printSymbolTable()
 
     # print the code
     TAC.printCode()
@@ -68,9 +81,6 @@ def p_statment(p):
     # For break statement
     p[0]['loopEndList'] = p[1]['loopEndList']
     p[0]['loopBeginList'] = p[1]['loopBeginList']
-
-    # print line number
-    TAC.printSymbolTable()
 
 # Marker to mark the nextQuad value
 def p_mark_quad(p):
@@ -129,6 +139,7 @@ def p_assignment_statment(p):
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[4]['type'] == 'FUNCTION':
             ST.addAttribute(p[2], 'reference', p[4]['name'])
+            ST.addToFunctionList(p[2])
 
         # Emit code
         ST.addAttribute(p[2], 'place', p[4]['place'])
@@ -172,6 +183,9 @@ def p_function_statement(p):
     # Here we have to have statements so that we can return back to the calling function
     TAC.emit('', '' , -1, 'RETURN')
 
+    # Resolve all functions that are waiting
+    TAC.resolveWaitingFunctions()
+    
     # print the name of the statement
     functionName = p[3]['name'] 
     debug.printStatement('Arguments of "%s" are: %s' %(functionName, p[5]))
@@ -210,6 +224,9 @@ def p_scope(p):
 
     p[0] = {}
 
+    # Add this function to the functionList of its parent
+    ST.addToFunctionList(p[-1])
+
     # Name the function
     p[0]['name'] = ST.nameAnon()
 
@@ -223,9 +240,6 @@ def p_scope(p):
     ST.addScope(p[0]['name'])
     TAC.createFunctionCode(p[0]['name'])
     
-    # Debug Info
-    TAC.printSymbolTable()
-
 def p_anon_name(p):
     'M_anonName : empty'
 
@@ -266,9 +280,8 @@ def p_function_call(p):
     # Semantic actions
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
-        p[0]['type'] = 'REFERENCE_ERROR'
-        debug.printError('line %d: Undefined Variable "%s"' %(p.lineno(2), p[1]))
-        # raise SyntaxError
+        ST.addToWaitingList(p[1], TAC.getNextQuad())
+        TAC.emit('', '', -1, 'JUMP')
     else:
         # We check whether the identifier is a function or a reference
         if ST.getAttribute(p[1], 'type') == 'FUNCTION':
@@ -758,6 +771,12 @@ def p_error(p):
             break
     yacc.restart() 
     # yacc.errok()
+
+def handleError():
+    while 1:
+        tok = yacc.token()             # Get the next token
+        if not tok or tok.type == 'SEP_SEMICOLON': 
+            break
 
 ######################################################################################################
 # a function to test the parser

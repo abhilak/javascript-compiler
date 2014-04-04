@@ -1,5 +1,6 @@
 # An array to store the three address code
 import pprint
+import debug
 import symbol_table as SymbolTable
 
 class ThreeAddressCode:
@@ -76,3 +77,25 @@ class ThreeAddressCode:
     # Print the SymbolTable
     def printSymbolTable(self):
         self.ST.printSymbolTable()
+
+    def resolveWaitingFunctions(self):
+        currentScope = self.ST.scope[len(self.ST.scope) - 1]
+        currentFunction = self.ST.getCurrentScope()
+
+        waitingFunctions = currentScope['__waitingList__']
+        functionList = currentScope['__functionList__']
+
+        for function in functionList:
+            if waitingFunctions.has_key(function):
+                for location in waitingFunctions[function]:
+                    self.code[currentFunction][location][2] = self.ST.getAttribute(function, 'reference')
+                del waitingFunctions[function]
+
+        for function in waitingFunctions:
+            debug.printError('line x: Undefined Function "%s" in "%s"' %(function, self.ST.getCurrentScope()))
+            for location in waitingFunctions[function]:
+                self.code[currentFunction][location][3] = 'NOOP'
+
+        # Remove the list of waiting function
+        del currentScope['__waitingList__']
+                

@@ -3,12 +3,15 @@ import pprint
 class SymbolTable:
     # Constructor for the function
     def __init__(self):
-        self.showSymbolTable = True
+        self.showSymbolTable = False
         self.symbol_table = {
                 'main': {
                     '__scopeName__': 'main', 
+                    '__parentName__': 'main', 
                     '__type__':'FUNCTION', 
-                    '__returnType__': 'UNDEFINED' 
+                    '__returnType__': 'UNDEFINED',
+                    '__functionList__' : [],
+                    '__waitingList__' : {}
                     }
                 }
         self.temporaryCount = 0
@@ -51,7 +54,9 @@ class SymbolTable:
                 '__scopeName__': functionName, 
                 '__parentName__': currentScope['__scopeName__'],
                 '__returnType__': 'UNDEFINED',
-                '__type__': 'FUNCTION'
+                '__type__': 'FUNCTION',
+                '__functionList__': [],
+                '__waitingList__' : {}
                 }
         self.scope.append(currentScope[functionName])
 
@@ -116,3 +121,15 @@ class SymbolTable:
     def nameAnon(self):
         self.temporaryCount += 1
         return '__anon' + str(self.temporaryCount) + '__'
+
+    # Function to add a function to the currentScope
+    def addToFunctionList(self, functionName):
+        currentScope = self.scope[len(self.scope) - 1]
+        currentScope['__functionList__'].append(functionName)
+
+    def addToWaitingList(self, functionName, location):
+        currentScope = self.scope[len(self.scope) - 1]
+        if currentScope['__waitingList__'].has_key(functionName):
+            currentScope['__waitingList__'][functionName].append(location)
+        else:
+            currentScope['__waitingList__'][functionName] = [location]

@@ -1,12 +1,18 @@
-function temp() {
-    var x = true;
-    var y = 5;
+void();
+ask();
+function void() {
+    temp();
 
-    if ( x ) {
-        var z = y + 1;
+    temp ();
+    function temp() {
+        var x = true;
+        var y = 5;
+
+        if ( x ) {
+            var z = y + 1;
+        }
+
     }
-
 }
 
-temp();
 
