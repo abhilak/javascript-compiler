@@ -15,7 +15,12 @@ reserved = {
     'function' : 'FUNCTION',
     'return' : 'RETURN',
     'typeof' : 'OP_TYPEOF',
-    'undefined' : 'UNDEFINED'
+    'undefined' : 'UNDEFINED',
+    'num' : 'HINT_NUMBER',
+    'callback' : 'HINT_FUNCTION',
+    'string' : 'HINT_STRING',
+    'array' : 'HINT_ARRAY',
+    'bool' : 'HINT_BOOLEAN'
 }
 
 ########################################
@@ -52,7 +57,8 @@ tokens = [
         "SEP_CLOSE_BRACKET",
         "SEP_OPEN_PARENTHESIS",
         "SEP_CLOSE_PARENTHESIS",
-        "SEP_COMMA"
+        "SEP_COMMA",
+        "OP_HINT"
         ] + list(reserved.values())
 
 ########################################
@@ -86,6 +92,10 @@ def t_BOOLEAN(t):
 ########################################
 ############# OPERATORS ################
 ########################################
+def t_OP_HINT(t):
+    r"::"
+    return t
+
 def t_OP_EQUALS(t):
     r"===|"r"=="
     return t
