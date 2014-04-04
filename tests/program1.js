@@ -1,20 +1,12 @@
-function name(list, name) {
-    list = 1;
-    var n1 = 2;
-    name = 'srijan';
-    var x;
+function temp() {
+    var x = true;
+    var y = 5;
 
-    if ( true ) {
-        x = 4;
-        break;
+    if ( x ) {
+        var z = y + 1;
     }
 
-    if ( 1 > 3 || 2 > 4) {
-        x = 3;
-        continue;
-    }
-
-    if ( 1 < 3 && 2 < 4) {
-        x = 5;
-    }
 }
+
+temp();
+
