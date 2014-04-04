@@ -136,7 +136,7 @@ def p_assignment_statment(p):
             TAC.noop(ST.getCurrentScope(), p[4]['falseList'])
     else:
         statmentType = 'REFERENCE_ERROR'
-        debug.printStatement('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
+        debug.printError('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
         # raise SyntaxError
 
     # print the name of the statement
@@ -166,10 +166,16 @@ def p_function_statement(p):
     TAC.noop(ST.getCurrentScope(), p[8]['loopEndList'])
     TAC.noop(ST.getCurrentScope(), p[8]['loopBeginList'])
 
+    # Here we have to have statements so that we can return back to the calling function
+    TAC.emit(ST.getCurrentScope(), '', '' , -1, 'RETURN')
+
     # print the name of the statement
     functionName = p[2] 
     debug.printStatement('Arguments of "%s" are: %s' %(functionName, p[5]))
     ST.deleteScope(functionName)
+
+    # Update the code Length of the given function
+    ST.addAttribute(functionName, 'codeLength', TAC.getCodeLength(functionName))
 
     # Type rules
     p[0] = { 'type' : 'FUNCTION', 'name': p[2] }
@@ -248,7 +254,7 @@ def p_function_call(p):
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
         p[0]['type'] = 'REFERENCE_ERROR'
-        debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[1]))
+        debug.printError('line %d: Undefined Variable "%s"' %(p.lineno(2), p[1]))
         # raise SyntaxError
     else:
         # We check whether the identifier is a function or a reference
@@ -260,7 +266,7 @@ def p_function_call(p):
                 TAC.emit(ST.getCurrentScope(), '', '', p[1], 'JUMP')
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
-            debug.printStatement('line %d: Not a function "%s"' %(p.lineno(2), p[1]))
+            debug.printError('line %d: Not a function "%s"' %(p.lineno(2), p[1]))
             # raise SyntaxError
 
     # Emit code
@@ -448,6 +454,7 @@ def p_expression_unary(p):
     # In case of type errors
     if errorFlag:
         expType = 'TYPE_ERROR'
+        debug.printError('line %d: Type Error' %p.lineno(2))
         # raise TypeError
 
     # Return type of the statment
@@ -488,7 +495,7 @@ def p_expression_binop(p):
     # Type Error
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printStatement('line %d: Type Error' %p.lineno(1))
+        debug.printError('line %d: Type Error' %p.lineno(1))
         # raise TypeError
 
     p[0]['type'] = expType
@@ -511,7 +518,7 @@ def p_expression_relational(p):
         expType = 'BOOLEAN'
     else:
         expType = 'TYPE_ERROR'
-        debug.printStatement('line %d: Type Error' %p.lineno(1))
+        debug.printError('line %d: Type Error' %p.lineno(1))
         # raise TypeError
     
     p[0] = { 'type' : expType }
@@ -653,7 +660,7 @@ def p_expression_identifier(p):
         p[0]['type'] = ST.getAttribute(p[1], 'type')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
-        debug.printStatement('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
+        debug.printError('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
         # raise SyntaxError
 
     # Emit code

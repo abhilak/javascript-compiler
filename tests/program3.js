@@ -17,7 +17,7 @@ function temp(list, name) {
         while ( k ) {
             var m = 1;
         }
-    });
+    }); 
 
     var z = function () {
         var y;
