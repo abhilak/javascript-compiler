@@ -1,10 +1,5 @@
-void();
-ask();
 function void() {
-    temp();
-
-    temp ();
-    function temp() {
+    function temp(list::bool, name::string) {
         var x = true;
         var y = 5;
 
@@ -13,6 +8,12 @@ function void() {
         }
 
     }
+
+    temp(true, 'srijan');
 }
+
+void(x);
+
+var y = 1;
 
 

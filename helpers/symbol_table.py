@@ -28,8 +28,8 @@ class SymbolTable:
     # function to lookup an element in the stack
     def lookup(self, identifier):
         # Obtain the currentScope
-        currentScope = len(self.scope)
-        return self.lookupScope(identifier, currentScope - 1)
+        scopeLocation = len(self.scope)
+        return self.lookupScope(identifier, scopeLocation - 1)
 
     def lookupScope(self, identifier, scopeLocation):
         if scopeLocation == -1:
@@ -133,3 +133,14 @@ class SymbolTable:
             currentScope['__waitingList__'][functionName].append(location)
         else:
             currentScope['__waitingList__'][functionName] = [location]
+
+    def equal(self, list1, list2):
+        if len(list1) != len(list2):
+            return False
+        else:
+            for i in range(len(list1)):
+                if list1[i] == list2[i]:
+                    pass
+                else:
+                    return False
+            return True

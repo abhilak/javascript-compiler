@@ -151,7 +151,7 @@ def p_assignment_statment(p):
     else:
         statmentType = 'REFERENCE_ERROR'
         debug.printError('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
-        # raise SyntaxError
+        raise SyntaxError
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
@@ -194,6 +194,9 @@ def p_function_statement(p):
     # Update the code Length of the given function
     ST.addAttribute(functionName, 'codeLength', TAC.getCodeLength(functionName))
 
+    # Add the parameter list to the function
+    ST.addAttribute(functionName, 'parameters', list(p[5]))
+
     # Type rules
     p[0] = { 'type' : 'FUNCTION', 'name': functionName }
 
@@ -202,17 +205,35 @@ def p_function_statement(p):
     p[0]['loopEndList'] = []
     p[0]['loopBeginList'] = []
 
+def p_hint(p):
+    '''hint : IDENTIFIER OP_HINT HINT_NUMBER
+            | IDENTIFIER OP_HINT HINT_FUNCTION
+            | IDENTIFIER OP_HINT HINT_STRING
+            | IDENTIFIER OP_HINT HINT_ARRAY
+            | IDENTIFIER OP_HINT HINT_BOOLEAN'''
+
+    p[0] = {'name': p[1] }
+
+    # According to the hint assign a type to the identifier
+    if p[3] == 'callback':
+        p[0]['type'] = 'FUNCTION'
+    elif p[3] == 'num':
+        p[0]['type'] == 'NUMBER'
+    elif p[3] == 'bool':
+        p[0]['type'] = 'BOOLEAN'
+    elif p[3] == 'string':
+        p[0]['type'] = 'STRING'
+    else:
+        p[0]['type'] = 'ARRAY'
+
 def p_arg_list(p):
-    'argList : IDENTIFIER SEP_COMMA argList'
+    'argList : hint SEP_COMMA argList'
     
     # Creating the argList to be passed to the function
-    if p[3] == None:
-        p[0] = [ p[1] ]
-    else :
-        p[0] = [ p[1] ] + p[3]
+    p[0] = [ p[1] ] + p[3]
 
 def p_arg_list_base(p):
-    'argList : IDENTIFIER'''
+    'argList : hint'''
     p[0] = [ p[1] ]
 
 def p_arg_list_empty(p):
@@ -250,7 +271,7 @@ def p_insert_args(p):
 
     # Add identifiers to local scope
     for argument in p[-2]:
-        ST.addIdentifier(argument, 'UNDEFINED')
+        ST.addIdentifier(argument['name'], argument['type'])
 
 ########################################
 ######## RETURN STATEMENT ##############
@@ -280,20 +301,29 @@ def p_function_call(p):
     # Semantic actions
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
+        # ST.addToWaitingList(p[1], { 'location:' TAC.getNextQuad(), 'parameters' : p[3] })
         ST.addToWaitingList(p[1], TAC.getNextQuad())
         TAC.emit('', '', -1, 'JUMP')
     else:
         # We check whether the identifier is a function or a reference
         if ST.getAttribute(p[1], 'type') == 'FUNCTION':
+            # Now we have to make sure that parameters of the function match
             referenceName = ST.getAttribute(p[1], 'reference')
             if referenceName != None:
-                TAC.emit('', '', referenceName, 'JUMP')
-            else:
-                TAC.emit('', '', p[1], 'JUMP')
+                # Check for matches of parameters
+                formalParameters = ST.getAttribute(referenceName, 'parameters')
+                formalParameters = map( lambda x: x['type'], formalParameters)
+
+                if ST.equal(formalParameters, p[3]):
+                    TAC.emit('', '', referenceName, 'JUMP')
+                else:
+                    p[0]['type'] = 'PARAMETER_ERROR'
+                    debug.printError('line %d: Parameter mismatch "%s"' %(p.lineno(4), p[1]))
+                    raise SyntaxError
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('line %d: Not a function "%s"' %(p.lineno(2), p[1]))
-            # raise SyntaxError
+            raise SyntaxError
 
     # Emit code
     p[0]['nextList'] = []
@@ -306,18 +336,20 @@ def p_parameters(p):
     # Emit code
     TAC.emit(p[1]['place'], '', '', 'PARAM')
 
+    p[0] = [p[1]['type']] + p[3]
+
 def p_parameters_base(p):
     'actualParameters : expression'
 
     # Emit code
     TAC.emit(p[1]['place'], '', '', 'PARAM')
 
-    p[0] = {}
+    p[0] = [ p[1]['type'] ]
 
 def p_parameters_empty(p):
     'actualParameters : empty'
 
-    p[0] = {}
+    p[0] = []
 
 ########################################
 ######## BREAK STATEMENT ###############
@@ -481,7 +513,7 @@ def p_expression_unary(p):
     if errorFlag:
         expType = 'TYPE_ERROR'
         debug.printError('line %d: Type Error' %p.lineno(2))
-        # raise TypeError
+        raise SyntaxError
 
     # Return type of the statment
     p[0]['type'] = expType
@@ -522,7 +554,7 @@ def p_expression_binop(p):
     if errorFlag:
         expType = 'TYPE_ERROR'
         debug.printError('line %d: Type Error' %p.lineno(1))
-        # raise TypeError
+        raise SyntaxError
 
     p[0]['type'] = expType
 
@@ -545,7 +577,7 @@ def p_expression_relational(p):
     else:
         expType = 'TYPE_ERROR'
         debug.printError('line %d: Type Error' %p.lineno(1))
-        # raise TypeError
+        raise SyntaxError
     
     p[0] = { 'type' : expType }
 
@@ -684,13 +716,13 @@ def p_expression_identifier(p):
     identifierEntry = ST.exists(p[1])
     if identifierEntry!= False:
         p[0]['type'] = ST.getAttribute(p[1], 'type')
+        p[0]['place'] = ST.getAttribute(p[1], 'place')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
-        debug.printError('line %d: Undefined Variable "%s"' %(p.lineno(2), p[2]))
-        # raise SyntaxError
+        debug.printError('line %d: Undefined Variable "%s"' %(p.lineno(1), p[1]))
+        raise SyntaxError
 
     # Emit code
-    p[0]['place'] = ST.getAttribute(p[1], 'place')
     p[0]['trueList'] = []
     p[0]['falseList'] = []
     p[0]['nextList'] = []
@@ -771,12 +803,6 @@ def p_error(p):
             break
     yacc.restart() 
     # yacc.errok()
-
-def handleError():
-    while 1:
-        tok = yacc.token()             # Get the next token
-        if not tok or tok.type == 'SEP_SEMICOLON': 
-            break
 
 ######################################################################################################
 # a function to test the parser
