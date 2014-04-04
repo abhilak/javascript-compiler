@@ -4,7 +4,6 @@ from ply import yacc
 from sys import argv, exit
 from helpers import symbol_table as ST
 from helpers import debug
-from helpers import features
 from JSlexer import tokens, lexer
 from helpers import threeAddrCode as TAC
 

@@ -114,3 +114,8 @@ def deleteScope(functionName):
     currentScope = scope.pop()
     currentScope['__width__'] = offset.pop()
     
+# A function that returns a unique name for anonymous functions
+def nameAnon():
+    global temporaryCount
+    temporaryCount += 1
+    return '__anon' + str(temporaryCount) + '__'
