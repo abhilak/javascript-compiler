@@ -1,11 +1,18 @@
 import pprint
 
 showSymbolTable = True
-symbol_table = {'__scopeName__': 'main', '__type__':'FUNCTION', '__returnType__': 'UNDEFINED' }
+symbol_table = {
+        'main': {
+            '__scopeName__': 'main', 
+            '__type__':'FUNCTION', 
+            '__returnType__': 'UNDEFINED' 
+            }
+        }
+temporaryCount = 0
 
 # Two stacks one for offset and other for the current scope
 offset = [0]
-scope = [symbol_table]
+scope = [symbol_table['main']]
 
 def printSymbolTable():
     if showSymbolTable:
@@ -116,6 +123,6 @@ def deleteScope(functionName):
     
 # A function that returns a unique name for anonymous functions
 def nameAnon():
-    global temporaryCount
+    global temporaryCount 
     temporaryCount += 1
     return '__anon' + str(temporaryCount) + '__'

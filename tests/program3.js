@@ -1,3 +1,4 @@
+var y = 3;
 function temp(list, name) {
     function nameSpace() {
         var x = 2;
@@ -23,6 +24,8 @@ function temp(list, name) {
         var y;
     };
 
-    z();
+    nameSpace();
 
 }
+
+var m = 1;

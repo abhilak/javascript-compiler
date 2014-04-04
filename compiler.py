@@ -161,15 +161,17 @@ def p_function_statement(p):
     '''function_statement : FUNCTION IDENTIFIER M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block
                           | FUNCTION M_anonName M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block'''
 
+    currentScope = ST.getCurrentScope()
+
     # Any remaining breaks and continues need to be purged
-    TAC.noop(ST.getCurrentScope(), p[8]['loopEndList'])
-    TAC.noop(ST.getCurrentScope(), p[8]['loopBeginList'])
+    TAC.noop(currentScope, p[8]['loopEndList'])
+    TAC.noop(currentScope, p[8]['loopBeginList'])
 
     # Here we have to have statements so that we can return back to the calling function
-    TAC.emit(ST.getCurrentScope(), '', '' , -1, 'RETURN')
+    TAC.emit(currentScope, '', '' , -1, 'RETURN')
 
     # print the name of the statement
-    functionName = p[2] 
+    functionName = p[3]['name'] 
     debug.printStatement('Arguments of "%s" are: %s' %(functionName, p[5]))
     ST.deleteScope(functionName)
 
@@ -177,7 +179,7 @@ def p_function_statement(p):
     ST.addAttribute(functionName, 'codeLength', TAC.getCodeLength(functionName))
 
     # Type rules
-    p[0] = { 'type' : 'FUNCTION', 'name': p[2] }
+    p[0] = { 'type' : 'FUNCTION', 'name': functionName }
 
     # Emit code
     p[0]['nextList'] = []
@@ -204,9 +206,20 @@ def p_arg_list_empty(p):
 def p_scope(p):
     'M_scope : empty'
 
+    p[0] = {}
+
+    # Name the function
+    p[0]['name'] = ST.nameAnon()
+
+    # Now add the identifier as a function reference
+    if p[-1] != None:
+        ST.addIdentifier(p[-1], 'FUNCTION')
+        ST.addAttribute(p[-1], 'reference', p[0]['name'])
+
+    # We store the identifier as a function reference
     # Create a function scope
-    ST.addScope(p[-1])
-    TAC.createFunctionCode(p[-1])
+    ST.addScope(p[0]['name'])
+    TAC.createFunctionCode(p[0]['name'])
     
     # Debug Info
     ST.printSymbolTable()
@@ -214,8 +227,7 @@ def p_scope(p):
 def p_anon_name(p):
     'M_anonName : empty'
 
-    # Create the name of the function
-    p[0] = features.nameAnon()
+    p[0] = None
 
 def p_insert_args(p):
     'M_insertArgs : empty'

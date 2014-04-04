@@ -2,6 +2,8 @@
 
 ## Issues
 - When a block has no statement, we get an error
+- Parameter checking
+- Patching functionLabels
 
 ## Unique Stuff
 - Function references
