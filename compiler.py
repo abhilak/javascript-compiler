@@ -745,37 +745,6 @@ def p_empty(p):
     'empty :'
 
 ########################################
-######## OBJECT EXPRESSIONS ############
-########################################
-# def p_expression_object(p):
-#     'data_type : object'
-#     p[0] = { 'type' : 'OBJECT', 'value': p[1]}
-#
-# def p_object(p):
-#     '''object : SEP_OPEN_BRACE items SEP_CLOSE_BRACE
-#               | SEP_OPEN_BRACE SEP_CLOSE_BRACE'''
-#     if p[2] == '}':
-#         p[0] = {} 
-#     else :
-#         p[0] = p[2]
-#
-# def p_items(p):
-#     'items : property SEP_COMMA items'
-#     if p[3] == None:
-#         p[0] = p[1]
-#     else :
-#         p[0] = dict(p[1], **p[3])
-#
-# def p_items_base(p):
-#     'items : property'
-#     p[0] = p[1]
-#
-# def p_property(p):
-#     '''property : STRING OP_COLON expression'''
-#     p[0] = { p[1] : p[3]['value'] }
-#
-
-########################################
 ############# ERROR ####################
 ########################################
 def p_error(p):
