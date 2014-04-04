@@ -50,6 +50,7 @@
 ## Features not implemented
 - Data types:
     - Only one number type: Integers
+    - Objects
     - No NaN, INFINITY and NULL
 - Language Constructs
     - Ternary Operator
