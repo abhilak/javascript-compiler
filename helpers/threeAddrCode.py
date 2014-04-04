@@ -21,23 +21,26 @@ class ThreeAddressCode:
         return self.tempBase + str(self.tempCount)
 
     # Increment the quad for a given function
-    def incrementQuad(self, functionName):
-        self.quad[functionName] = self.nextQuad[functionName]
-        self.nextQuad[functionName] = self.nextQuad[functionName] + 1
-        return self.quad[functionName]
+    def incrementQuad(self):
+        currentFunction = self.ST.getCurrentScope()
+        self.quad[currentFunction] = self.nextQuad[currentFunction]
+        self.nextQuad[currentFunction] = self.nextQuad[currentFunction] + 1
+        return self.quad[currentFunction]
 
     # Get the next quad of a given function
-    def getNextQuad(self, functionName):
-        return self.nextQuad[functionName]
+    def getNextQuad(self):
+        currentFunction = self.ST.getCurrentScope()
+        return self.nextQuad[currentFunction]
 
     # This function will return the code length of a given function
     def getCodeLength(self, functionName):
         return self.quad[functionName]
 
     # Function to emit code
-    def emit(self, functionName, regDest, regSrc1, regSrc2, op):
-        self.incrementQuad(functionName)
-        self.code[functionName].append([regDest, regSrc1, regSrc2, op])
+    def emit(self, regDest, regSrc1, regSrc2, op):
+        currentFunction = self.ST.getCurrentScope()
+        self.incrementQuad()
+        self.code[currentFunction].append([regDest, regSrc1, regSrc2, op])
 
     # This creates a new TAC for a given function name
     def createFunctionCode(self, functionName):
@@ -59,14 +62,16 @@ class ThreeAddressCode:
         return list3
 
     # Function to backpatch
-    def backPatch(self, functionName, locationList, location):
+    def backPatch(self, locationList, location):
+        currentFunction = self.ST.getCurrentScope()
         for position in locationList:
-            self.code[functionName][position][2] = location
+            self.code[currentFunction][position][2] = location
         
     # This function converts every location in the locationList to null
-    def noop(self, functionName, locationList):
+    def noop(self, locationList):
+        currentFunction = self.ST.getCurrentScope()
         for position in locationList:
-            self.code[functionName][position][3] = 'NOOP'
+            self.code[currentFunction][position][3] = 'NOOP'
 
     # Print the SymbolTable
     def printSymbolTable(self):

@@ -63,7 +63,7 @@ def p_statment(p):
     p[0]['nextList'] = []
 
     # Backpatch statements here
-    TAC.backPatch(ST.getCurrentScope(), p[1]['nextList'], p[2]['quad'])
+    TAC.backPatch(p[1]['nextList'], p[2]['quad'])
 
     # For break statement
     p[0]['loopEndList'] = p[1]['loopEndList']
@@ -76,7 +76,7 @@ def p_statment(p):
 def p_mark_quad(p):
     'M_quad : empty'
 
-    p[0] = { 'quad' : TAC.getNextQuad(ST.getCurrentScope())}
+    p[0] = { 'quad' : TAC.getNextQuad()}
 
 # Marker for blanck statements
 def p_mark_statements(p):
@@ -135,8 +135,8 @@ def p_assignment_statment(p):
 
         # If they are booleans then noop their lists as this is not a relational expression
         if statmentType == 'BOOLEAN':
-            TAC.noop(ST.getCurrentScope(), p[4]['trueList'])
-            TAC.noop(ST.getCurrentScope(), p[4]['falseList'])
+            TAC.noop(p[4]['trueList'])
+            TAC.noop(p[4]['falseList'])
     else:
         statmentType = 'REFERENCE_ERROR'
         debug.printError('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
@@ -165,14 +165,12 @@ def p_function_statement(p):
     '''function_statement : FUNCTION IDENTIFIER M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block
                           | FUNCTION M_anonName M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block'''
 
-    currentScope = ST.getCurrentScope()
-
     # Any remaining breaks and continues need to be purged
-    TAC.noop(currentScope, p[8]['loopEndList'])
-    TAC.noop(currentScope, p[8]['loopBeginList'])
+    TAC.noop(p[8]['loopEndList'])
+    TAC.noop(p[8]['loopBeginList'])
 
     # Here we have to have statements so that we can return back to the calling function
-    TAC.emit(currentScope, '', '' , -1, 'RETURN')
+    TAC.emit('', '' , -1, 'RETURN')
 
     # print the name of the statement
     functionName = p[3]['name'] 
@@ -276,9 +274,9 @@ def p_function_call(p):
         if ST.getAttribute(p[1], 'type') == 'FUNCTION':
             referenceName = ST.getAttribute(p[1], 'reference')
             if referenceName != None:
-                TAC.emit(ST.getCurrentScope(), '', '', referenceName, 'JUMP')
+                TAC.emit('', '', referenceName, 'JUMP')
             else:
-                TAC.emit(ST.getCurrentScope(), '', '', p[1], 'JUMP')
+                TAC.emit('', '', p[1], 'JUMP')
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('line %d: Not a function "%s"' %(p.lineno(2), p[1]))
@@ -293,13 +291,13 @@ def p_parameters(p):
     'actualParameters : expression SEP_COMMA actualParameters'
 
     # Emit code
-    TAC.emit(ST.getCurrentScope(), p[1]['place'], '', '', 'PARAM')
+    TAC.emit(p[1]['place'], '', '', 'PARAM')
 
 def p_parameters_base(p):
     'actualParameters : expression'
 
     # Emit code
-    TAC.emit(ST.getCurrentScope(), p[1]['place'], '', '', 'PARAM')
+    TAC.emit(p[1]['place'], '', '', 'PARAM')
 
     p[0] = {}
 
@@ -322,8 +320,8 @@ def p_break_statement(p):
     # Emit code
     p[0]['nextList'] = []
     p[0]['loopBeginList'] = []
-    p[0]['loopEndList'] = [TAC.getNextQuad(ST.getCurrentScope())]
-    TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+    p[0]['loopEndList'] = [TAC.getNextQuad()]
+    TAC.emit('', '', -1, 'GOTO')
 
 ########################################
 ######## CONTINUE STATEMENT ############
@@ -339,8 +337,8 @@ def p_continue_statement(p):
     # Emit code
     p[0]['nextList'] = []
     p[0]['loopEndList'] = []
-    p[0]['loopBeginList'] = [TAC.getNextQuad(ST.getCurrentScope())]
-    TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+    p[0]['loopBeginList'] = [TAC.getNextQuad()]
+    TAC.emit('', '', -1, 'GOTO')
 
 ########################################
 ############# IF THEN ##################
@@ -360,7 +358,7 @@ def p_if_then(p):
 
     # Emit code
     # Backpatch the truelist of the expression
-    TAC.backPatch(ST.getCurrentScope(), p[3]['trueList'] , p[5]['quad'])
+    TAC.backPatch(p[3]['trueList'] , p[5]['quad'])
     p[0]['nextList'] = TAC.merge(p[3]['falseList'], p[6]['nextList'])
 
     # For break statement
@@ -385,8 +383,8 @@ def p_if_then_else(p):
 
     # Emit code
     # Backpatch the truelist of the expression and the falselist as well
-    TAC.backPatch(ST.getCurrentScope(), p[3]['trueList'] , p[5]['quad'])
-    TAC.backPatch(ST.getCurrentScope(), p[3]['falseList'], p[8]['quad'])
+    TAC.backPatch(p[3]['trueList'] , p[5]['quad'])
+    TAC.backPatch(p[3]['falseList'], p[8]['quad'])
     p[0]['nextList'] = TAC.merge(p[6]['nextList'], p[9]['nextList'])
 
     # For break statement
@@ -412,11 +410,11 @@ def p_while(p):
     # Backpatch
     if p[4]['type'] == 'BOOLEAN':
         # Backpatch continue statements and break statements
-        TAC.backPatch(ST.getCurrentScope(), p[7]['loopBeginList'], p[2]['quad'])
+        TAC.backPatch(p[7]['loopBeginList'], p[2]['quad'])
         p[0]['nextList'] = p[7]['loopEndList']
 
         # Backpatch other statements
-        TAC.backPatch(ST.getCurrentScope(), p[4]['trueList'] , p[6]['quad'])
+        TAC.backPatch(p[4]['trueList'] , p[6]['quad'])
         p[0]['nextList'] = TAC.merge(p[4]['falseList'], p[0]['nextList'])
         p[0]['nextList'] = TAC.merge(p[7]['nextList'], p[0]['nextList'])
     else:
@@ -459,12 +457,12 @@ def p_expression_unary(p):
     if p[1] == '-':
         if p[2]['type'] == 'NUMBER':
             expType = 'NUMBER'
-            TAC.emit(ST.getCurrentScope(), p[0]['place'], p[2]['place'] , '' , 'uni-')
+            TAC.emit(p[0]['place'], p[2]['place'] , '' , 'uni-')
         else:
             errorFlag = 1
     elif p[1] == 'typeof':
         expType = 'STRING'
-        TAC.emit(ST.getCurrentScope(), p[0]['place'], p[2]['type'] , '' , '=')
+        TAC.emit(p[0]['place'], p[2]['type'] , '' , '=')
 
     # In case of type errors
     if errorFlag:
@@ -497,13 +495,13 @@ def p_expression_binop(p):
     if p[2] == '+' or p[2] == '-' or p[2] == '*' or p[2] == '/' or p[2] == '%':
         if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
             expType = 'NUMBER'
-            TAC.emit(ST.getCurrentScope(), p[0]['place'], p[1]['place'], p[3]['place'], p[2])
+            TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
         else:
             errorFlag = 1
     else :
         if p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
             expType = 'STRING'
-            TAC.emit(ST.getCurrentScope(), p[0]['place'], p[1]['place'], p[3]['place'], p[2])
+            TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
         else:
             errorFlag = 1
 
@@ -539,12 +537,12 @@ def p_expression_relational(p):
     p[0] = { 'type' : expType }
 
     # Backpatching code
-    p[0]['trueList'] = [TAC.getNextQuad(ST.getCurrentScope())]
-    p[0]['falseList'] = [TAC.getNextQuad(ST.getCurrentScope()) + 1]
+    p[0]['trueList'] = [TAC.getNextQuad()]
+    p[0]['falseList'] = [TAC.getNextQuad() + 1]
 
     # Emit code
-    TAC.emit(ST.getCurrentScope(), p[1]['place'] + p[2] + p[3]['place'], 'GOTO', -1, 'COND_GOTO')
-    TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+    TAC.emit(p[1]['place'] + p[2] + p[3]['place'], 'GOTO', -1, 'COND_GOTO')
+    TAC.emit('', '', -1, 'GOTO')
 
 ######## LOGICAL EXPRESSION ##############
 
@@ -563,7 +561,7 @@ def p_expression_logical_and(p):
         expType = 'BOOLEAN'
 
         # Emit code
-        TAC.backPatch(ST.getCurrentScope(), p[1]['trueList'], p[3]['quad'])
+        TAC.backPatch(p[1]['trueList'], p[3]['quad'])
         p[0]['falseList'] = TAC.merge(p[1]['falseList'], p[4]['falseList'])
         p[0]['trueList'] = p[4]['trueList']
     else:
@@ -588,7 +586,7 @@ def p_expression_logical_or(p):
         expType = 'BOOLEAN'
 
         # Emit code
-        TAC.backPatch(ST.getCurrentScope(), p[1]['falseList'], p[3]['quad'])
+        TAC.backPatch(p[1]['falseList'], p[3]['quad'])
         p[0]['trueList'] = TAC.merge(p[1]['trueList'], p[4]['trueList'])
         p[0]['falseList'] = p[4]['falseList']
     else:
@@ -649,19 +647,19 @@ def p_expression_base_type(p):
 
     # emit code for backPatch
     if p[1]['type'] == 'FUNCTION':
-        TAC.emit(ST.getCurrentScope(), p[0]['place'], '', p[1]['name'], '=REF')
+        TAC.emit(p[0]['place'], '', p[1]['name'], '=REF')
         p[0]['name'] = p[1]['name']
     else:
         if p[1]['value'] == 'true':
-            p[0]['trueList'] = list([TAC.getNextQuad(ST.getCurrentScope()) + 1])
-            TAC.emit(ST.getCurrentScope(), p[0]['place'], 1, '', '=')
-            TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+            p[0]['trueList'] = list([TAC.getNextQuad() + 1])
+            TAC.emit(p[0]['place'], 1, '', '=')
+            TAC.emit('', '', -1, 'GOTO')
         elif p[1]['value'] == 'false':
-            p[0]['falseList'] = list([TAC.getNextQuad(ST.getCurrentScope()) + 1])
-            TAC.emit(ST.getCurrentScope(), p[0]['place'], 0, '', '=')
-            TAC.emit(ST.getCurrentScope(), '', '', -1, 'GOTO')
+            p[0]['falseList'] = list([TAC.getNextQuad() + 1])
+            TAC.emit(p[0]['place'], 0, '', '=')
+            TAC.emit('', '', -1, 'GOTO')
         else :
-            TAC.emit(ST.getCurrentScope(), p[0]['place'], p[1]['value'], '', '=')
+            TAC.emit(p[0]['place'], p[1]['value'], '', '=')
 
 ######## IDENTIFIER EXPRESSION ###########
 
@@ -685,8 +683,8 @@ def p_expression_identifier(p):
     p[0]['nextList'] = []
 
     if p[0]['type'] == 'BOOLEAN':
-        p[0]['falseList'] = list([TAC.getNextQuad(ST.getCurrentScope())])
-        TAC.emit(ST.getCurrentScope(), ST.getAttribute(p[1], 'place') , 'GOTO', -1, 'COND_GOTO_Z')
+        p[0]['falseList'] = list([TAC.getNextQuad()])
+        TAC.emit(ST.getAttribute(p[1], 'place') , 'GOTO', -1, 'COND_GOTO_Z')
 
 ########################################
 ########## BASE TYPES ##################
