@@ -104,7 +104,7 @@ class ThreeAddressCode:
                         self.code[currentFunction][item['location']][2] = self.ST.getAttribute(function, 'reference')
                     else:
                         self.code[currentFunction][item['location']][3] = 'NOOP'
-                        debug.printError('Type Mismatch "%s" in "%s"' %(function, self.ST.getCurrentScope()))
+                        debug.printError('Parameter Mismatch "%s" in "%s"' %(function, self.ST.getCurrentScope()), 0)
 
                     try:
                         item = waitingFunctions[function].pop()

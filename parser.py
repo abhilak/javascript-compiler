@@ -310,19 +310,21 @@ def p_insert_args(p):
 
     # Add identifiers to local scope
     for argument in p[-2]:
+        place = TAC.newTemp()
         ST.addIdentifier(argument['name'], argument['type'])
+        ST.addAttribute(argument['name'], 'place', place)
 
 ########################################
 ######## RETURN STATEMENT ##############
 ########################################
 def p_return_statement(p):
-    'return_statement : RETURN expression'
+    'return_statement : RETURN expression SEP_SEMICOLON'
 
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
 
     # Assign a returnType to the function
-    ST.addAttribute(ST.getCurrentScope(), 'returnType', p[2]['type'])
+    # ST.addAttribute(ST.getCurrentScope(), 'returnType', p[2]['type'])
 
     # Emit code
     p[0]['nextList'] = []
@@ -468,8 +470,8 @@ def p_if_then_else(p):
     p[0]['nextList'] = p[8]['nextList']
 
     # For break statement
-    p[0]['loopEndList'] = p[9]['loopEndList']
-    p[0]['loopBeginList'] = p[9]['loopBeginList']
+    p[0]['loopEndList'] = TAC.merge(p[9]['loopEndList'], p[6]['loopEndList'])
+    p[0]['loopBeginList'] = TAC.merge(p[9]['loopBeginList'], p[6]['loopBeginList'])
 
 def p_m_if_branch(p):
     'M_if_branch : empty'
@@ -654,6 +656,7 @@ def p_expression_logical_and(p):
 
     # Backpatching code
     p[0] = {}
+    p[0]['place'] = TAC.newTemp()
     p[0]['trueList'] = []
     p[0]['falseList'] = []
 
