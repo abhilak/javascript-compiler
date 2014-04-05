@@ -490,37 +490,43 @@ def p_m_else_branch(p):
 ########################################
 ########## WHILE STATEMENT #############
 ########################################
-# def p_while(p):
-#     'while_statement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block'
-#
-#     debug.printStatement('WHILE')
-#
-#     # Type rules
-#     statmentType = 'VOID'
-#
-#     # Emit code
-#     p[0] = {}
-#     p[0]['nextList'] = []
-#
-#     # Backpatch
-#     if p[4]['type'] == 'BOOLEAN':
-#         # Backpatch continue statements and break statements
-#         TAC.backPatch(p[7]['loopBeginList'], p[2]['quad'])
-#         p[0]['nextList'] = p[7]['loopEndList']
-#
-#         # Backpatch other statements
-#         TAC.backPatch(p[4]['trueList'] , p[6]['quad'])
-#         p[0]['nextList'] = TAC.merge(p[4]['falseList'], p[0]['nextList'])
-#         p[0]['nextList'] = TAC.merge(p[7]['nextList'], p[0]['nextList'])
-#     else:
-#         statmentType = 'TYPE_ERROR'
-#         debug.printError('Type Error', lexer.lineno)
-#         raise SyntaxError
-#
-#     p[0]['type'] = statmentType
-#     p[0]['loopEndList'] = []
-#     p[0]['loopBeginList'] = []
-#
+def p_while(p):
+    'while_statement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_while_branch block'
+
+    debug.printStatement('WHILE')
+
+    # Type rules
+    statmentType = 'VOID'
+
+    # Emit code
+    p[0] = {}
+    p[0]['nextList'] = []
+
+    # Backpatch
+    if p[4]['type'] == 'BOOLEAN':
+        # Backpatch continue statements and break statements
+        TAC.backPatch(p[7]['loopBeginList'], p[2]['quad'])
+        p[0]['nextList'] = TAC.merge(p[7]['loopEndList'], p[7]['nextList'])
+        p[0]['nextList'] = TAC.merge(p[6]['falseList'], p[0]['nextList'])
+
+        # Loop around
+        TAC.emit('', '', p[2]['quad'], 'GOTO')
+    else:
+        statmentType = 'TYPE_ERROR'
+        debug.printError('Type Error', lexer.lineno)
+        raise SyntaxError
+
+    p[0]['type'] = statmentType
+    p[0]['loopEndList'] = []
+    p[0]['loopBeginList'] = []
+
+def p_m_while_branch(p):
+    'M_while_branch : empty'
+
+    p[0] = {}
+    p[0]['falseList'] = [TAC.getNextQuad()]
+    TAC.emit(p[-2]['place'], 'GOTO', -1, 'COND_GOTO_Z')
+
 ########################################
 ############## EXPRESSIONS #############
 ########################################

@@ -3,7 +3,7 @@ import pprint
 class SymbolTable:
     # Constructor for the function
     def __init__(self):
-        self.showSymbolTable = False
+        self.showSymbolTable = True
         self.symbol_table = {
                 'main': {
                     '__scopeName__': 'main', 
