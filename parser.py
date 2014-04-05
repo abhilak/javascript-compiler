@@ -148,9 +148,10 @@ def p_assignment_statment(p):
         if p[4]['type'] == 'FUNCTION':
             ST.addAttribute(p[2], 'reference', p[4]['name'])
             ST.addToFunctionList(p[2])
-
-        # Emit code
-        ST.addAttribute(p[2], 'place', p[4]['place'])
+            ST.addAttribute(p[2], 'place', p[4]['name'])
+        else:
+            # Emit code
+            ST.addAttribute(p[2], 'place', p[4]['place'])
 
         # If there are items in the trueList and falseList left, we remove them
         if p[4]['type'] == 'BOOLEAN':
@@ -294,6 +295,7 @@ def p_scope(p):
     if p[-1] != None:
         ST.addIdentifier(p[-1], 'FUNCTION')
         ST.addAttribute(p[-1], 'reference', p[0]['name'])
+        ST.addAttribute(p[-1], 'place', p[0]['name'])
 
     # We store the identifier as a function reference
     # Create a function scope
