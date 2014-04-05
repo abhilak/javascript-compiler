@@ -152,6 +152,9 @@ def p_assignment_statment(p):
         # Emit code
         ST.addAttribute(p[2], 'place', p[4]['place'])
 
+        # If there are items in the trueList and falseList left, we remove them
+        if p[4]['type'] == 'BOOLEAN':
+            pass
     else:
         statmentType = 'REFERENCE_ERROR'
         debug.printError('Redefined Variable "%s"' %p[2], lexer.lineno)
@@ -617,13 +620,15 @@ def p_expression_relational(p):
         raise SyntaxError
     
     p[0] = { 'type' : expType }
+    p[0]['place'] = TAC.newTemp()
 
     # Backpatching code
-    p[0]['trueList'] = [TAC.getNextQuad()]
+    p[0]['trueList'] = [TAC.getNextQuad() + 2]
     p[0]['falseList'] = [TAC.getNextQuad() + 1]
 
     # Emit code
-    TAC.emit(p[1]['place'] + p[2] + p[3]['place'], 'GOTO', -1, 'COND_GOTO')
+    TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
+    TAC.emit(p[0]['place'], 'GOTO', -1, 'COND_GOTO_Z')
     TAC.emit('', '', -1, 'GOTO')
 
 ######## LOGICAL EXPRESSION ##############
@@ -737,14 +742,13 @@ def p_expression_base_type(p):
     else:
         if p[1]['value'] == 'true':
             TAC.emit(p[0]['place'], 1, '', '=')
-            if p[-2] == 'IF' or p[-2] == 'WHILE':
-                p[0]['trueList'] = list([TAC.getNextQuad() + 1])
-                TAC.emit('', '', -1, 'GOTO')
+            p[0]['trueList'] = list([TAC.getNextQuad()])
+            TAC.emit('', '', -1, 'GOTO')
         elif p[1]['value'] == 'false':
             TAC.emit(p[0]['place'], 0, '', '=')
-            if p[-2] == 'IF' or p[-2] == 'WHILE':
-                p[0]['falseList'] = list([TAC.getNextQuad() + 1])
-                TAC.emit('', '', -1, 'GOTO')
+            p[0]['trueList'] = []
+            p[0]['falseList'] = list([TAC.getNextQuad()])
+            TAC.emit('', '', -1, 'GOTO')
         else :
             TAC.emit(p[0]['place'], p[1]['value'], '', '=')
 
@@ -768,10 +772,6 @@ def p_expression_identifier(p):
     p[0]['trueList'] = []
     p[0]['falseList'] = []
     p[0]['nextList'] = []
-
-    if p[0]['type'] == 'BOOLEAN':
-        p[0]['falseList'] = list([TAC.getNextQuad()])
-        TAC.emit(ST.getAttribute(p[1], 'place') , 'GOTO', -1, 'COND_GOTO_Z')
 
 ########################################
 ########## BASE TYPES ##################

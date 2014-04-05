@@ -17,12 +17,14 @@
 
 from sys import argv
 from parser import ST, TAC, lexer, parser
+import pprint
 
 # a function to test the parser
 def test_codeGen(input_file):
     program = open(input_file).read()
     parser.parse(program, lexer=lexer)
     # parser.parse(program, lexer=lexer, debug=1)
+    TAC.prune()
 
 if __name__ == "__main__":
     filename, input_file = argv 

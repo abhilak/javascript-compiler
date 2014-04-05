@@ -78,6 +78,12 @@ class ThreeAddressCode:
     def printSymbolTable(self):
         self.ST.printSymbolTable()
 
+    def prune(self):
+        for item in self.code:
+            for i in range(len(self.code[item])):
+                if self.code[item][i][3] == 'GOTO' and self.code[item][i][2] == -1:
+                    print self.code[item][i]
+
     def resolveWaitingFunctions(self):
         currentScope = self.ST.scope[len(self.ST.scope) - 1]
         currentFunction = self.ST.getCurrentScope()
@@ -114,3 +120,5 @@ class ThreeAddressCode:
 
         # Remove the list of waiting function
         del currentScope['__waitingList__']
+
+

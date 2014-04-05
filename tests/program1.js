@@ -5,7 +5,7 @@ function void() {
         var u = 5;
     }
 
-    km = 1;
+    var km = 1;
 
     var k = function () {
         var m = 5;
