@@ -1,10 +1,9 @@
-function void() {
-    var x = 0;
+void(1);
 
-    while ( x > 0 ) {
-        x = x + 1;
-        if ( true ) {
-            break;
-        }
-    }
+function void(t::num) {
+    t();
 }
+
+void(function () {
+    var z = 1;
+});

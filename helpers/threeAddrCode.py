@@ -93,30 +93,5 @@ class ThreeAddressCode:
 
         for function in functionList:
             if waitingFunctions.has_key(function):
-                # Obtain the formal parameters of the function
-                referenceName = self.ST.getAttribute(function, 'reference')
-                formalParameters = self.ST.getAttribute(referenceName, 'parameters')
-                formalParameters = map( lambda x: x['type'], formalParameters)
-
-                item = waitingFunctions[function].pop()
-                while item:
-                    if self.ST.equal(formalParameters, item['parameters']):
-                        self.code[currentFunction][item['location']][2] = self.ST.getAttribute(function, 'reference')
-                    else:
-                        self.code[currentFunction][item['location']][3] = 'NOOP'
-                        debug.printError('Parameter Mismatch "%s" in "%s"' %(function, self.ST.getCurrentScope()), 0)
-
-                    try:
-                        item = waitingFunctions[function].pop()
-                    except:
-                        break
-                del waitingFunctions[function]
-
-        for function in waitingFunctions:
-            debug.printError('Undefined Function "%s" in "%s"' %(function, self.ST.getCurrentScope()))
-            for item in waitingFunctions[function]:
-                self.code[currentFunction][item['location']][3] = 'NOOP'
-            del waitingFunctions[function]
-
-        # Remove the list of waiting function
-        del currentScope['__waitingList__']
+                for location in waitingFunctions[function]:
+                    self.code[currentFunction][location][2] = self.ST.getAttribute(function, 'reference')

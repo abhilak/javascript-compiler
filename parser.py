@@ -189,6 +189,7 @@ def p_assignment_redefinition(p):
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[3]['type'] == 'FUNCTION':
             ST.addAttribute(p[1], 'reference', p[3]['name'])
+            ST.addAttribute(p[1], 'place', p[3]['name'])
             ST.addToFunctionList(p[2])
 
         # Emit code
@@ -286,7 +287,8 @@ def p_scope(p):
     p[0] = {}
 
     # Add this function to the functionList of its parent
-    ST.addToFunctionList(p[-1])
+    if p[-1] != None:
+        ST.addToFunctionList(p[-1])
 
     # Name the function
     p[0]['name'] = ST.nameAnon()
@@ -316,6 +318,9 @@ def p_insert_args(p):
         ST.addIdentifier(argument['name'], argument['type'])
         ST.addAttribute(argument['name'], 'place', place)
 
+        if argument['type'] == 'FUNCTION':
+            ST.addAttribute(argument['name'], 'reference', place)
+
 ########################################
 ######## RETURN STATEMENT ##############
 ########################################
@@ -344,24 +349,15 @@ def p_function_call(p):
     # Semantic actions
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
-        ST.addToWaitingList(p[1], { 'location': TAC.getNextQuad(), 'parameters' : p[3] })
-        TAC.emit('', '', -1, 'JUMP')
+        ST.addToWaitingList(p[1], TAC.getNextQuad())
+        TAC.emit('', '', -1, 'JUMPLABEL')
     else:
         # We check whether the identifier is a function or a reference
         if ST.getAttribute(p[1], 'type') == 'FUNCTION':
             # Now we have to make sure that parameters of the function match
             referenceName = ST.getAttribute(p[1], 'reference')
             if referenceName != None:
-                # Check for matches of parameters
-                formalParameters = ST.getAttribute(referenceName, 'parameters')
-                formalParameters = map( lambda x: x['type'], formalParameters)
-
-                if ST.equal(formalParameters, p[3]):
-                    TAC.emit('', '', referenceName, 'JUMP')
-                else:
-                    p[0]['type'] = 'PARAMETER_ERROR'
-                    debug.printError('Parameter mismatch "%s"' %p[1], lexer.lineno)
-                    raise SyntaxError
+                TAC.emit('', '', referenceName, 'JUMPLABEL')
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1], lexer.lineno)
@@ -378,20 +374,14 @@ def p_parameters(p):
     # Emit code
     TAC.emit(p[1]['place'], '', '', 'PARAM')
 
-    p[0] = [p[1]['type']] + p[3]
-
 def p_parameters_base(p):
     'actualParameters : expression'
 
     # Emit code
     TAC.emit(p[1]['place'], '', '', 'PARAM')
 
-    p[0] = [ p[1]['type'] ]
-
 def p_parameters_empty(p):
     'actualParameters : empty'
-
-    p[0] = []
 
 ########################################
 ######## BREAK STATEMENT ###############
@@ -748,7 +738,7 @@ def p_expression_base_type(p):
 
     # emit code for backPatch
     if p[1]['type'] == 'FUNCTION':
-        TAC.emit(p[0]['place'], '', p[1]['name'], '=REF')
+        TAC.emit(p[0]['place'], '', p[1]['name'], '=')
         p[0]['name'] = p[1]['name']
     else:
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
