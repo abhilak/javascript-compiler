@@ -144,13 +144,9 @@ def p_assignment_statment(p):
         # Emit code
         ST.addAttribute(p[2], 'place', p[4]['place'])
 
-        # If they are booleans then noop their lists as this is not a relational expression
-        if statmentType == 'BOOLEAN':
-            TAC.noop(p[4]['trueList'])
-            TAC.noop(p[4]['falseList'])
     else:
         statmentType = 'REFERENCE_ERROR'
-        debug.printError('line %d: Redefined Variable "%s"' %(p.lineno(2), p[2]))
+        debug.printError('Redefined Variable "%s"' %p[2])
         raise SyntaxError
 
     # print the name of the statement
@@ -218,7 +214,7 @@ def p_hint(p):
     if p[3] == 'callback':
         p[0]['type'] = 'FUNCTION'
     elif p[3] == 'num':
-        p[0]['type'] == 'NUMBER'
+        p[0]['type'] = 'NUMBER'
     elif p[3] == 'bool':
         p[0]['type'] = 'BOOLEAN'
     elif p[3] == 'string':
@@ -301,8 +297,7 @@ def p_function_call(p):
     # Semantic actions
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
-        # ST.addToWaitingList(p[1], { 'location:' TAC.getNextQuad(), 'parameters' : p[3] })
-        ST.addToWaitingList(p[1], TAC.getNextQuad())
+        ST.addToWaitingList(p[1], { 'location': TAC.getNextQuad(), 'parameters' : p[3] })
         TAC.emit('', '', -1, 'JUMP')
     else:
         # We check whether the identifier is a function or a reference
@@ -318,11 +313,11 @@ def p_function_call(p):
                     TAC.emit('', '', referenceName, 'JUMP')
                 else:
                     p[0]['type'] = 'PARAMETER_ERROR'
-                    debug.printError('line %d: Parameter mismatch "%s"' %(p.lineno(4), p[1]))
+                    debug.printError('Parameter mismatch "%s"' %p[1])
                     raise SyntaxError
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
-            debug.printError('line %d: Not a function "%s"' %(p.lineno(2), p[1]))
+            debug.printError('Not a function "%s"' %p[1])
             raise SyntaxError
 
     # Emit code
@@ -512,7 +507,7 @@ def p_expression_unary(p):
     # In case of type errors
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError('line %d: Type Error' %p.lineno(2))
+        debug.printError('Type Error')
         raise SyntaxError
 
     # Return type of the statment
@@ -553,7 +548,7 @@ def p_expression_binop(p):
     # Type Error
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError('line %d: Type Error' %p.lineno(1))
+        debug.printError('Type Error')
         raise SyntaxError
 
     p[0]['type'] = expType
@@ -576,7 +571,7 @@ def p_expression_relational(p):
         expType = 'BOOLEAN'
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('line %d: Type Error' %p.lineno(1))
+        debug.printError('Type Error')
         raise SyntaxError
     
     p[0] = { 'type' : expType }
@@ -611,7 +606,7 @@ def p_expression_logical_and(p):
         p[0]['trueList'] = p[4]['trueList']
     else:
         expType = 'TYPE_ERROR'
-        debug.printStatement('line %d: Type Erro' %p.lineno(1))
+        debug.printStatement('Type Error')
 
     # Type of the expression
     p[0]['type'] = expType
@@ -636,7 +631,7 @@ def p_expression_logical_or(p):
         p[0]['falseList'] = p[4]['falseList']
     else:
         expType = 'TYPE_ERROR'
-        debug.printStatement('line %d: Type Erro' %p.lineno(1))
+        debug.printStatement('Type Error')
 
     # Type of the expression
     p[0]['type'] = expType
@@ -654,7 +649,7 @@ def p_expression_logical_not(p):
 
     if p[2]['type'] != 'BOOLEAN':
         expType = 'TYPE_ERROR'
-        debug.printStatement('line %d: Type Erro' %p.lineno(1))
+        debug.printStatement('Type Error')
     else:
         p[0]['trueList'] = p[2]['falseList']
         p[0]['falseList'] = p[2]['trueList']
@@ -674,7 +669,7 @@ def p_expression_group(p):
     p[0]['place'] = p[2]['place']
 
     # Backpatching code
-    if p[1]['type'] == 'BOOLEAN':
+    if p[2]['type'] == 'BOOLEAN':
         p[0]['trueList'] = p[2]['trueList']
         p[0]['falseList'] = p[2]['falseList']
 
@@ -696,13 +691,15 @@ def p_expression_base_type(p):
         p[0]['name'] = p[1]['name']
     else:
         if p[1]['value'] == 'true':
-            p[0]['trueList'] = list([TAC.getNextQuad() + 1])
             TAC.emit(p[0]['place'], 1, '', '=')
-            TAC.emit('', '', -1, 'GOTO')
+            if p[-2] == 'IF' or p[-2] == 'WHILE':
+                p[0]['trueList'] = list([TAC.getNextQuad() + 1])
+                TAC.emit('', '', -1, 'GOTO')
         elif p[1]['value'] == 'false':
-            p[0]['falseList'] = list([TAC.getNextQuad() + 1])
             TAC.emit(p[0]['place'], 0, '', '=')
-            TAC.emit('', '', -1, 'GOTO')
+            if p[-2] == 'IF' or p[-2] == 'WHILE':
+                p[0]['falseList'] = list([TAC.getNextQuad() + 1])
+                TAC.emit('', '', -1, 'GOTO')
         else :
             TAC.emit(p[0]['place'], p[1]['value'], '', '=')
 
@@ -719,7 +716,7 @@ def p_expression_identifier(p):
         p[0]['place'] = ST.getAttribute(p[1], 'place')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
-        debug.printError('line %d: Undefined Variable "%s"' %(p.lineno(1), p[1]))
+        debug.printError('Undefined Variable "%s"' %p[1])
         raise SyntaxError
 
     # Emit code

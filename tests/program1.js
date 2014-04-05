@@ -1,19 +1,11 @@
-function void() {
-    function temp(list::bool, name::string) {
-        var x = true;
-        var y = 5;
 
-        if ( x ) {
-            var z = y + 1;
-        }
 
+function temp() {
+    var x = false;
+    var y =2;
+    if (true) {
+        var z = y + 1;
     }
-
-    temp(true, 'srijan');
 }
-
-void(x);
-
-var y = 1;
 
 

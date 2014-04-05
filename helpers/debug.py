@@ -1,5 +1,6 @@
 showStatement = False
 printErrors = True
+lineNumber = 0
 
 # a function to print the name of the statement
 def printStatement(statement):
