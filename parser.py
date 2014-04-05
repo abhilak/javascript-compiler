@@ -427,7 +427,7 @@ def p_continue_statement(p):
 ############# IF THEN ##################
 ########################################
 def p_if_then(p):
-    'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block'
+    'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block'
 
     debug.printStatement("IF THEN")
 
@@ -440,12 +440,8 @@ def p_if_then(p):
 
     p[0] = { 'type' : statmentType }
 
-    # Emit code
-    # Backpatch the truelist of the expression
-    TAC.backPatch(p[3]['trueList'] , p[5]['quad'])
-    p[0]['nextList'] = TAC.merge(p[3]['falseList'], p[6]['nextList'])
-
-    # For break statement
+    # For break statement and next waiting functions
+    p[0]['nextList'] = TAC.merge(p[5]['falseList'], p[6]['nextList'])
     p[0]['loopEndList'] = p[6]['loopEndList']
     p[0]['loopBeginList'] = p[6]['loopBeginList']
 
@@ -453,7 +449,7 @@ def p_if_then(p):
 ############# IF THEN ELSE #############
 ########################################
 def p_if_then_else(p):
-    'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block ELSE M_quad block'
+    'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block ELSE M_else_branch block'
 
     debug.printStatement("IF THEN ELSE")
 
@@ -467,49 +463,64 @@ def p_if_then_else(p):
     p[0] = { 'type' : statmentType }
 
     # Emit code
-    # Backpatch the truelist of the expression and the falselist as well
-    TAC.backPatch(p[3]['trueList'] , p[5]['quad'])
-    TAC.backPatch(p[3]['falseList'], p[8]['quad'])
-    p[0]['nextList'] = TAC.merge(p[6]['nextList'], p[9]['nextList'])
+    # backPatch the if branch
+    TAC.backPatch(p[5]['falseList'], p[8]['quad'])
+    p[0]['nextList'] = p[8]['nextList']
 
     # For break statement
     p[0]['loopEndList'] = p[9]['loopEndList']
     p[0]['loopBeginList'] = p[9]['loopBeginList']
 
+def p_m_if_branch(p):
+    'M_if_branch : empty'
+
+    p[0] = {}
+    p[0]['falseList'] = [TAC.getNextQuad()]
+    TAC.emit(p[-2]['place'], 'GOTO', -1, 'COND_GOTO_Z')
+
+def p_m_else_branch(p):
+    'M_else_branch : empty'
+
+    p[0] = {}
+    p[0]['nextList'] = [TAC.getNextQuad()]
+    TAC.emit('', '', -1, 'GOTO')
+
+    p[0]['quad'] = TAC.getNextQuad()
+
 ########################################
 ########## WHILE STATEMENT #############
 ########################################
-def p_while(p):
-    'while_statement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block'
-
-    debug.printStatement('WHILE')
-
-    # Type rules
-    statmentType = 'VOID'
-
-    # Emit code
-    p[0] = {}
-    p[0]['nextList'] = []
-
-    # Backpatch
-    if p[4]['type'] == 'BOOLEAN':
-        # Backpatch continue statements and break statements
-        TAC.backPatch(p[7]['loopBeginList'], p[2]['quad'])
-        p[0]['nextList'] = p[7]['loopEndList']
-
-        # Backpatch other statements
-        TAC.backPatch(p[4]['trueList'] , p[6]['quad'])
-        p[0]['nextList'] = TAC.merge(p[4]['falseList'], p[0]['nextList'])
-        p[0]['nextList'] = TAC.merge(p[7]['nextList'], p[0]['nextList'])
-    else:
-        statmentType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
-        raise SyntaxError
-
-    p[0]['type'] = statmentType
-    p[0]['loopEndList'] = []
-    p[0]['loopBeginList'] = []
-
+# def p_while(p):
+#     'while_statement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_quad block'
+#
+#     debug.printStatement('WHILE')
+#
+#     # Type rules
+#     statmentType = 'VOID'
+#
+#     # Emit code
+#     p[0] = {}
+#     p[0]['nextList'] = []
+#
+#     # Backpatch
+#     if p[4]['type'] == 'BOOLEAN':
+#         # Backpatch continue statements and break statements
+#         TAC.backPatch(p[7]['loopBeginList'], p[2]['quad'])
+#         p[0]['nextList'] = p[7]['loopEndList']
+#
+#         # Backpatch other statements
+#         TAC.backPatch(p[4]['trueList'] , p[6]['quad'])
+#         p[0]['nextList'] = TAC.merge(p[4]['falseList'], p[0]['nextList'])
+#         p[0]['nextList'] = TAC.merge(p[7]['nextList'], p[0]['nextList'])
+#     else:
+#         statmentType = 'TYPE_ERROR'
+#         debug.printError('Type Error', lexer.lineno)
+#         raise SyntaxError
+#
+#     p[0]['type'] = statmentType
+#     p[0]['loopEndList'] = []
+#     p[0]['loopBeginList'] = []
+#
 ########################################
 ############## EXPRESSIONS #############
 ########################################
@@ -621,15 +632,11 @@ def p_expression_relational(p):
     
     p[0] = { 'type' : expType }
     p[0]['place'] = TAC.newTemp()
-
-    # Backpatching code
-    p[0]['trueList'] = [TAC.getNextQuad() + 2]
-    p[0]['falseList'] = [TAC.getNextQuad() + 1]
+    p[0]['trueList'] = []
+    p[0]['falseList'] = []
 
     # Emit code
     TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
-    TAC.emit(p[0]['place'], 'GOTO', -1, 'COND_GOTO_Z')
-    TAC.emit('', '', -1, 'GOTO')
 
 ######## LOGICAL EXPRESSION ##############
 
@@ -646,11 +653,7 @@ def p_expression_logical_and(p):
 
     if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
         expType = 'BOOLEAN'
-
-        # Emit code
-        TAC.backPatch(p[1]['trueList'], p[3]['quad'])
-        p[0]['falseList'] = TAC.merge(p[1]['falseList'], p[4]['falseList'])
-        p[0]['trueList'] = p[4]['trueList']
+        TAC.emit(p[0]['place'], p[1]['place'], p[4]['place'] , p[2])
     else:
         expType = 'TYPE_ERROR'
         debug.printError('Type Error', lexer.lineno)
@@ -667,16 +670,13 @@ def p_expression_logical_or(p):
 
     # Backpatching code
     p[0] = {}
+    p[0]['place'] = TAC.newTemp()
     p[0]['trueList'] = []
     p[0]['falseList'] = []
 
     if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
         expType = 'BOOLEAN'
-
-        # Emit code
-        TAC.backPatch(p[1]['falseList'], p[3]['quad'])
-        p[0]['trueList'] = TAC.merge(p[1]['trueList'], p[4]['trueList'])
-        p[0]['falseList'] = p[4]['falseList']
+        TAC.emit(p[0]['place'], p[1]['place'], p[4]['place'] , p[2])
     else:
         expType = 'TYPE_ERROR'
         debug.printError('Type Error', lexer.lineno)
@@ -693,6 +693,7 @@ def p_expression_logical_not(p):
 
     # Backpatching code
     p[0] = {}
+    p[0]['place'] = TAC.newTemp()
     p[0]['trueList'] = []
     p[0]['falseList'] = []
 
@@ -701,8 +702,7 @@ def p_expression_logical_not(p):
         debug.printError('Type Error', lexer.lineno)
         raise SyntaxError
     else:
-        p[0]['trueList'] = p[2]['falseList']
-        p[0]['falseList'] = p[2]['trueList']
+        TAC.emit(p[0]['place'], p[2]['place'], '' , p[1])
 
     # Type of the expression
     p[0]['type'] = expType
@@ -740,17 +740,7 @@ def p_expression_base_type(p):
         TAC.emit(p[0]['place'], '', p[1]['name'], '=REF')
         p[0]['name'] = p[1]['name']
     else:
-        if p[1]['value'] == 'true':
-            TAC.emit(p[0]['place'], 1, '', '=')
-            p[0]['trueList'] = list([TAC.getNextQuad()])
-            TAC.emit('', '', -1, 'GOTO')
-        elif p[1]['value'] == 'false':
-            TAC.emit(p[0]['place'], 0, '', '=')
-            p[0]['trueList'] = []
-            p[0]['falseList'] = list([TAC.getNextQuad()])
-            TAC.emit('', '', -1, 'GOTO')
-        else :
-            TAC.emit(p[0]['place'], p[1]['value'], '', '=')
+        TAC.emit(p[0]['place'], p[1]['value'], '', '=')
 
 ######## IDENTIFIER EXPRESSION ###########
 

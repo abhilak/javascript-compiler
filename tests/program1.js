@@ -1,9 +1,13 @@
 function void() {
     var z = false;
+    var u;
 
     if ( z != true ) {
-        var u = 5;
+        u = 5;
+    } else {
+        u = 7;
     }
+
 
     var km = 1;
 
