@@ -48,6 +48,14 @@ def p_block(p):
     p[0]['loopEndList'] = p[2]['loopEndList']
     p[0]['loopBeginList'] = p[2]['loopBeginList']
 
+def p_block_empty(p): 
+    'block : SEP_OPEN_BRACE empty SEP_CLOSE_BRACE'
+
+    # Emit code
+    p[0] = {}
+
+    debug.printError('Empty blocks are not allowed')
+
 def p_statments(p):
     '''statements : statement statements
                   | statement M_statements'''
@@ -121,8 +129,7 @@ def p_declaration_statement(p):
 ############# ASSIGNMENT ###############
 ########################################
 def p_assignment_statment(p):
-    '''assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON
-                  | M_VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'''
+    'assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'
 
     # In case the var is not present
     statmentType = 'VOID'
@@ -160,10 +167,44 @@ def p_assignment_statment(p):
     p[0]['loopEndList'] = []
     p[0]['loopBeginList'] = []
 
-def p_mark_var(p):
-    'M_VAR : empty'
+def p_assignment_redefinition(p):
+    'assignment : IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'
 
-    p[0] = None
+    # In case the var is not present
+    statmentType = 'VOID'
+
+    # To store information
+    p[0] = {}
+
+    identifierEntry = ST.exists(p[1])
+    if identifierEntry == True:
+        # Put the identifier into the symbol_table
+        ST.addIdentifier(p[2], p[3]['type'])
+        statmentType = p[3]['type']
+
+        # In case of an assignment, this is a function reference, so we store the name of the function
+        if p[3]['type'] == 'FUNCTION':
+            ST.addAttribute(p[1], 'reference', p[3]['name'])
+            ST.addToFunctionList(p[2])
+
+        # Emit code
+        ST.addAttribute(p[2], 'place', p[3]['place'])
+
+    else:
+        statmentType = 'REFERENCE_ERROR'
+        debug.printError('Undefined Variable "%s"' %p[1])
+        raise SyntaxError
+
+    # print the name of the statement
+    debug.printStatement("ASSIGNMENT of %s" %p[1])
+
+    # Type rules
+    p[0]['type'] =  statmentType
+
+    # Emit code
+    p[0]['nextList'] = []
+    p[0]['loopEndList'] = []
+    p[0]['loopBeginList'] = []
 
 ########################################
 ############## FUNCTIONS ###############

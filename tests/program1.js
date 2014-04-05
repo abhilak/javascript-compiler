@@ -1,11 +1,12 @@
+function void() {
+    var z = 1 + 3;
+
+    k();
+    var k = function () {
+        var m = 5;
+    };
 
 
-function temp() {
-    var x = false;
-    var y =2;
-    if (true) {
-        var z = y + 1;
-    }
 }
 
 
