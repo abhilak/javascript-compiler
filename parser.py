@@ -802,10 +802,11 @@ def p_error(p):
     # yacc.errok()
 
 ######################################################################################################
+parser = yacc.yacc()
+
 # a function to test the parser
 def test_yacc(input_file):
     program = open(input_file).read()
-    parser = yacc.yacc()
     parser.parse(program, lexer=lexer)
     # parser.parse(program, lexer=lexer, debug=1)
 
