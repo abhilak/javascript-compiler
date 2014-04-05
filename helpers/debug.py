@@ -8,7 +8,11 @@ def printStatement(statement):
     if showStatement:
         print statement
 
-def printError(statement):
+def printError(statement, lineno):
     global printErrors
     if printErrors:
-        print statement
+        print 'line %d:' %lineno, statement
+
+def incrementLineNumber():
+    global lineNumber
+    lineNumber = lineNumber + 1

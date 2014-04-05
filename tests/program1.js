@@ -1,12 +1,13 @@
 function void() {
-    var z = 1 + 3;
+    var z = false;
 
-    k();
+    if ( z != true ) {
+        var u = 5;
+    }
+
+    km = 1;
+
     var k = function () {
         var m = 5;
     };
-
-
 }
-
-

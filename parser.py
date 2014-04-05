@@ -54,7 +54,8 @@ def p_block_empty(p):
     # Emit code
     p[0] = {}
 
-    debug.printError('Empty blocks are not allowed')
+    debug.printError('Empty blocks are not allowed', lexer.lineno)
+    raise SyntaxError
 
 def p_statments(p):
     '''statements : statement statements
@@ -153,8 +154,7 @@ def p_assignment_statment(p):
 
     else:
         statmentType = 'REFERENCE_ERROR'
-        debug.printError('Redefined Variable "%s"' %p[2])
-        raise SyntaxError
+        debug.printError('Redefined Variable "%s"' %p[2], lexer.lineno)
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
@@ -192,8 +192,7 @@ def p_assignment_redefinition(p):
 
     else:
         statmentType = 'REFERENCE_ERROR'
-        debug.printError('Undefined Variable "%s"' %p[1])
-        raise SyntaxError
+        debug.printError('Undefined Variable "%s"' %p[1], lexer.lineno)
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[1])
@@ -354,11 +353,11 @@ def p_function_call(p):
                     TAC.emit('', '', referenceName, 'JUMP')
                 else:
                     p[0]['type'] = 'PARAMETER_ERROR'
-                    debug.printError('Parameter mismatch "%s"' %p[1])
+                    debug.printError('Parameter mismatch "%s"' %p[1], lexer.lineno)
                     raise SyntaxError
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
-            debug.printError('Not a function "%s"' %p[1])
+            debug.printError('Not a function "%s"' %p[1], lexer.lineno)
             raise SyntaxError
 
     # Emit code
@@ -430,11 +429,12 @@ def p_if_then(p):
     debug.printStatement("IF THEN")
 
     # Type rules
-    errorFlag = 0
     statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
-        errorFlag = 1
         statmentType = 'TYPE_ERROR'
+        debug.printError('Type Error', lexer.lineno)
+        raise SyntaxError
+
     p[0] = { 'type' : statmentType }
 
     # Emit code
@@ -455,11 +455,12 @@ def p_if_then_else(p):
     debug.printStatement("IF THEN ELSE")
 
     # Type rules
-    errorFlag = 0
     statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
-        errorFlag = 1
         statmentType = 'TYPE_ERROR'
+        debug.printError('Type Error', lexer.lineno)
+        raise SyntaxError
+
     p[0] = { 'type' : statmentType }
 
     # Emit code
@@ -481,7 +482,6 @@ def p_while(p):
     debug.printStatement('WHILE')
 
     # Type rules
-    errorFlag = 0
     statmentType = 'VOID'
 
     # Emit code
@@ -499,8 +499,9 @@ def p_while(p):
         p[0]['nextList'] = TAC.merge(p[4]['falseList'], p[0]['nextList'])
         p[0]['nextList'] = TAC.merge(p[7]['nextList'], p[0]['nextList'])
     else:
-        errorFlag = 1
         statmentType = 'TYPE_ERROR'
+        debug.printError('Type Error', lexer.lineno)
+        raise SyntaxError
 
     p[0]['type'] = statmentType
     p[0]['loopEndList'] = []
@@ -548,7 +549,7 @@ def p_expression_unary(p):
     # In case of type errors
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Type Error', lexer.lineno)
         raise SyntaxError
 
     # Return type of the statment
@@ -589,7 +590,7 @@ def p_expression_binop(p):
     # Type Error
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Type Error', lexer.lineno)
         raise SyntaxError
 
     p[0]['type'] = expType
@@ -647,7 +648,8 @@ def p_expression_logical_and(p):
         p[0]['trueList'] = p[4]['trueList']
     else:
         expType = 'TYPE_ERROR'
-        debug.printStatement('Type Error')
+        debug.printError('Type Error', lexer.lineno)
+        raise SyntaxError
 
     # Type of the expression
     p[0]['type'] = expType
@@ -672,7 +674,8 @@ def p_expression_logical_or(p):
         p[0]['falseList'] = p[4]['falseList']
     else:
         expType = 'TYPE_ERROR'
-        debug.printStatement('Type Error')
+        debug.printError('Type Error', lexer.lineno)
+        raise SyntaxError
 
     # Type of the expression
     p[0]['type'] = expType
@@ -690,7 +693,8 @@ def p_expression_logical_not(p):
 
     if p[2]['type'] != 'BOOLEAN':
         expType = 'TYPE_ERROR'
-        debug.printStatement('Type Error')
+        debug.printError('Type Error', lexer.lineno)
+        raise SyntaxError
     else:
         p[0]['trueList'] = p[2]['falseList']
         p[0]['falseList'] = p[2]['trueList']
@@ -757,7 +761,7 @@ def p_expression_identifier(p):
         p[0]['place'] = ST.getAttribute(p[1], 'place')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
-        debug.printError('Undefined Variable "%s"' %p[1])
+        debug.printError('Undefined Variable "%s"' %p[1], lexer.lineno)
         raise SyntaxError
 
     # Emit code
@@ -836,11 +840,11 @@ def p_error(p):
     print "Whoa. You are seriously hosed."
     # Read ahead looking for a closing '}'
     while 1:
-        tok = yacc.token()             # Get the next token
-        if not tok or tok.type == 'SEP_SEMICOLON': 
+        tok = parser.token()             # Get the next token
+        if not tok or tok.type == 'SEP_SEMICOLON' or tok.type == 'SEP_OPEN_BRACE':
             break
-    yacc.restart() 
-    # yacc.errok()
+    parser.restart()
+    # parser.errok()
 
 ######################################################################################################
 parser = yacc.yacc()
