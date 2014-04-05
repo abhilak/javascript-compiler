@@ -179,7 +179,7 @@ def p_assignment_redefinition(p):
     identifierEntry = ST.exists(p[1])
     if identifierEntry == True:
         # Put the identifier into the symbol_table
-        ST.addIdentifier(p[2], p[3]['type'])
+        ST.addAttribute(p[1], 'type', p[3]['type'])
         statmentType = p[3]['type']
 
         # In case of an assignment, this is a function reference, so we store the name of the function
@@ -188,7 +188,7 @@ def p_assignment_redefinition(p):
             ST.addToFunctionList(p[2])
 
         # Emit code
-        ST.addAttribute(p[2], 'place', p[3]['place'])
+        ST.addAttribute(p[1], 'place', p[3]['place'])
 
     else:
         statmentType = 'REFERENCE_ERROR'
@@ -613,7 +613,7 @@ def p_expression_relational(p):
         expType = 'BOOLEAN'
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Type Error', lexer.lineno)
         raise SyntaxError
     
     p[0] = { 'type' : expType }
