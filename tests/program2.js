@@ -1,28 +1,10 @@
-var y = 5;
-function temp(list, name) {
-    while (1 > 2 && 3 < 4) {
-        var x = 1;
-        if (false) {
-            var e = 2;
-            continue;
-        }
-    }
+function void() {
+    var x = 0;
 
-    function nameSpace() {
-        var x = 2;
-        break;
-    }
-
-    nameSpace(2, function() {
-        var y2 = 3;
-        continue;
+    while ( x > 0 ) {
+        x = x + 1;
         if ( true ) {
-            var y5 = 9;
-            continue;
+            break;
         }
-    });
-}
-
-function other(name) {
-    var x = 2;
+    }
 }

@@ -1,9 +1,8 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- When a block has no statement, we get an error
-- Parameter checking
-- Patching functionLabels
+- Line number in parameter mismatch
+- return
 
 ## Unique Stuff
 - Function references

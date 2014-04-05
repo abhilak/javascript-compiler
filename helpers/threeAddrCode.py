@@ -120,5 +120,3 @@ class ThreeAddressCode:
 
         # Remove the list of waiting function
         del currentScope['__waitingList__']
-
-
