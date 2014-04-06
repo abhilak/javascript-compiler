@@ -1,18 +1,9 @@
+var xy = 1;
+var $xy = 1;
 
-var y = 1;
+function void() {
+    var x = 5;
 
-function name(srijan) {
-    var c = 10;
-
-    function temp() {
-        var y;
-    }
-
-    temp();
-}
-
-name();
-
-// Gives error
-temp();
-
+return 8;
+return 'sri';
+} 

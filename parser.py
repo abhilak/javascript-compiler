@@ -19,6 +19,8 @@ def p_start(p):
              | statements'''
 
     # Any remaining breaks and continues need to be purged
+    # if len(p[1]['loopEndList']) > 0:
+        # debug.printError('Dangling break statement'
     TAC.noop(p[1]['loopEndList'])
     TAC.noop(p[1]['loopBeginList'])
 
@@ -222,7 +224,7 @@ def p_function_statement(p):
     TAC.noop(p[8]['loopBeginList'])
 
     # Here we have to have statements so that we can return back to the calling function
-    TAC.emit('', '' , -1, 'RETURN')
+    TAC.emit('', '' , -1, 'JUMPBACK')
 
     # Resolve all functions that are waiting
     TAC.resolveWaitingFunctions()
@@ -330,8 +332,18 @@ def p_return_statement(p):
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
 
-    # Assign a returnType to the function
-    # ST.addAttribute(ST.getCurrentScope(), 'returnType', p[2]['type'])
+    # Get the current returnType from function
+    returnType = ST.getAttributeFromCurrentScope('returnType')
+
+    if returnType == None:
+        # Assign a returnType to the function
+        ST.addAttributeToCurrentScope('returnType', p[2]['type'])
+    elif p[2]['type'] != returnType:
+        debug.printError('Return Types dont match', lexer.lineno)
+        raise SyntaxError
+
+    # Emit code for the return type
+    TAC.emit(p[2]['place'], '' ,'', 'RETURN')
 
     # Emit code
     p[0]['nextList'] = []

@@ -1,7 +1,7 @@
 void(1);
 
-function void(t::num) {
-    t();
+function void(t::callback) {
+    return 0;
 }
 
 void(function () {

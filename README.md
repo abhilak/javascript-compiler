@@ -2,17 +2,24 @@
 
 ## Issues
 - Line number in parameter mismatch
-- return
+- break and continue are allowed without a matching if right now
+- undefined types give an issue
+- comma seperated assignments
+- lists
 
 ## Unique Stuff
-- Function references
+- Functions can be passed as function references
 - Clean up of bad breaks and continues using NOOP
+- callbacks
+- Strongly typed language
+- Type Hinting for type consistency in functions
+- Number of parameters is not checked for functions
 
 ## Todo
 - Statments:
-    - list implementation and for in loop
+    - list implementation
 - runtime for lists
-- JUMP and =REF should be backPatched
+- Type hinting in variables
 
 ## Meetings
 ### First Meeting

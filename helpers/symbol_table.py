@@ -9,7 +9,7 @@ class SymbolTable:
                     '__scopeName__': 'main', 
                     '__parentName__': 'main', 
                     '__type__':'FUNCTION', 
-                    '__returnType__': 'UNDEFINED',
+                    '__returnType__': None,
                     '__functionList__' : [],
                     '__waitingList__' : {}
                     }
@@ -20,6 +20,7 @@ class SymbolTable:
         self.offset = [0]
         self.scope = [self.symbol_table['main']]
 
+    # Print the symbol_table
     def printSymbolTable(self):
         if self.showSymbolTable:
             print "\n"
@@ -53,7 +54,7 @@ class SymbolTable:
         currentScope[functionName] = {
                 '__scopeName__': functionName, 
                 '__parentName__': currentScope['__scopeName__'],
-                '__returnType__': 'UNDEFINED',
+                '__returnType__': None,
                 '__type__': 'FUNCTION',
                 '__functionList__': [],
                 '__waitingList__' : {}
@@ -96,6 +97,16 @@ class SymbolTable:
     def addAttribute(self, identifier, attributeName, attributeValue):
         entry = self.lookup(identifier)
         entry['__' + attributeName + '__'] = attributeValue
+
+    # add an attribute to the identifier
+    def addAttributeToCurrentScope(self, attributeName, attributeValue):
+        currentScope = self.scope[len(self.scope) - 1]
+        currentScope['__' + attributeName + '__'] = attributeValue
+
+    # add an attribute to the identifier
+    def getAttributeFromCurrentScope(self, attributeName):
+        currentScope = self.scope[len(self.scope) - 1]
+        return currentScope[ '__' + attributeName + '__']
 
     def getAttribute(self, identifier, attributeName):
         identifierEntry = self.lookup(identifier)
