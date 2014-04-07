@@ -747,7 +747,7 @@ def p_expression_base_type(p):
 
     # emit code for backPatch
     if p[1]['type'] == 'FUNCTION':
-        TAC.emit(p[0]['place'], '', p[1]['name'], '=')
+        TAC.emit(p[0]['place'], p[1]['name'], '', '=')
         p[0]['name'] = p[1]['name']
     else:
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
