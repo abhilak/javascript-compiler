@@ -1,24 +1,20 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- Line number in parameter mismatch
-- break and continue are allowed without a matching if right now
-- comma seperated assignments
-- lists
 
 ## Unique Stuff
-- Functions can be passed as function references
-- Clean up of bad breaks and continues using NOOP
-- callbacks
-- Strongly typed language
-- Type Hinting for type consistency in functions
-- Number of parameters is not checked for functions
+- Breaks and continues don't signal errors, but they are silently removed
+- passing functions as parameters
+- Returning functions 
+- Strongly Typed 
+- Static Type Hinting for variables
+    - Callback and all have no type checking though
+- A function can pass extra parameters as well
 
 ## Todo
-- Statments:
-    - list implementation
-- runtime for lists
-- Type hinting in variables
+- Lists
+    - Runtime
+    - Normal implementation
 
 ## Meetings
 ### First Meeting

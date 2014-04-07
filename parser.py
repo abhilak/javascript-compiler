@@ -119,9 +119,6 @@ def p_declaration_statement(p):
         for identifier in p[2]:
             # Put the identifier into the symbol_table
             ST.addIdentifier(identifier['name'], identifier['type'])
-
-            # print the name of the statement
-            debug.printStatement("DECLARATION of '%s' of type '%s'" %(identifier['name'], identifier['type']))
     except TypeError:
         debug.printError("No Hint provided for variable")
 
@@ -153,6 +150,9 @@ def p_hint(p):
         p[0]['type'] = 'STRING'
     else:
         p[0]['type'] = 'ARRAY'
+
+    # print the name of the statement
+    debug.printStatementBlock("Declaration of '%s' of type '%s'" %(p[0]['name'], p[0]['type']))
 
 def p_arg_list(p):
     'argList : hint SEP_COMMA argList'
@@ -298,7 +298,7 @@ def p_scope(p):
     # Now add the identifier as a function reference
     if p[-1] != None:
         # Print to console
-        debug.printStatementBlock('Function Definition "%s"' %p[-1])
+        debug.printStatementBlock("Definition of function '%s'" %p[-1])
 
         # add the place for this function
         location = TAC.newTemp()
