@@ -111,13 +111,17 @@ def p_mark_statements(p):
 ############# DECLARATION ##############
 ########################################
 def p_declaration_statement(p):
-    'declaration : VAR hint SEP_SEMICOLON'
+    '''declaration : VAR hint SEP_SEMICOLON
+                   | VAR IDENTIFIER SEP_SEMICOLON'''
 
-    # Put the identifier into the symbol_table
-    ST.addIdentifier(p[2], 'UNDEFINED')
+    try:
+        # Put the identifier into the symbol_table
+        ST.addIdentifier(p[2]['name'], p[2]['type'])
 
-    # print the name of the statement
-    debug.printStatement("DECLARATION of %s" %p[2])
+        # print the name of the statement
+        debug.printStatement("DECLARATION of '%s' of type '%s'" %(p[2]['name'], p[2]['type']))
+    except TypeError:
+        debug.printError("No Hint provided for variable '%s'" %p[2])
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
