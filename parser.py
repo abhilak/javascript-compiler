@@ -296,7 +296,7 @@ def p_scope(p):
     # Now add the identifier as a function reference
     if p[-1] != None:
         # Print to console
-        debug.printStatement('Function Definition "%s"' %p[-1])
+        debug.printStatementBlock('Function Definition "%s"' %p[-1])
 
         # add the place for this function
         location = TAC.newTemp()
@@ -310,7 +310,7 @@ def p_scope(p):
         TAC.emit(location, p[0]['name'], '', '=')
     else:
         # Print to console
-        debug.printStatement('Function Definition "%s"' %p[0]['name'])
+        debug.printStatementBlock('Function Definition "%s"' %p[0]['name'])
 
     # Create a function scope
     ST.addScope(p[0]['name'])
@@ -442,8 +442,6 @@ def p_continue_statement(p):
 def p_if_then(p):
     'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block'
 
-    debug.printStatement("IF THEN")
-
     # Type rules
     statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
@@ -463,8 +461,6 @@ def p_if_then(p):
 ########################################
 def p_if_then_else(p):
     'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block ELSE M_else_branch block'
-
-    debug.printStatement("IF THEN ELSE")
 
     # Type rules
     statmentType = 'VOID'
@@ -487,12 +483,18 @@ def p_if_then_else(p):
 def p_m_if_branch(p):
     'M_if_branch : empty'
 
+    # Print to the console
+    debug.printStatementBlock("If Branch")
+
     p[0] = {}
     p[0]['falseList'] = [TAC.getNextQuad()]
     TAC.emit(p[-2]['place'], 'GOTO', -1, 'COND_GOTO_Z')
 
 def p_m_else_branch(p):
     'M_else_branch : empty'
+
+    # Print to the console
+    debug.printStatementBlock("Else Branch")
 
     p[0] = {}
     p[0]['nextList'] = [TAC.getNextQuad()]
@@ -505,8 +507,6 @@ def p_m_else_branch(p):
 ########################################
 def p_while(p):
     'while_statement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_while_branch block'
-
-    debug.printStatement('WHILE')
 
     # Type rules
     statmentType = 'VOID'
@@ -539,6 +539,9 @@ def p_m_while_branch(p):
     p[0] = {}
     p[0]['falseList'] = [TAC.getNextQuad()]
     TAC.emit(p[-2]['place'], 'GOTO', -1, 'COND_GOTO_Z')
+
+    # Print to the console
+    debug.printStatementBlock("While Statement")
 
 ########################################
 ############## EXPRESSIONS #############

@@ -77,6 +77,7 @@ def t_newline(t):
     global prev
     t.lexer.lineno += prev
     prev = len(t.value)
+    debug.setPrev(prev)
     debug.setLineNumber(t.lexer.lineno)
 
 ########################################

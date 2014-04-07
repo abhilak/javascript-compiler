@@ -10,6 +10,11 @@ class Debug:
         if self.showStatement:
             print 'line %d:' %self.lineNumber, statement
 
+    # This is only for functions with a block
+    def printStatementBlock(self, statement):
+        if self.showStatement:
+            print 'line %d:' %(self.lineNumber + self.prev), statement
+
     def printError(self, statement):
         if self.printErrors:
             print 'line %d:' %self.lineNumber, statement
