@@ -1,4 +1,4 @@
-var m::num;
+var m::num, p::array;
 
 function x(t::callback) {
     var p::array; 

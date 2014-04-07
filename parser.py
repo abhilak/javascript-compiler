@@ -111,17 +111,19 @@ def p_mark_statements(p):
 ############# DECLARATION ##############
 ########################################
 def p_declaration_statement(p):
-    '''declaration : VAR hint SEP_SEMICOLON
+    '''declaration : VAR argList SEP_SEMICOLON
                    | VAR IDENTIFIER SEP_SEMICOLON'''
 
     try:
-        # Put the identifier into the symbol_table
-        ST.addIdentifier(p[2]['name'], p[2]['type'])
+        # Add identifiers to local scope
+        for identifier in p[2]:
+            # Put the identifier into the symbol_table
+            ST.addIdentifier(identifier['name'], identifier['type'])
 
-        # print the name of the statement
-        debug.printStatement("DECLARATION of '%s' of type '%s'" %(p[2]['name'], p[2]['type']))
+            # print the name of the statement
+            debug.printStatement("DECLARATION of '%s' of type '%s'" %(identifier['name'], identifier['type']))
     except TypeError:
-        debug.printError("No Hint provided for variable '%s'" %p[2])
+        debug.printError("No Hint provided for variable")
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
@@ -151,6 +153,20 @@ def p_hint(p):
         p[0]['type'] = 'STRING'
     else:
         p[0]['type'] = 'ARRAY'
+
+def p_arg_list(p):
+    'argList : hint SEP_COMMA argList'
+    
+    # Creating the argList to be passed to the function
+    p[0] = [ p[1] ] + p[3]
+
+def p_arg_list_base(p):
+    'argList : hint'''
+    p[0] = [ p[1] ]
+
+def p_arg_list_empty(p):
+    'argList : empty'''
+    p[0] = [ ]
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -270,20 +286,6 @@ def p_function_statement(p):
     p[0]['nextList'] = []
     p[0]['loopEndList'] = []
     p[0]['loopBeginList'] = []
-
-def p_arg_list(p):
-    'argList : hint SEP_COMMA argList'
-    
-    # Creating the argList to be passed to the function
-    p[0] = [ p[1] ] + p[3]
-
-def p_arg_list_base(p):
-    'argList : hint'''
-    p[0] = [ p[1] ]
-
-def p_arg_list_empty(p):
-    'argList : empty'''
-    p[0] = [ ]
 
 def p_scope(p):
     'M_scope : empty'
