@@ -379,6 +379,7 @@ def p_function_call(p):
             place = ST.getAttribute(p[1], 'place')
             if place!= None:
                 TAC.emit('', '', place, 'JUMPLABEL')
+                debug.printStatement("Function call to '%s'" %p[1])
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1])

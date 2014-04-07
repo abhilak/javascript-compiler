@@ -37,7 +37,7 @@ class SymbolTable:
             return None
 
         # add the scope to the symbol_table
-        currentScope = self.scope[len(self.scope) - 1]
+        currentScope = self.scope[scopeLocation]
         if currentScope.has_key(identifier):
             return currentScope[identifier]
         else:
@@ -98,16 +98,15 @@ class SymbolTable:
         entry = self.lookup(identifier)
         entry['__' + attributeName + '__'] = attributeValue
 
-    # add an attribute to the identifier
     def addAttributeToCurrentScope(self, attributeName, attributeValue):
         currentScope = self.scope[len(self.scope) - 1]
         currentScope['__' + attributeName + '__'] = attributeValue
 
-    # add an attribute to the identifier
     def getAttributeFromCurrentScope(self, attributeName):
         currentScope = self.scope[len(self.scope) - 1]
         return currentScope[ '__' + attributeName + '__']
 
+    # Get the attribute of a given identifier
     def getAttribute(self, identifier, attributeName):
         identifierEntry = self.lookup(identifier)
         if identifierEntry.has_key('__' + attributeName + '__'):
@@ -115,6 +114,7 @@ class SymbolTable:
         else:
             return None
 
+    # Function to check if an identifier exists in the lexical scope or not
     def exists(self, identifier):
         identifierEntry = self.lookup(identifier)
         if identifierEntry != None:
@@ -145,6 +145,7 @@ class SymbolTable:
         else:
             currentScope['__waitingList__'][functionName] = [location]
 
+    # Function to check if two lists are equal or not
     def equal(self, list1, list2):
         if len(list1) != len(list2):
             return False

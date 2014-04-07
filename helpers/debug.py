@@ -17,7 +17,7 @@ class Debug:
 
     def printError(self, statement):
         if self.printErrors:
-            print 'line %d:' %self.lineNumber, statement
+            print '[ERROR] line %d:' %self.lineNumber, statement
 
     def incrementLineNumber(self):
         self.lineNumber += self.prev
