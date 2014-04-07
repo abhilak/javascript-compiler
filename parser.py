@@ -112,7 +112,7 @@ def p_mark_statements(p):
 ############# DECLARATION ##############
 ########################################
 def p_declaration_statement(p):
-    'declaration : VAR IDENTIFIER SEP_SEMICOLON'
+    'declaration : VAR hint SEP_SEMICOLON'
 
     # Put the identifier into the symbol_table
     ST.addIdentifier(p[2], 'UNDEFINED')
@@ -127,6 +127,27 @@ def p_declaration_statement(p):
     p[0]['nextList'] = []
     p[0]['loopEndList'] = []
     p[0]['loopBeginList'] = []
+
+def p_hint(p):
+    '''hint : IDENTIFIER OP_HINT HINT_NUMBER
+            | IDENTIFIER OP_HINT HINT_FUNCTION
+            | IDENTIFIER OP_HINT HINT_STRING
+            | IDENTIFIER OP_HINT HINT_ARRAY
+            | IDENTIFIER OP_HINT HINT_BOOLEAN'''
+
+    p[0] = {'name': p[1] }
+
+    # According to the hint assign a type to the identifier
+    if p[3] == 'callback':
+        p[0]['type'] = 'FUNCTION'
+    elif p[3] == 'num':
+        p[0]['type'] = 'NUMBER'
+    elif p[3] == 'bool':
+        p[0]['type'] = 'BOOLEAN'
+    elif p[3] == 'string':
+        p[0]['type'] = 'STRING'
+    else:
+        p[0]['type'] = 'ARRAY'
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -149,8 +170,8 @@ def p_assignment_statment(p):
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[4]['type'] == 'FUNCTION':
             ST.addAttribute(p[2], 'reference', p[4]['name'])
+            ST.addAttribute(p[2], 'place', p[4]['place'])
             ST.addToFunctionList(p[2])
-            ST.addAttribute(p[2], 'place', p[4]['name'])
         else:
             # Emit code
             ST.addAttribute(p[2], 'place', p[4]['place'])
@@ -191,7 +212,7 @@ def p_assignment_redefinition(p):
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[3]['type'] == 'FUNCTION':
             ST.addAttribute(p[1], 'reference', p[3]['name'])
-            ST.addAttribute(p[1], 'place', p[3]['name'])
+            ST.addAttribute(p[1], 'place', p[3]['place'])
             ST.addToFunctionList(p[2])
 
         # Emit code
@@ -248,27 +269,6 @@ def p_function_statement(p):
     p[0]['loopEndList'] = []
     p[0]['loopBeginList'] = []
 
-def p_hint(p):
-    '''hint : IDENTIFIER OP_HINT HINT_NUMBER
-            | IDENTIFIER OP_HINT HINT_FUNCTION
-            | IDENTIFIER OP_HINT HINT_STRING
-            | IDENTIFIER OP_HINT HINT_ARRAY
-            | IDENTIFIER OP_HINT HINT_BOOLEAN'''
-
-    p[0] = {'name': p[1] }
-
-    # According to the hint assign a type to the identifier
-    if p[3] == 'callback':
-        p[0]['type'] = 'FUNCTION'
-    elif p[3] == 'num':
-        p[0]['type'] = 'NUMBER'
-    elif p[3] == 'bool':
-        p[0]['type'] = 'BOOLEAN'
-    elif p[3] == 'string':
-        p[0]['type'] = 'STRING'
-    else:
-        p[0]['type'] = 'ARRAY'
-
 def p_arg_list(p):
     'argList : hint SEP_COMMA argList'
     
@@ -288,20 +288,20 @@ def p_scope(p):
 
     p[0] = {}
 
-    # Add this function to the functionList of its parent
-    if p[-1] != None:
-        ST.addToFunctionList(p[-1])
-
     # Name the function
     p[0]['name'] = ST.nameAnon()
 
     # Now add the identifier as a function reference
     if p[-1] != None:
+        location = TAC.newTemp()
         ST.addIdentifier(p[-1], 'FUNCTION')
         ST.addAttribute(p[-1], 'reference', p[0]['name'])
-        ST.addAttribute(p[-1], 'place', p[0]['name'])
+        ST.addAttribute(p[-1], 'place', location)
+        ST.addToFunctionList(p[-1])
 
-    # We store the identifier as a function reference
+        # Emit the location of the function reference
+        TAC.emit(location, p[0]['name'], '', '=')
+
     # Create a function scope
     ST.addScope(p[0]['name'])
     TAC.createFunctionCode(p[0]['name'])
@@ -319,9 +319,6 @@ def p_insert_args(p):
         place = TAC.newTemp()
         ST.addIdentifier(argument['name'], argument['type'])
         ST.addAttribute(argument['name'], 'place', place)
-
-        if argument['type'] == 'FUNCTION':
-            ST.addAttribute(argument['name'], 'reference', place)
 
 ########################################
 ######## RETURN STATEMENT ##############
@@ -367,9 +364,9 @@ def p_function_call(p):
         # We check whether the identifier is a function or a reference
         if ST.getAttribute(p[1], 'type') == 'FUNCTION':
             # Now we have to make sure that parameters of the function match
-            referenceName = ST.getAttribute(p[1], 'reference')
-            if referenceName != None:
-                TAC.emit('', '', referenceName, 'JUMPLABEL')
+            place = ST.getAttribute(p[1], 'place')
+            if place!= None:
+                TAC.emit('', '', place, 'JUMPLABEL')
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1], lexer.lineno)

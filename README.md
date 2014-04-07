@@ -3,7 +3,6 @@
 ## Issues
 - Line number in parameter mismatch
 - break and continue are allowed without a matching if right now
-- undefined types give an issue
 - comma seperated assignments
 - lists
 

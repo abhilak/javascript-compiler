@@ -35,7 +35,6 @@ tokens = [
         "IDENTIFIER",
         "OP_ASSIGNMENT",
         "OP_STRING_CONCAT",
-        "OP_COLON",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
         "OP_NOT",

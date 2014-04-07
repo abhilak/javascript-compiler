@@ -1,9 +1,4 @@
-void(1);
 
-function void(t::callback) {
-    return 0;
-}
-
-void(function () {
-    var z = 1;
-});
+var z = function (t::callback) {
+    t();
+};

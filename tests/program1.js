@@ -9,7 +9,6 @@ function void(p::callback) {
         }
     }
 
-
     return 9;
 }
 
