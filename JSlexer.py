@@ -1,6 +1,9 @@
 #!/usr/bin/python
 from ply import lex
 from sys import argv
+from helpers import debug as debug
+
+debug = debug.Debug()
 
 ########################################
 ############# RESERVED #################
@@ -71,7 +74,10 @@ def t_ignore_COMMENT(t):
 ########################################
 def t_newline(t):
     r'\n+'
-    t.lexer.lineno += len(t.value)
+    global prev
+    t.lexer.lineno += prev
+    prev = len(t.value)
+    debug.setLineNumber(t.lexer.lineno)
 
 ########################################
 ############# WHITESPACE ###############
@@ -224,6 +230,7 @@ def t_error(t):
 ######################################################################################################
 # Create a lexer which uses the above defined rules, this can be used by the parser
 lexer = lex.lex()
+prev = 0
 
 # A function to test the lexer
 def test_lex(input_file):

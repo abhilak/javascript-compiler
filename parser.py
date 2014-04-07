@@ -3,8 +3,7 @@ import pprint
 from ply import yacc
 from sys import argv, exit
 from helpers import symbol_table as SymbolTable
-from helpers import debug
-from JSlexer import tokens, lexer
+from JSlexer import tokens, lexer, debug
 from helpers import threeAddrCode as ThreeAddressCode
 
 # Singletons of the helper classes
@@ -56,7 +55,7 @@ def p_block_empty(p):
     # Emit code
     p[0] = {}
 
-    debug.printError('Empty blocks are not allowed', lexer.lineno)
+    debug.printError('Empty blocks are not allowed')
     raise SyntaxError
 
 def p_statments(p):
@@ -181,7 +180,7 @@ def p_assignment_statment(p):
             pass
     else:
         statmentType = 'REFERENCE_ERROR'
-        debug.printError('Redefined Variable "%s"' %p[2], lexer.lineno)
+        debug.printError('Redefined Variable "%s"' %p[2])
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
@@ -220,7 +219,7 @@ def p_assignment_redefinition(p):
 
     else:
         statmentType = 'REFERENCE_ERROR'
-        debug.printError('Undefined Variable "%s"' %p[1], lexer.lineno)
+        debug.printError('Undefined Variable "%s"' %p[1])
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[1])
@@ -252,7 +251,6 @@ def p_function_statement(p):
     
     # print the name of the statement
     functionName = p[3]['name'] 
-    debug.printStatement('Arguments of "%s" are: %s' %(functionName, p[5]))
     ST.deleteScope(functionName)
 
     # Update the code Length of the given function
@@ -293,7 +291,12 @@ def p_scope(p):
 
     # Now add the identifier as a function reference
     if p[-1] != None:
+        # Print to console
+        debug.printStatement('Function Definition "%s"' %p[-1])
+
+        # add the place for this function
         location = TAC.newTemp()
+
         ST.addIdentifier(p[-1], 'FUNCTION')
         ST.addAttribute(p[-1], 'reference', p[0]['name'])
         ST.addAttribute(p[-1], 'place', location)
@@ -301,6 +304,9 @@ def p_scope(p):
 
         # Emit the location of the function reference
         TAC.emit(location, p[0]['name'], '', '=')
+    else:
+        # Print to console
+        debug.printStatement('Function Definition "%s"' %p[0]['name'])
 
     # Create a function scope
     ST.addScope(p[0]['name'])
@@ -336,7 +342,7 @@ def p_return_statement(p):
         # Assign a returnType to the function
         ST.addAttributeToCurrentScope('returnType', p[2]['type'])
     elif p[2]['type'] != returnType:
-        debug.printError('Return Types dont match', lexer.lineno)
+        debug.printError('Return Types dont match')
         raise SyntaxError
 
     # Emit code for the return type
@@ -369,7 +375,7 @@ def p_function_call(p):
                 TAC.emit('', '', place, 'JUMPLABEL')
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
-            debug.printError('Not a function "%s"' %p[1], lexer.lineno)
+            debug.printError('Not a function "%s"' %p[1])
             raise SyntaxError
 
     # Emit code
@@ -438,7 +444,7 @@ def p_if_then(p):
     statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
         statmentType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
 
     p[0] = { 'type' : statmentType }
@@ -460,7 +466,7 @@ def p_if_then_else(p):
     statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
         statmentType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
 
     p[0] = { 'type' : statmentType }
@@ -516,7 +522,7 @@ def p_while(p):
         TAC.emit('', '', p[2]['quad'], 'GOTO')
     else:
         statmentType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
 
     p[0]['type'] = statmentType
@@ -572,7 +578,7 @@ def p_expression_unary(p):
     # In case of type errors
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
 
     # Return type of the statment
@@ -613,7 +619,7 @@ def p_expression_binop(p):
     # Type Error
     if errorFlag:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
 
     p[0]['type'] = expType
@@ -636,7 +642,7 @@ def p_expression_relational(p):
         expType = 'BOOLEAN'
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
     
     p[0] = { 'type' : expType }
@@ -666,7 +672,7 @@ def p_expression_logical_and(p):
         TAC.emit(p[0]['place'], p[1]['place'], p[4]['place'] , p[2])
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
 
     # Type of the expression
@@ -689,7 +695,7 @@ def p_expression_logical_or(p):
         TAC.emit(p[0]['place'], p[1]['place'], p[4]['place'] , p[2])
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
 
     # Type of the expression
@@ -709,7 +715,7 @@ def p_expression_logical_not(p):
 
     if p[2]['type'] != 'BOOLEAN':
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error', lexer.lineno)
+        debug.printError('Type Error')
         raise SyntaxError
     else:
         TAC.emit(p[0]['place'], p[2]['place'], '' , p[1])
@@ -765,7 +771,7 @@ def p_expression_identifier(p):
         p[0]['place'] = ST.getAttribute(p[1], 'place')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
-        debug.printError('Undefined Variable "%s"' %p[1], lexer.lineno)
+        debug.printError('Undefined Variable "%s"' %p[1])
         raise SyntaxError
 
     # Emit code
