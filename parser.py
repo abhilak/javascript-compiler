@@ -46,8 +46,8 @@ def p_block(p):
     p[0]['nextList'] = []
 
     # For break statement
-    p[0]['loopEndList'] = p[2]['loopEndList']
-    p[0]['loopBeginList'] = p[2]['loopBeginList']
+    p[0]['loopEndList'] = p[2].get('loopEndList', [])
+    p[0]['loopBeginList'] = p[2].get('loopBeginList', [])
 
 def p_block_empty(p): 
     'block : SEP_OPEN_BRACE empty SEP_CLOSE_BRACE'
@@ -66,8 +66,8 @@ def p_statments(p):
     p[0] = {}
 
     # For break statement
-    p[0]['loopEndList'] = TAC.merge(p[1]['loopEndList'], p[2]['loopEndList'])
-    p[0]['loopBeginList'] = TAC.merge(p[1]['loopBeginList'], p[2]['loopBeginList'])
+    p[0]['loopEndList'] = TAC.merge(p[1].get('loopEndList', []), p[2].get('loopEndList', []))
+    p[0]['loopBeginList'] = TAC.merge(p[1].get('loopBeginList', []), p[2].get('loopBeginList', []))
 
 def p_statment(p):
     '''statement : assignment M_quad
@@ -84,7 +84,6 @@ def p_statment(p):
 
     # Emit code
     p[0] = {}
-    p[0]['nextList'] = []
 
     # Backpatch statements here
     nextList = p[1].get('nextList', [])
@@ -104,10 +103,7 @@ def p_mark_quad(p):
 def p_mark_statements(p):
     'M_statements : empty'
 
-    # emit code
-    p[0] = { 'nextList' : [] }
-    p[0]['loopEndList'] = []
-    p[0]['loopBeginList'] = []
+    p[0] = {}
 
 ########################################
 ############# DECLARATION ##############
@@ -127,14 +123,9 @@ def p_declaration_statement(p):
     # Type rules
     p[0] = { 'type' : 'VOID' }
 
-    # Emit code
-    p[0]['nextList'] = []
-    p[0]['loopEndList'] = []
-    p[0]['loopBeginList'] = []
-
 def p_hint(p):
     '''hint : IDENTIFIER OP_HINT HINT_NUMBER
-            | IDENTIFIER OP_HINT HINT_FUNCTION
+            | IDENTIFIER OP_HINT FUNCTION
             | IDENTIFIER OP_HINT HINT_STRING
             | IDENTIFIER OP_HINT HINT_ARRAY
             | IDENTIFIER OP_HINT HINT_BOOLEAN'''
@@ -210,11 +201,6 @@ def p_assignment_statment(p):
     # Type rules
     p[0]['type'] =  statmentType
 
-    # Emit code
-    p[0]['nextList'] = []
-    p[0]['loopEndList'] = []
-    p[0]['loopBeginList'] = []
-
 def p_assignment_redefinition(p):
     'assignment : IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'
 
@@ -248,11 +234,6 @@ def p_assignment_redefinition(p):
 
     # Type rules
     p[0]['type'] =  statmentType
-
-    # Emit code
-    p[0]['nextList'] = []
-    p[0]['loopEndList'] = []
-    p[0]['loopBeginList'] = []
 
 ########################################
 ############## FUNCTIONS ###############

@@ -20,7 +20,6 @@ reserved = {
     'typeof' : 'OP_TYPEOF',
     'undefined' : 'UNDEFINED',
     'num' : 'HINT_NUMBER',
-    'callback' : 'HINT_FUNCTION',
     'string' : 'HINT_STRING',
     'array' : 'HINT_ARRAY',
     'bool' : 'HINT_BOOLEAN',

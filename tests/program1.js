@@ -1,4 +1,4 @@
-function void(p::callback) {
+function void(p::function) {
     var i = 0;
     while ( true ) {
         i = i + 1;
@@ -12,7 +12,7 @@ function void(p::callback) {
     return 9;
 }
 
-var z = function (y::num, t::callback) {
+var z = function (y::num, t::function) {
     var k = y>2 && 1 < 2;
 };
 
