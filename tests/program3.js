@@ -1,31 +1,3 @@
-var y = 3;
-function temp(list, name) {
-    function nameSpace() {
-        var x = 2;
-        break;
-    }
-
-    var x = 1;
-    while ( true ) {
-        var y = 'srijan';
-    }
-
-    nameSpace(function () {
-        var x;
-        var k = false;
-
-        var t = 'srijan';
-        while ( k ) {
-            var m = 1;
-        }
-    }); 
-
-    var z = function () {
-        var y;
-    };
-
-    nameSpace();
-
-}
-
-var m = 1;
+var x::num;
+x = 1;
+print x;

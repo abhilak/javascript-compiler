@@ -16,13 +16,14 @@
 - Lists
     - Runtime
     - Normal implementation
+    - Thinking of making it a C type array with only one type of element
 
 ## Meetings
 ### First Meeting
 - All lists are of a fixed size.
-- No need of an input, a main will do the initializations.
+- ~~No need of an input, a main will do the initializations~~
+- ~~anonymous function can be handled by giving out unique names~~
 - new can be handled using sbreak.
-- anonymous function can be handled by giving out unique names.
 - eval is left for the end: Done using the runtime
 - Handling exceptions using a runtime object.
 - overloading is left for the end: 

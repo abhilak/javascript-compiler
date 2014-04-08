@@ -23,7 +23,8 @@ reserved = {
     'callback' : 'HINT_FUNCTION',
     'string' : 'HINT_STRING',
     'array' : 'HINT_ARRAY',
-    'bool' : 'HINT_BOOLEAN'
+    'bool' : 'HINT_BOOLEAN',
+    'print' : 'PRINT'
 }
 
 ########################################

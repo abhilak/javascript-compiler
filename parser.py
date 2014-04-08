@@ -78,6 +78,7 @@ def p_statment(p):
                  | break_statement M_quad
                  | continue_statement M_quad
                  | return_statement M_quad
+                 | print_statement M_quad
                  | function_statement M_quad
                  | function_call M_quad'''
 
@@ -86,11 +87,12 @@ def p_statment(p):
     p[0]['nextList'] = []
 
     # Backpatch statements here
-    TAC.backPatch(p[1]['nextList'], p[2]['quad'])
+    nextList = p[1].get('nextList', [])
+    TAC.backPatch(nextList, p[2]['quad'])
 
     # For break statement
-    p[0]['loopEndList'] = p[1]['loopEndList']
-    p[0]['loopBeginList'] = p[1]['loopBeginList']
+    p[0]['loopEndList'] = p[1].get('loopEndList', [])
+    p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
 
 # Marker to mark the nextQuad value
 def p_mark_quad(p):
@@ -547,6 +549,24 @@ def p_m_while_branch(p):
     debug.printStatementBlock("While Statement")
 
 ########################################
+############## PRINT ###################
+########################################
+def p_print_statement(p):
+    'print_statement : PRINT expression SEP_SEMICOLON'
+
+    p[0] = {}
+
+    # Check if the given expression is printable or not
+    expType = p[2].get('type')
+    if expType in ['STRING', 'NUMBER', 'BOOLEAN']:
+        TAC.emit(p[2]['place'], '', p[2]['type'], 'PRINT')
+        p[0]['type'] = 'VOID'
+    else:
+        p[0]['type'] = 'TYPE_ERROR'
+        debug.printError('Given expression is not a printable type')
+        raise SyntaxError
+
+########################################
 ############## EXPRESSIONS #############
 ########################################
 # Precedence of operators
@@ -842,6 +862,10 @@ def p_list_base(p):
 
 def p_list_empty(p):
     'list : empty'''
+
+######## ARRAY ACCESS ##############
+def array_access(p):
+    'array_access : IDENTIFIER SEP_OPEN_BRACKET NUMBER SEP_CLOSE_BRACE'
 
 ########################################
 ################ EMPTY #################

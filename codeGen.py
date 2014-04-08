@@ -16,7 +16,7 @@
 #
 
 from sys import argv
-from parser import ST, TAC, lexer, parser
+from parser import ST, TAC, lexer, parser, debug
 import pprint
 
 # a function to test the parser
