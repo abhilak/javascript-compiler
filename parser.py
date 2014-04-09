@@ -27,12 +27,6 @@ def p_start(p):
     # Emit code
     p[0] = {}
 
-    # print line number
-    TAC.printSymbolTable()
-
-    # print the code
-    TAC.printCode()
-
 def p_block(p): 
     'block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'
 
@@ -874,6 +868,9 @@ ST = SymbolTable.SymbolTable()
 TAC = ThreeAddressCode.ThreeAddressCode(ST)
 parser = yacc.yacc()
 ########################################
+
+def parseProgram(program):
+    parser.parse(program, lexer=lexer)
 
 # a function to test the parser
 def test_yacc(input_file):

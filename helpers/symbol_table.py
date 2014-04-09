@@ -3,7 +3,6 @@ import pprint
 class SymbolTable:
     # Constructor for the function
     def __init__(self):
-        self.showSymbolTable = False
         self.symbol_table = {
                 'main': {
                     '__scopeName__': 'main', 
@@ -23,9 +22,7 @@ class SymbolTable:
 
     # Print the symbol_table
     def printSymbolTable(self):
-        if self.showSymbolTable:
-            print "\n"
-            pprint.pprint(self.symbol_table)
+        pprint.pprint(self.symbol_table)
 
     # Print the functionList
     def printFunctionList(self):

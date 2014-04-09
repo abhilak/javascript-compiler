@@ -17,6 +17,9 @@
     - Runtime
     - Normal implementation
     - Thinking of making it a C type array with only one type of element
+- Closures
+- Strings and arrays
+- Parameters as an array
 
 ## Meetings
 ### First Meeting
@@ -111,3 +114,7 @@
 - Python 2.7 and higher
 - [ply](https://github.com/dabeaz/ply)
 
+# Flow
+- JSlexer defines a debug instance and a lexer instance.
+- The lexer and parser instance of debug are used by parser to parse the program and create a ST and TAC.
+- Now codeGen only used this ST and TAC to generate code.

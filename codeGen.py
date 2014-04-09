@@ -15,14 +15,14 @@
 # - *
 #
 
-from parser import ST, TAC, lexer, parser, debug
+from parser import ST, parseProgram , TAC
 
 #########################################################################################
 # a function to test the parser
 def test_codeGen(input_file):
     program = open(input_file).read()
-    parser.parse(program, lexer=lexer)
-    # parser.parse(program, lexer=lexer, debug=1)
+    parseProgram(program)
+    TAC.printCode()
 
 if __name__ == "__main__":
     from sys import argv
