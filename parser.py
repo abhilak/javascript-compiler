@@ -1,14 +1,9 @@
 #!/usr/bin/python
-import pprint
 from ply import yacc
-from sys import argv, exit
-from helpers import symbol_table as SymbolTable
 from JSlexer import tokens, lexer, debug
-from helpers import threeAddrCode as ThreeAddressCode
 
-# Singletons of the helper classes
-ST = SymbolTable.SymbolTable()
-TAC = ThreeAddressCode.ThreeAddressCode(ST)
+from helpers import symbol_table as SymbolTable
+from helpers import threeAddrCode as ThreeAddressCode
 
 ########################################
 ############# STATEMENTS ###############
@@ -24,7 +19,7 @@ def p_start(p):
     TAC.noop(p[1]['loopBeginList'])
 
     # Here we have to have statements so that we can return back to the calling function
-    TAC.emit('', '' , -1, 'EXIT')
+    TAC.emit('', '' , -1, 'HALT')
 
     # Resolve all functions that are waiting
     TAC.resolveWaitingFunctions()
@@ -541,6 +536,7 @@ def p_print_statement(p):
     expType = p[2].get('type')
     if expType in ['STRING', 'NUMBER', 'BOOLEAN']:
         TAC.emit(p[2]['place'], '', p[2]['type'], 'PRINT')
+        debug.printStatement("Print Statement of type %s" %p[2]['type'])
         p[0]['type'] = 'VOID'
     else:
         p[0]['type'] = 'TYPE_ERROR'
@@ -804,7 +800,11 @@ def p_base_type_boolean(p):
     'base_type : BOOLEAN'
 
     # Type rules
-    p[0] = { 'type' : 'BOOLEAN' , 'value' : p[1] }
+    if p[1] == 'true':
+        value = 1
+    else:
+        value = 0
+    p[0] = { 'type' : 'BOOLEAN' , 'value' : value }
 
 def p_base_type_string(p):
     'base_type : STRING'
@@ -868,7 +868,12 @@ def p_error(p):
     # parser.errok()
 
 ######################################################################################################
+
+######## Required Globals ##############
+ST = SymbolTable.SymbolTable()
+TAC = ThreeAddressCode.ThreeAddressCode(ST)
 parser = yacc.yacc()
+########################################
 
 # a function to test the parser
 def test_yacc(input_file):
@@ -877,6 +882,7 @@ def test_yacc(input_file):
     # parser.parse(program, lexer=lexer, debug=1)
 
 if __name__ == "__main__":
+    from sys import argv
     filename, input_file = argv 
 
     test_yacc(input_file)

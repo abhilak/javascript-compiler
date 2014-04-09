@@ -1,9 +1,7 @@
 #!/usr/bin/python
 from ply import lex
-from sys import argv
-from helpers import debug as debug
 
-debug = debug.Debug()
+from helpers import debug as debug
 
 ########################################
 ############# RESERVED #################
@@ -229,9 +227,14 @@ def t_error(t):
     t.lexer.skip(1)
 
 ######################################################################################################
-# Create a lexer which uses the above defined rules, this can be used by the parser
+# Create a lexer which uses the above defined rules, this can be used by the any parser which 
+# includes this file
+
+######### Required Globals #############
+debug = debug.Debug()
 lexer = lex.lex()
 prev = 0
+########################################
 
 # A function to test the lexer
 def test_lex(input_file):
@@ -247,6 +250,6 @@ def test_lex(input_file):
         print "%-25s \t\t\t\t %s" %(repr(tok.type), repr(tok.value))
 
 if __name__ == "__main__":
+    from sys import argv
     filename, input_file = argv 
-
     test_lex(input_file)

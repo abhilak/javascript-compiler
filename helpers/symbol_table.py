@@ -15,6 +15,7 @@ class SymbolTable:
                     }
                 }
         self.temporaryCount = 0
+        self.functionList = { 'main': self.symbol_table['main']}
 
         # Two stacks one for offset and other for the current scope
         self.offset = [0]
@@ -25,6 +26,10 @@ class SymbolTable:
         if self.showSymbolTable:
             print "\n"
             pprint.pprint(self.symbol_table)
+
+    # Print the functionList
+    def printFunctionList(self):
+        pprint.pprint(self.functionList)
 
     # function to lookup an element in the stack
     def lookup(self, identifier):
@@ -63,6 +68,7 @@ class SymbolTable:
 
         # Marks a new relative address
         self.offset.append(0)
+        self.functionList[functionName] = currentScope[functionName]
 
     # function to add an element to the current scope
     def addIdentifier(self, identifier, IdentifierType):
@@ -156,3 +162,4 @@ class SymbolTable:
                 else:
                     return False
             return True
+
