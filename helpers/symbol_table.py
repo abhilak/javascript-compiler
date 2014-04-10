@@ -10,7 +10,8 @@ class SymbolTable:
                     '__type__':'FUNCTION', 
                     '__returnType__': None,
                     '__functionList__' : [],
-                    '__waitingList__' : {}
+                    '__waitingList__' : {},
+                    '__level__' : 1
                     }
                 }
         self.temporaryCount = 0
@@ -53,13 +54,16 @@ class SymbolTable:
     def addScope(self, functionName):
         # add the scope to the symbol_table
         currentScope = self.scope[len(self.scope) - 1]
+        level = currentScope['__level__'] + 1
+
         currentScope[functionName] = {
                 '__scopeName__': functionName, 
                 '__parentName__': currentScope['__scopeName__'],
                 '__returnType__': None,
                 '__type__': 'FUNCTION',
                 '__functionList__': [],
-                '__waitingList__' : {}
+                '__waitingList__' : {},
+                '__level__' : level
                 }
         self.scope.append(currentScope[functionName])
 
