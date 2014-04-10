@@ -23,6 +23,7 @@ def test_codeGen(input_file):
     program = open(input_file).read()
     parseProgram(program)
     TAC.printCode()
+    # ST.printFunctionList()
 
 if __name__ == "__main__":
     from sys import argv

@@ -23,6 +23,9 @@ def p_start(p):
 
     # Resolve all functions that are waiting
     TAC.resolveWaitingFunctions()
+
+    # Now delete the main scope
+    ST.deleteScope('main')
     
     # Emit code
     p[0] = {}
@@ -162,7 +165,7 @@ def p_assignment_statment(p):
     # To store information
     p[0] = {}
 
-    identifierEntry = ST.exists(p[2])
+    identifierEntry = ST.existsInCurrentScope(p[2])
     if identifierEntry == False:
         # Put the identifier into the symbol_table
         ST.addIdentifier(p[2], p[4]['type'])
@@ -199,7 +202,7 @@ def p_assignment_redefinition(p):
     # To store information
     p[0] = {}
 
-    identifierEntry = ST.exists(p[1])
+    identifierEntry = ST.existsInCurrentScope(p[1])
     if identifierEntry == True:
         # Put the identifier into the symbol_table
         ST.addAttribute(p[1], 'type', p[3]['type'])
@@ -804,7 +807,7 @@ def p_base_type_string(p):
     'base_type : STRING'
 
     # Type rules
-    p[0] = { 'type' : 'STRING' , 'value' : p[1] }
+    p[0] = { 'type' : 'STRING' , 'value' : p[1], 'length': len(p[1]) }
 
 def p_base_type_undefine(p):
     'base_type : UNDEFINED'

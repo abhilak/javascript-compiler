@@ -28,6 +28,10 @@ class SymbolTable:
     def printFunctionList(self):
         pprint.pprint(self.functionList)
 
+    # function to return currentScope name
+    def getCurrentScope(self):
+        return self.scope[len(self.scope) - 1]['__scopeName__']
+
     # function to lookup an element in the stack
     def lookup(self, identifier):
         # Obtain the currentScope
@@ -44,10 +48,6 @@ class SymbolTable:
             return currentScope[identifier]
         else:
             return self.lookupScope(identifier, scopeLocation - 1)
-
-    # function to return currentScope name
-    def getCurrentScope(self):
-        return self.scope[len(self.scope) - 1]['__scopeName__']
 
     # function to add a Scope
     def addScope(self, functionName):
@@ -89,7 +89,7 @@ class SymbolTable:
         # Update the entry
         if not currentScope.has_key(identifier):
             currentScope[identifier] = {}
-        currentScope[identifier]['__offset__'] = IdentifierWidth
+        currentScope[identifier]['__width'] = IdentifierWidth
         currentScope[identifier]['__type__'] = IdentifierType
 
         # increment the offset of the top
@@ -124,6 +124,10 @@ class SymbolTable:
             return True
         else:
             return False
+
+    # Lookup the variable in the current scope
+    def existsInCurrentScope(self, identifier):
+        return self.scope[len(self.scope) - 1].get(identifier, False)
 
     # function to delete a scope
     def deleteScope(self, functionName):
