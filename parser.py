@@ -202,7 +202,7 @@ def p_assignment_redefinition(p):
     # To store information
     p[0] = {}
 
-    identifierEntry = ST.existsInCurrentScope(p[1])
+    identifierEntry = ST.exists(p[1])
     if identifierEntry == True:
         # Put the identifier into the symbol_table
         ST.addAttribute(p[1], 'type', p[3]['type'])
@@ -272,19 +272,24 @@ def p_scope(p):
 
     # Now add the identifier as a function reference
     if p[-1] != None:
-        # Print to console
-        debug.printStatementBlock("Definition of function '%s'" %p[-1])
 
-        # add the place for this function
-        location = TAC.newTemp()
+        # Check if the function exists or not
+        if ST.exists(p[-1]):
+            debug.printError("Redefinition of function '%s'" %p[-1])
+        else:
+            # Print to console
+            debug.printStatementBlock("Definition of function '%s'" %p[-1])
 
-        ST.addIdentifier(p[-1], 'FUNCTION')
-        ST.addAttribute(p[-1], 'reference', p[0]['name'])
-        ST.addAttribute(p[-1], 'place', location)
-        ST.addToFunctionList(p[-1])
+            # add the place for this function
+            location = TAC.newTemp()
 
-        # Emit the location of the function reference
-        TAC.emit(location, p[0]['name'], '', '=')
+            ST.addIdentifier(p[-1], 'FUNCTION')
+            ST.addAttribute(p[-1], 'reference', p[0]['name'])
+            ST.addAttribute(p[-1], 'place', location)
+            ST.addToFunctionList(p[-1])
+
+            # Emit the location of the function reference
+            TAC.emit(location, p[0]['name'], '', '=')
     else:
         # Print to console
         debug.printStatementBlock('Function Definition "%s"' %p[0]['name'])
