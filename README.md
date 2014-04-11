@@ -1,7 +1,7 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- function call to a parent scope doesn't work
+- function call to a parent scope doesn't work (function hoisting)
 
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed

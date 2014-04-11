@@ -1,4 +1,3 @@
-
 var m = function (t::bool) {
     if ( t ) {
         return 1;
