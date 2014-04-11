@@ -1,22 +1,13 @@
-function void(p::function) {
-    var i = 0;
-    while ( true ) {
-        i = i + 1;
-        if ( true ) {
-            break;
-        } else {
-            continue;
-        }
+
+var m = function (t::bool) {
+    if ( t ) {
+        return 1;
+    } else {
+        return 2;
     }
-
-    return 9;
-}
-
-var z = function (y::num, t::function) {
-    var k = y>2 && 1 < 2;
 };
 
-void(function (){
-    var name = 'srijan';
-});
-
+function z(y::num, t::callback) {
+    var k = y>2 && 1 < 2;
+    m(true);
+}

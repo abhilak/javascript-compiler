@@ -131,7 +131,7 @@ class SymbolTable:
 
     # Lookup the variable in the current scope
     def existsInCurrentScope(self, identifier):
-        return self.scope[len(self.scope) - 1].get(identifier, False)
+        return self.scope[len(self.scope) - 1].get(identifier, False) != False
 
     # function to delete a scope
     def deleteScope(self, functionName):

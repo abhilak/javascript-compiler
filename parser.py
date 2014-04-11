@@ -117,7 +117,7 @@ def p_declaration_statement(p):
 
 def p_hint(p):
     '''hint : IDENTIFIER OP_HINT HINT_NUMBER
-            | IDENTIFIER OP_HINT FUNCTION
+            | IDENTIFIER OP_HINT HINT_FUNCTION
             | IDENTIFIER OP_HINT HINT_STRING
             | IDENTIFIER OP_HINT HINT_ARRAY
             | IDENTIFIER OP_HINT HINT_BOOLEAN'''
@@ -842,8 +842,8 @@ def p_list_empty(p):
     'list : empty'''
 
 ######## ARRAY ACCESS ##############
-def array_access(p):
-    'array_access : IDENTIFIER SEP_OPEN_BRACKET NUMBER SEP_CLOSE_BRACE'
+# def p_array_access(p):
+#     'array_access : IDENTIFIER SEP_OPEN_BRACKET NUMBER SEP_CLOSE_BRACE'
 
 ########################################
 ################ EMPTY #################

@@ -19,6 +19,7 @@ reserved = {
     'undefined' : 'UNDEFINED',
     'num' : 'HINT_NUMBER',
     'string' : 'HINT_STRING',
+    'callback': 'HINT_FUNCTION',
     'array' : 'HINT_ARRAY',
     'bool' : 'HINT_BOOLEAN',
     'print' : 'PRINT'
