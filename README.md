@@ -1,8 +1,8 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- callback and return values
 - assignment and declaration don't have the semicolon check rule
+
 
 - Strings are now constants
 - No function hoisting is supported

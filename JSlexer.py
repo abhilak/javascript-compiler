@@ -22,7 +22,7 @@ reserved = {
     'callback': 'HINT_FUNCTION',
     'array' : 'HINT_ARRAY',
     'bool' : 'HINT_BOOLEAN',
-    'print' : 'PRINT'
+    'consolelog' : 'PRINT'
 }
 
 ########################################

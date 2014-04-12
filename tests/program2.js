@@ -13,6 +13,7 @@ function x(t::callback) {
 }
 
 function printer(n::num) {
-    print n;
+    consolelog(n);
+    return 1;
 }
 x(printer);

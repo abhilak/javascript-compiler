@@ -8,7 +8,7 @@ class SymbolTable:
                     '__scopeName__': 'main', 
                     '__parentName__': 'main', 
                     '__type__':'FUNCTION', 
-                    '__returnType__': None,
+                    '__returnType__': 'UNDEFINED',
                     '__functionList__' : [],
                     '__waitingList__' : {},
                     '__level__' : 1
@@ -59,7 +59,7 @@ class SymbolTable:
         currentScope[functionName] = {
                 '__scopeName__': functionName, 
                 '__parentName__': currentScope['__scopeName__'],
-                '__returnType__': None,
+                '__returnType__': 'UNDEFINED',
                 '__type__': 'FUNCTION',
                 '__functionList__': [],
                 '__waitingList__' : {},

@@ -349,7 +349,7 @@ def p_return_statement(p):
     # Get the current returnType from function
     returnType = ST.getAttributeFromCurrentScope('returnType')
 
-    if returnType == None:
+    if returnType == 'UNDEFINED':
         # Assign a returnType to the function
         ST.addAttributeToCurrentScope('returnType', p[2]['type'])
     elif p[2]['type'] != returnType:
@@ -545,15 +545,15 @@ def p_m_while_branch(p):
 ############## PRINT ###################
 ########################################
 def p_print_statement(p):
-    'print_statement : PRINT expression'
+    'print_statement : PRINT SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
 
     p[0] = {}
 
     # Check if the given expression is printable or not
-    expType = p[2].get('type')
-    if expType in ['STRING', 'NUMBER', 'BOOLEAN']:
-        TAC.emit(p[2]['place'], '', p[2]['type'], 'PRINT')
-        debug.printStatement("Print Statement of type %s" %p[2]['type'])
+    expType = p[3].get('type')
+    if expType in ['STRING', 'NUMBER', 'BOOLEAN', 'UNDEFINED']:
+        TAC.emit(p[3]['place'], '', p[3]['type'], 'PRINT')
+        debug.printStatement("Print Statement of type %s" %p[3]['type'])
         p[0]['type'] = 'VOID'
     else:
         p[0]['type'] = 'TYPE_ERROR'
@@ -834,7 +834,7 @@ def p_base_type_function(p):
 
 def p_base_type_array(p):
     'base_type : array'
-    p[0] = { 'type' : 'ARRAY', 'contentType': p[0]['type'] }
+    p[0] = { 'type' : 'ARRAY', 'contentType': p[1]['type'] }
 
 def p_array(p):
     'array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET'

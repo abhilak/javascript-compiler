@@ -26,12 +26,12 @@ def test_codeGen(input_file):
     TAC.printCode()
 
     # Write the Symbol Table to the Log file
-    f = open('log-symbol.txt', 'w')
+    f = open('symbol.log', 'w')
     log = json.dumps(ST.symbol_table, sort_keys=True)
     f.write(log)
     f.close()
 
-    f = open('log-function.txt', 'w')
+    f = open('function.log', 'w')
     log = json.dumps(ST.functionList, sort_keys=True)
     f.write(log)
     f.close()
