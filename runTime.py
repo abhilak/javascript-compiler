@@ -23,7 +23,7 @@ import json
 def test_codeGen(input_file):
     program = open(input_file).read()
     parseProgram(program)
-    TAC.printCode()
+    # TAC.printCode()
 
     # Write the Symbol Table to the Log file
     f = open('symbol.log', 'w')

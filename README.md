@@ -10,28 +10,29 @@
 t1 = 'srijan'
 ^not sure that this is the way to handle them
 ```
-
-- Strings are now constants
-- No function hoisting is supported
+- Create a new label for the string and then pass that label (strings are constants)
 
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
-- passing functions as parameters
-- Returning functions 
-- Strongly Typed 
-- Static Type Hinting for variables
-    - Callback and all have no type checking though
-- A function can pass extra parameters as well
+- The idea of callbacks:
+    - Callbacks are the pascal equivalent of procedures.
+    - They don't return values and hence cannot be used in expressions.
+    - Callbacks can be passed to functions.
+    - Callbacks can be returned from functions.
+- Typing
+    - Strongly typed.
+    - Parameters are not type checked or checked for length.
+- Functions
+    - Not hoisted, you have to define them before using them.
+    - No closures
+- Strings defined using double quotes are constants
 
 ## Todo
 - Lists
     - Runtime
     - Normal implementation
     - Thinking of making it a C type array with only one type of element
-- Closures
-- Strings and arrays
 - Parameters as an array ' arguments array'
-- Laying down the data and how to use the function labels stored in the registers
 
 ## Meetings
 ### First Meeting
