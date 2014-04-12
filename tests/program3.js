@@ -1,11 +1,5 @@
-var x = true;
-print x;
-
-function temp() {
-    var x = 2;
-    return x;
+function temp(t::callback) {
+    var y::num;
+    y = t();
 }
 
-temp();
-
-print x;

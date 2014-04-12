@@ -85,6 +85,10 @@ class SymbolTable:
             IdentifierWidth = 400 
         elif IdentifierType == 'FUNCTION':
             IdentifierWidth = 4
+        elif IdentifierType == 'CALLBACK':
+            IdentifierWidth = 4
+        else:
+            IdentifierWidth = 0
 
         # Update the entry
         if not currentScope.has_key(identifier):

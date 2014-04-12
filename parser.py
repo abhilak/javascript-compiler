@@ -326,7 +326,11 @@ def p_insert_args(p):
     # Add identifiers to local scope
     for argument in p[-2]:
         place = TAC.newTemp()
-        ST.addIdentifier(argument['name'], argument['type'])
+        # Any callback is stored as a CALLBACK which is a different type
+        if argument['type'] == 'FUNCTION':
+            ST.addIdentifier(argument['name'], 'CALLBACK')
+        else:
+            ST.addIdentifier(argument['name'], argument['type'])
         ST.addAttribute(argument['name'], 'place', place)
 
 ########################################
@@ -341,9 +345,15 @@ def p_return_statement(p):
     # Get the current returnType from function
     returnType = ST.getAttributeFromCurrentScope('returnType')
 
+    # If the function has not been assigned a return type as of yet
     if returnType == 'UNDEFINED':
         # Assign a returnType to the function
-        ST.addAttributeToCurrentScope('returnType', p[2]['type'])
+        if p[2]['type'] == 'FUNCTION':
+            ST.addAttributeToCurrentScope('returnType', 'CALLBACK')
+            debug.printStatement("Return statement of type 'CALLBACK'")
+        else:
+            ST.addAttributeToCurrentScope('returnType', p[2]['type'])
+            debug.printStatement("Return statement of type '%s'" %p[2]['type'])
     elif p[2]['type'] != returnType:
         debug.printError('Return Types dont match')
         raise SyntaxError
@@ -367,17 +377,28 @@ def p_function_call(p):
     else:
         # We check whether the identifier is a function or a reference
         if ST.getAttribute(p[1], 'type') == 'FUNCTION':
-            # Now we have to make sure that parameters of the function match
             place = ST.getAttribute(p[1], 'place')
             if place!= None:
+                debug.printStatementBlock("Function call to '%s'" %p[1])
+
+                # Emit code
                 TAC.emit('', '', place, 'JUMPLABEL')
                 returnPlace = TAC.newTemp()
                 TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
-                debug.printStatement("Function call to '%s'" %p[1])
 
                 # In case the function call is used in an expression
                 p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
                 p[0]['place'] = returnPlace
+        elif ST.getAttribute(p[1], 'type') == 'CALLBACK':
+            place = ST.getAttribute(p[1], 'place')
+            if place!= None:
+                debug.printStatementBlock("Function call to '%s'" %p[1])
+
+                # Emit code
+                TAC.emit('', '', place, 'JUMPLABEL')
+
+                # In case the function call is used in an expression
+                p[0]['type'] = 'CALLBACK'
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1])
@@ -779,7 +800,11 @@ def p_expression_function_call(p):
     # Return the value of the function
     p[0] = {}
     p[0]['type'] = p[1]['type']
-    p[0]['place'] = p[1]['place']
+    if p[1]['type'] == 'CALLBACK':
+        debug.printError('Callback functions cannot be used as expressions')
+        raise SyntaxError
+    else:
+        p[0]['place'] = p[1]['place']
 
 ########################################
 ########## BASE TYPES ##################
