@@ -4,6 +4,10 @@
 - function call to a parent scope doesn't work (function hoisting)
 - assignment and declaration don't have the semicolon check rule
 
+- Strings are now constants
+- No function hoisting is supported
+
+
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
 - passing functions as parameters
@@ -20,7 +24,7 @@
     - Thinking of making it a C type array with only one type of element
 - Closures
 - Strings and arrays
-- Parameters as an array
+- Parameters as an array ' arguments array'
 
 ## Meetings
 ### First Meeting

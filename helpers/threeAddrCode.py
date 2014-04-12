@@ -83,15 +83,3 @@ class ThreeAddressCode:
             for i in range(len(self.code[item])):
                 if self.code[item][i][3] == 'GOTO' and self.code[item][i][2] == -1:
                     print self.code[item][i]
-
-    def resolveWaitingFunctions(self):
-        currentScope = self.ST.scope[len(self.ST.scope) - 1]
-        currentFunction = self.ST.getCurrentScope()
-
-        waitingFunctions = currentScope['__waitingList__']
-        functionList = currentScope['__functionList__']
-
-        for function in functionList:
-            if waitingFunctions.has_key(function):
-                for location in waitingFunctions[function]:
-                    self.code[currentFunction][location][2] = self.ST.getAttribute(function, 'reference')

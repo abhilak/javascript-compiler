@@ -21,9 +21,6 @@ def p_start(p):
     # Here we have to have statements so that we can return back to the calling function
     TAC.emit('', '' , -1, 'HALT')
 
-    # Resolve all functions that are waiting
-    TAC.resolveWaitingFunctions()
-
     # Now delete the main scope
     ST.deleteScope('main')
     
@@ -280,9 +277,6 @@ def p_function_statement(p):
     # Here we have to have statements so that we can return back to the calling function
     TAC.emit('', '' , -1, 'JUMPBACK')
 
-    # Resolve all functions that are waiting
-    TAC.resolveWaitingFunctions()
-    
     # print the name of the statement
     functionName = p[3]['name'] 
     ST.deleteScope(functionName)
@@ -389,7 +383,7 @@ def p_function_call(p):
     # Semantic actions
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
-        ST.addToWaitingList(p[1], TAC.getNextQuad())
+        debug.printError("Function '%s' is not defined" %p[1])
         TAC.emit('', '', -1, 'JUMPLABEL')
     else:
         # We check whether the identifier is a function or a reference
