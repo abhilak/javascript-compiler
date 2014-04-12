@@ -62,16 +62,46 @@ def p_statments(p):
     p[0]['loopBeginList'] = TAC.merge(p[1].get('loopBeginList', []), p[2].get('loopBeginList', []))
 
 def p_statment(p):
-    '''statement : assignment M_quad
+    '''statement : assignment M_quad 
                  | declaration M_quad
-                 | if_then M_quad
+                 | break_statement M_quad SEP_SEMICOLON
+                 | continue_statement M_quad SEP_SEMICOLON
+                 | return_statement M_quad SEP_SEMICOLON
+                 | print_statement M_quad SEP_SEMICOLON
+                 | function_call M_quad SEP_SEMICOLON'''
+    # Emit code
+    p[0] = {}
+
+    # Backpatch statements here
+    nextList = p[1].get('nextList', [])
+    TAC.backPatch(nextList, p[2]['quad'])
+
+    # For break statement
+    p[0]['loopEndList'] = p[1].get('loopEndList', [])
+    p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
+
+def p_statement_no_semicolon(p):
+    '''statement : if_then M_quad
                  | if_then_else M_quad
                  | while_statement M_quad
-                 | break_statement M_quad
-                 | continue_statement M_quad
+                 | function_statement M_quad'''
+
+    # Emit code
+    p[0] = {}
+
+    # Backpatch statements here
+    nextList = p[1].get('nextList', [])
+    TAC.backPatch(nextList, p[2]['quad'])
+
+    # For break statement
+    p[0]['loopEndList'] = p[1].get('loopEndList', [])
+    p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
+
+def p_statement_error(p):
+    '''statement : break_statement M_quad 
                  | return_statement M_quad
+                 | continue_statement M_quad
                  | print_statement M_quad
-                 | function_statement M_quad
                  | function_call M_quad'''
 
     # Emit code
@@ -84,6 +114,10 @@ def p_statment(p):
     # For break statement
     p[0]['loopEndList'] = p[1].get('loopEndList', [])
     p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
+
+    # Raise an error
+    debug.printError('Semicolon missing')
+    raise SyntaxError
 
 # Marker to mark the nextQuad value
 def p_mark_quad(p):
@@ -103,16 +137,22 @@ def p_mark_statements(p):
 def p_declaration_statement(p):
     '''declaration : VAR argList SEP_SEMICOLON'''
 
-    try:
-        # Add identifiers to local scope
-        for identifier in p[2]:
-            # Put the identifier into the symbol_table
+    statementType = 'VOID'
+    # Add identifiers to local scope
+    for identifier in p[2]:
+        # Put the identifier into the symbol_table
+        name = identifier.get('name')
+        identifierType = identifier.get('type')
+
+        if name == None or identifierType == None:
+            debug.printError("No Hint provided for variable")
+            statmentType = 'SYNTAX_ERROR'
+            raise SyntaxError
+        else:
             ST.addIdentifier(identifier['name'], identifier['type'])
-    except TypeError:
-        debug.printError("No Hint provided for variable")
 
     # Type rules
-    p[0] = { 'type' : 'VOID' }
+    p[0] = { 'type' : statementType }
 
 def p_hint(p):
     '''hint : IDENTIFIER OP_HINT HINT_NUMBER
@@ -315,7 +355,7 @@ def p_insert_args(p):
 ######## RETURN STATEMENT ##############
 ########################################
 def p_return_statement(p):
-    'return_statement : RETURN expression SEP_SEMICOLON'
+    'return_statement : RETURN expression'
 
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
@@ -342,7 +382,7 @@ def p_return_statement(p):
 ######## FUNCTIONS CALLS ###############
 ########################################
 def p_function_call(p):
-    'function_call : IDENTIFIER SEP_OPEN_PARENTHESIS actualParameters SEP_CLOSE_PARENTHESIS SEP_SEMICOLON'
+    'function_call : IDENTIFIER SEP_OPEN_PARENTHESIS actualParameters SEP_CLOSE_PARENTHESIS'
 
     p[0] = {}
 
@@ -388,7 +428,7 @@ def p_parameters_empty(p):
 ######## BREAK STATEMENT ###############
 ########################################
 def p_break_statement(p):
-    'break_statement : BREAK SEP_SEMICOLON'
+    'break_statement : BREAK'
 
     debug.printStatement('BREAK')
 
@@ -405,7 +445,7 @@ def p_break_statement(p):
 ######## CONTINUE STATEMENT ############
 ########################################
 def p_continue_statement(p):
-    'continue_statement : CONTINUE SEP_SEMICOLON'
+    'continue_statement : CONTINUE'
 
     debug.printStatement('CONTINUE')
 
@@ -529,7 +569,7 @@ def p_m_while_branch(p):
 ############## PRINT ###################
 ########################################
 def p_print_statement(p):
-    'print_statement : PRINT expression SEP_SEMICOLON'
+    'print_statement : PRINT expression'
 
     p[0] = {}
 
@@ -859,14 +899,17 @@ def p_empty(p):
 ############# ERROR ####################
 ########################################
 def p_error(p):
-    print "Whoa. You are seriously hosed."
+    debug.printError("Whoa. You are seriously hosed.")
+
     # Read ahead looking for a closing '}'
-    while 1:
-        tok = parser.token()             # Get the next token
-        if not tok or tok.type == 'SEP_SEMICOLON' or tok.type == 'SEP_OPEN_BRACE':
-            break
-    parser.restart()
-    # parser.errok()
+    tok = parser.token()
+    if not tok:
+        while 1:
+            if not tok or tok.type in ['SEP_SEMICOLON', 'SEP_OPEN_BRACE', 'SEP_CLOSE_BRACE']:
+                break
+            tok = parser.token()             # Get the next token
+        parser.restart()
+        # parser.errok()
 
 ######################################################################################################
 

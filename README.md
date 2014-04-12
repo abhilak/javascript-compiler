@@ -2,6 +2,7 @@
 
 ## Issues
 - function call to a parent scope doesn't work (function hoisting)
+- assignment and declaration don't have the semicolon check rule
 
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
