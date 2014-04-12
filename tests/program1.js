@@ -9,4 +9,5 @@ var m = function (t::bool) {
 function z(y::num, t::callback) {
     var k = y>2 && 1 < 2;
     m(true);
+    t();
 }

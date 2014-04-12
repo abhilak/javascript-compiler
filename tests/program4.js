@@ -5,5 +5,4 @@ function void() {
     var x = 5;
 
 return 8;
-return 'sri';
 } 
