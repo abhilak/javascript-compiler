@@ -1,3 +1,5 @@
+import json
+
 class Debug:
     def __init__(self):
         self.showStatement = True
@@ -30,3 +32,10 @@ class Debug:
 
     def getPrev(self):
         return self.prev
+
+    def log(self, parameter, name):
+        f = open('log/' + name + '.log', 'w')
+        logData = json.dumps(parameter, sort_keys=True)
+        f.write(logData)
+        f.close()
+
