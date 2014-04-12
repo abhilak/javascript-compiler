@@ -89,7 +89,7 @@ class SymbolTable:
         # Update the entry
         if not currentScope.has_key(identifier):
             currentScope[identifier] = {}
-        currentScope[identifier]['__width'] = IdentifierWidth
+        currentScope[identifier]['__width__'] = IdentifierWidth
         currentScope[identifier]['__type__'] = IdentifierType
 
         # increment the offset of the top
@@ -110,7 +110,7 @@ class SymbolTable:
         return currentScope[ '__' + attributeName + '__']
 
     def getFunctionAttribute(self, identifier, attribute):
-        functionName = self.getAttribute(identifier, 'reference')
+        functionName = self.getAttribute(identifier, 'name')
         if self.functionList.has_key(functionName):
             return self.functionList[functionName]['__' + attribute + '__']
         else:

@@ -210,7 +210,7 @@ def p_assignment_statment(p):
 
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[4]['type'] == 'FUNCTION':
-            ST.addAttribute(p[2], 'reference', p[4]['name'])
+            ST.addAttribute(p[2], 'name', p[4]['name'])
 
         ST.addAttribute(p[2], 'place', p[4]['place'])
     else:
@@ -240,7 +240,7 @@ def p_assignment_redefinition(p):
 
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[3]['type'] == 'FUNCTION':
-            ST.addAttribute(p[1], 'reference', p[3]['name'])
+            ST.addAttribute(p[1], 'name', p[3]['name'])
             ST.addAttribute(p[1], 'place', p[3]['place'])
         # Emit code
         ST.addAttribute(p[1], 'place', p[3]['place'])
@@ -302,7 +302,7 @@ def p_scope(p):
             location = TAC.newTemp()
 
             ST.addIdentifier(p[-1], 'FUNCTION')
-            ST.addAttribute(p[-1], 'reference', p[0]['name'])
+            ST.addAttribute(p[-1], 'name', p[0]['name'])
             ST.addAttribute(p[-1], 'place', location)
 
             # Emit the location of the function reference
