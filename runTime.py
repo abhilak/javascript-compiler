@@ -16,7 +16,7 @@
 #
 
 from parser import ST, parseProgram , TAC
-from sys import stderr
+import json
 
 #########################################################################################
 # a function to test the parser
@@ -24,10 +24,17 @@ def test_codeGen(input_file):
     program = open(input_file).read()
     parseProgram(program)
     TAC.printCode()
-    # print >> stderr, ST.symbol_table
-    # ST.printSymbolTable()
 
-    # ST.printFunctionList()
+    # Write the Symbol Table to the Log file
+    f = open('log-symbol.txt', 'w')
+    log = json.dumps(ST.symbol_table, sort_keys=True)
+    f.write(log)
+    f.close()
+
+    f = open('log-function.txt', 'w')
+    log = json.dumps(ST.functionList, sort_keys=True)
+    f.write(log)
+    f.close()
 
 if __name__ == "__main__":
     from sys import argv
