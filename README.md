@@ -7,7 +7,6 @@
 - Strings are now constants
 - No function hoisting is supported
 
-
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
 - passing functions as parameters
