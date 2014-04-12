@@ -36,7 +36,6 @@ tokens = [
         "BOOLEAN",
         "IDENTIFIER",
         "OP_ASSIGNMENT",
-        "OP_STRING_CONCAT",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
         "OP_NOT",
@@ -118,10 +117,6 @@ def t_OP_NOT_EQUALS(t):
 
 def t_OP_ASSIGNMENT(t):
     r"=|"r"\+=|"r"-=|"r"\*=|"r"/=|"r"%="
-    return t
-
-def t_OP_STRING_CONCAT(t):
-    r"\*\*"
     return t
 
 def t_OP_NOT(t):

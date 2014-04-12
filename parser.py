@@ -593,7 +593,7 @@ precedence = (
         ('left', 'OP_AND'),
         ('left', 'OP_EQUALS', 'OP_NOT_EQUALS'),
         ('left', 'OP_LESS_THEN', 'OP_GREATER_THEN', 'OP_LESS_THEN_E', 'OP_GREATER_THEN_E'),
-        ('left', 'OP_PLUS', 'OP_MINUS', 'OP_STRING_CONCAT'),
+        ('left', 'OP_PLUS', 'OP_MINUS'),
         ('left', 'OP_MULTIPLICATION', 'OP_DIVISION', 'OP_MODULUS'),
         ('right', 'UMINUS', 'OP_TYPEOF', 'OP_NOT'),
         )
@@ -636,7 +636,6 @@ def p_expression_unary(p):
 
 def p_expression_binop(p):
     '''expression : expression OP_PLUS expression
-                  | expression OP_STRING_CONCAT expression
                   | expression OP_MINUS expression
                   | expression OP_MULTIPLICATION expression
                   | expression OP_DIVISION expression
@@ -651,18 +650,11 @@ def p_expression_binop(p):
     p[0]['place'] = TAC.newTemp()
 
     # To emit codes
-    if p[2] == '+' or p[2] == '-' or p[2] == '*' or p[2] == '/' or p[2] == '%':
-        if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
-            expType = 'NUMBER'
-            TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
-        else:
-            errorFlag = 1
-    else :
-        if p[1]['type'] == 'STRING' and p[3]['type'] == 'STRING':
-            expType = 'STRING'
-            TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
-        else:
-            errorFlag = 1
+    if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
+        expType = 'NUMBER'
+        TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
+    else:
+        errorFlag = 1
 
     # Type Error
     if errorFlag:

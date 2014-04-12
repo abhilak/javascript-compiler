@@ -86,7 +86,7 @@ class SymbolTable:
         elif IdentifierType == 'UNDEFINED':
             IdentifierWidth = 0
         elif IdentifierType == 'ARRAY':
-            IdentifierWidth = 1000
+            IdentifierWidth = 400 
         elif IdentifierType == 'FUNCTION':
             IdentifierWidth = 4
 
