@@ -13,7 +13,9 @@ function x(t::callback) {
 }
 
 function printer(n::num) {
+    var name = "srijan";
     consolelog(n);
     return 1;
 }
+
 x(printer);

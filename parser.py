@@ -30,7 +30,6 @@ def p_block(p):
 
     # Emit code
     p[0] = {}
-    p[0]['nextList'] = []
 
     # For break statement
     p[0]['loopEndList'] = p[2].get('loopEndList', [])
@@ -42,6 +41,7 @@ def p_block_empty(p):
     # Emit code
     p[0] = {}
 
+    # Empty blocks are not allowed, this points out this mistake
     debug.printError('Empty blocks are not allowed')
     raise SyntaxError
 
@@ -49,13 +49,13 @@ def p_statments(p):
     '''statements : statement statements
                   | statement M_statements'''
 
-    # For statements waiting till the loop end
     p[0] = {}
 
-    # For break statement
+    # break statements and continue statements need to pushed up
     p[0]['loopEndList'] = TAC.merge(p[1].get('loopEndList', []), p[2].get('loopEndList', []))
     p[0]['loopBeginList'] = TAC.merge(p[1].get('loopBeginList', []), p[2].get('loopBeginList', []))
 
+# The set of statements that require a semi-colon termination
 def p_statment(p):
     '''statement : assignment M_quad 
                  | declaration M_quad
@@ -64,17 +64,19 @@ def p_statment(p):
                  | return_statement M_quad SEP_SEMICOLON
                  | print_statement M_quad SEP_SEMICOLON
                  | function_call M_quad SEP_SEMICOLON'''
+
     # Emit code
     p[0] = {}
 
-    # Backpatch statements here
+    # Statements waiting for the next list get backpatched
     nextList = p[1].get('nextList', [])
     TAC.backPatch(nextList, p[2]['quad'])
 
-    # For break statement
+    # break statements and continue statements need to pushed up
     p[0]['loopEndList'] = p[1].get('loopEndList', [])
     p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
 
+# The set of statements that don't require a semi-colon termination
 def p_statement_no_semicolon(p):
     '''statement : if_then M_quad
                  | if_then_else M_quad
@@ -84,14 +86,15 @@ def p_statement_no_semicolon(p):
     # Emit code
     p[0] = {}
 
-    # Backpatch statements here
+    # Statements waiting for the next list get backpatched
     nextList = p[1].get('nextList', [])
     TAC.backPatch(nextList, p[2]['quad'])
 
-    # For break statement
+    # break statements and continue statements need to pushed up
     p[0]['loopEndList'] = p[1].get('loopEndList', [])
     p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
 
+# To notify the user of a missing semicolon
 def p_statement_error(p):
     '''statement : break_statement M_quad 
                  | return_statement M_quad
@@ -102,11 +105,11 @@ def p_statement_error(p):
     # Emit code
     p[0] = {}
 
-    # Backpatch statements here
+    # Statements waiting for the next list get backpatched
     nextList = p[1].get('nextList', [])
     TAC.backPatch(nextList, p[2]['quad'])
 
-    # For break statement
+    # break statements and continue statements need to pushed up
     p[0]['loopEndList'] = p[1].get('loopEndList', [])
     p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
 
@@ -132,8 +135,8 @@ def p_mark_statements(p):
 def p_declaration_statement(p):
     '''declaration : VAR argList SEP_SEMICOLON'''
 
-    statementType = 'VOID'
     # Add identifiers to local scope
+    statementType = 'VOID'
     for identifier in p[2]:
         # Put the identifier into the symbol_table
         name = identifier.get('name')
@@ -210,10 +213,6 @@ def p_assignment_statment(p):
             ST.addAttribute(p[2], 'reference', p[4]['name'])
 
         ST.addAttribute(p[2], 'place', p[4]['place'])
-
-        # If there are items in the trueList and falseList left, we remove them
-        if p[4]['type'] == 'BOOLEAN':
-            pass
     else:
         statmentType = 'REFERENCE_ERROR'
         debug.printError('Redefined Variable "%s"' %p[2])
@@ -307,7 +306,7 @@ def p_scope(p):
             ST.addAttribute(p[-1], 'place', location)
 
             # Emit the location of the function reference
-            TAC.emit(location, p[0]['name'], '', '=')
+            TAC.emit(location, p[0]['name'], '', '=REF')
     else:
         # Print to console
         debug.printStatementBlock('Function Definition "%s"' %p[0]['name'])
@@ -752,11 +751,10 @@ def p_expression_base_type(p):
 
     # emit code for backPatch
     if p[1]['type'] == 'FUNCTION':
-        TAC.emit(p[0]['place'], p[1]['name'], '', '=')
+        TAC.emit(p[0]['place'], p[1]['name'], '', '=REF')
         p[0]['name'] = p[1]['name']
     else:
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
-        pass
 
 ######## IDENTIFIER EXPRESSION ###########
 

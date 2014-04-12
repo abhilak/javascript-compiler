@@ -2,7 +2,12 @@
 
 ## Issues
 - assignment and declaration don't have the semicolon check rule
+- all assignments get an equal to statement
 
+```
+t1 = 'srijan'
+^not sure that this is the way to handle them
+```
 
 - Strings are now constants
 - No function hoisting is supported
