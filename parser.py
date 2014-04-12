@@ -13,8 +13,6 @@ def p_start(p):
              | statements'''
 
     # Any remaining breaks and continues need to be purged
-    # if len(p[1]['loopEndList']) > 0:
-        # debug.printError('Dangling break statement'
     TAC.noop(p[1]['loopEndList'])
     TAC.noop(p[1]['loopBeginList'])
 
@@ -210,11 +208,10 @@ def p_assignment_statment(p):
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[4]['type'] == 'FUNCTION':
             ST.addAttribute(p[2], 'reference', p[4]['name'])
-            ST.addAttribute(p[2], 'place', p[4]['place'])
             ST.addToFunctionList(p[2])
-        else:
-            # Emit code
-            ST.addAttribute(p[2], 'place', p[4]['place'])
+
+
+        ST.addAttribute(p[2], 'place', p[4]['place'])
 
         # If there are items in the trueList and falseList left, we remove them
         if p[4]['type'] == 'BOOLEAN':
@@ -249,13 +246,13 @@ def p_assignment_redefinition(p):
             ST.addAttribute(p[1], 'reference', p[3]['name'])
             ST.addAttribute(p[1], 'place', p[3]['place'])
             ST.addToFunctionList(p[2])
-
         # Emit code
         ST.addAttribute(p[1], 'place', p[3]['place'])
 
     else:
         statmentType = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])
+        raise SyntaxError
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[1])
@@ -384,7 +381,7 @@ def p_function_call(p):
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
         debug.printError("Function '%s' is not defined" %p[1])
-        TAC.emit('', '', -1, 'JUMPLABEL')
+        raise SyntaxError
     else:
         # We check whether the identifier is a function or a reference
         if ST.getAttribute(p[1], 'type') == 'FUNCTION':
@@ -392,7 +389,13 @@ def p_function_call(p):
             place = ST.getAttribute(p[1], 'place')
             if place!= None:
                 TAC.emit('', '', place, 'JUMPLABEL')
+                returnPlace = TAC.newTemp()
+                TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
                 debug.printStatement("Function call to '%s'" %p[1])
+
+                # In case the function call is used in an expression
+                p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
+                p[0]['place'] = returnPlace
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1])
@@ -791,6 +794,7 @@ def p_expression_base_type(p):
         p[0]['name'] = p[1]['name']
     else:
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
+        pass
 
 ######## IDENTIFIER EXPRESSION ###########
 
@@ -812,6 +816,15 @@ def p_expression_identifier(p):
     p[0]['trueList'] = []
     p[0]['falseList'] = []
     p[0]['nextList'] = []
+
+######## FUNCTION CALLS ##################
+def p_expression_function_call(p):
+    'expression : function_call'
+
+    # Return the value of the function
+    p[0] = {}
+    p[0]['type'] = p[1]['type']
+    p[0]['place'] = p[1]['place']
 
 ########################################
 ########## BASE TYPES ##################
@@ -857,7 +870,7 @@ def p_base_type_function(p):
 
 def p_base_type_array(p):
     'base_type : array'
-    p[0] = { 'type' : 'ARRAY' }
+    p[0] = { 'type' : 'ARRAY', 'contentType': p[0]['type'] }
 
 def p_array(p):
     'array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET'
@@ -868,8 +881,12 @@ def p_list(p):
 def p_list_base(p):
     'list : expression'''
 
+    p[0] = { 'type' : p[0]['type']}
+
 def p_list_empty(p):
     'list : empty'''
+
+    p[0] = { 'type' : 'undefined' }
 
 ######## ARRAY ACCESS ##############
 # def p_array_access(p):

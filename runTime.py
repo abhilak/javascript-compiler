@@ -16,6 +16,7 @@
 #
 
 from parser import ST, parseProgram , TAC
+from sys import stderr
 
 #########################################################################################
 # a function to test the parser
@@ -23,7 +24,9 @@ def test_codeGen(input_file):
     program = open(input_file).read()
     parseProgram(program)
     TAC.printCode()
+    # print >> stderr, ST.symbol_table
     # ST.printSymbolTable()
+
     # ST.printFunctionList()
 
 if __name__ == "__main__":

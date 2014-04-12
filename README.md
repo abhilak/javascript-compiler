@@ -25,6 +25,7 @@
 - Closures
 - Strings and arrays
 - Parameters as an array ' arguments array'
+- Laying down the data and how to use the function labels stored in the registers
 
 ## Meetings
 ### First Meeting

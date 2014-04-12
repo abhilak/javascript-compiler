@@ -113,6 +113,10 @@ class SymbolTable:
         currentScope = self.scope[len(self.scope) - 1]
         return currentScope[ '__' + attributeName + '__']
 
+    def getFunctionAttribute(self, identifier, attribute):
+        functionName = self.getAttribute(identifier, 'reference')
+        return self.functionList[functionName]['__' + attribute + '__']
+
     # Get the attribute of a given identifier
     def getAttribute(self, identifier, attributeName):
         identifierEntry = self.lookup(identifier)
