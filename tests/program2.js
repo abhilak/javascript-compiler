@@ -1,15 +1,18 @@
-var m::num, 
-    p::array;
-
-function y() {
-    return 11;
-}
-
 function x(t::callback) {
-    var p::array; 
-    m = 1;
+    var i = 1;
 
-    y();
+    while ( i < 10 ) {
+        i = i + 1;
+        if ( i > 5) {
+            break;
+        } else {
+            t(i);
+            continue;
+        }
+    }
 }
 
-x();
+function printer(n::num) {
+    print n;
+}
+x(printer);

@@ -115,7 +115,10 @@ class SymbolTable:
 
     def getFunctionAttribute(self, identifier, attribute):
         functionName = self.getAttribute(identifier, 'reference')
-        return self.functionList[functionName]['__' + attribute + '__']
+        if self.functionList.has_key(functionName):
+            return self.functionList[functionName]['__' + attribute + '__']
+        else:
+            return None
 
     # Get the attribute of a given identifier
     def getAttribute(self, identifier, attributeName):

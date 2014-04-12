@@ -1,7 +1,7 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- function call to a parent scope doesn't work (function hoisting)
+- callback and return values
 - assignment and declaration don't have the semicolon check rule
 
 - Strings are now constants
