@@ -1,4 +1,4 @@
-import json
+import pprint
 
 class Debug:
     def __init__(self):
@@ -35,7 +35,6 @@ class Debug:
 
     def log(self, parameter, name):
         f = open('log/' + name + '.log', 'w')
-        logData = json.dumps(parameter, sort_keys=True)
-        f.write(logData)
+        pprint.pprint(parameter, stream=f)
         f.close()
 

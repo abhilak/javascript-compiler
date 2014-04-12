@@ -136,7 +136,6 @@ def p_declaration_statement(p):
     '''declaration : VAR argList SEP_SEMICOLON'''
 
     # Add identifiers to local scope
-    statementType = 'VOID'
     for identifier in p[2]:
         # Put the identifier into the symbol_table
         name = identifier.get('name')
@@ -144,13 +143,12 @@ def p_declaration_statement(p):
 
         if name == None or identifierType == None:
             debug.printError("No Hint provided for variable")
-            statmentType = 'SYNTAX_ERROR'
             raise SyntaxError
         else:
             ST.addIdentifier(name, identifierType)
 
     # Type rules
-    p[0] = { 'type' : statementType }
+    p[0] = { 'type' : 'VOID'}
 
 def p_hint(p):
     '''hint : IDENTIFIER OP_HINT HINT_NUMBER
@@ -213,7 +211,6 @@ def p_assignment_statment(p):
             ST.addAttribute(p[2], 'name', p[4]['name'])
         ST.addAttribute(p[2], 'place', p[4]['place'])
     else:
-        statmentType = 'REFERENCE_ERROR'
         debug.printError('Redefined Variable "%s"' %p[2])
 
     # print the name of the statement
@@ -245,7 +242,6 @@ def p_assignment_redefinition(p):
         ST.addAttribute(p[1], 'place', p[3]['place'])
 
     else:
-        statmentType = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])
         raise SyntaxError
 
@@ -330,6 +326,7 @@ def p_insert_args(p):
             ST.addIdentifier(argument['name'], 'CALLBACK')
         else:
             ST.addIdentifier(argument['name'], argument['type'])
+
         ST.addAttribute(argument['name'], 'place', place)
 
 ########################################
@@ -374,27 +371,13 @@ def p_function_call(p):
 
     p[0] = {}
 
-    # Semantic actions
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
         debug.printError("Function '%s' is not defined" %p[1])
         raise SyntaxError
     else:
-        # We check whether the identifier is a function or a reference
-        if ST.getAttribute(p[1], 'type') == 'FUNCTION':
-            place = ST.getAttribute(p[1], 'place')
-            if place!= None:
-                debug.printStatementBlock("Function call to '%s'" %p[1])
-
-                # Emit code
-                TAC.emit('', '', place, 'JUMPLABEL')
-                returnPlace = TAC.newTemp()
-                TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
-
-                # In case the function call is used in an expression
-                p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
-                p[0]['place'] = returnPlace
-        elif ST.getAttribute(p[1], 'type') == 'CALLBACK':
+        identifierType = ST.getAttribute(p[1], 'type')
+        if identifierType in [ 'FUNCTION', 'CALLBACK' ]:
             place = ST.getAttribute(p[1], 'place')
             if place!= None:
                 debug.printStatementBlock("Function call to '%s'" %p[1])
@@ -402,8 +385,17 @@ def p_function_call(p):
                 # Emit code
                 TAC.emit('', '', place, 'JUMPLABEL')
 
-                # In case the function call is used in an expression
-                p[0]['type'] = 'CALLBACK'
+                # The type of the statment is dependent on the input condition
+                if identifierType == 'FUNCTION':
+                    returnPlace = TAC.newTemp()
+                    TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
+
+                    # In case the function call is used in an expression
+                    p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
+                    p[0]['place'] = returnPlace
+                else:
+                    # In case the function call is used in an expression
+                    p[0]['type'] = 'CALLBACK'
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1])
@@ -430,7 +422,7 @@ def p_parameters_empty(p):
 def p_break_statement(p):
     'break_statement : BREAK'
 
-    debug.printStatement('BREAK')
+    debug.printStatement('Break')
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
@@ -445,7 +437,7 @@ def p_break_statement(p):
 def p_continue_statement(p):
     'continue_statement : CONTINUE'
 
-    debug.printStatement('CONTINUE')
+    debug.printStatement('Continue')
 
     # Type rules
     p[0] = { 'type' : 'VOID' }
@@ -461,13 +453,11 @@ def p_if_then(p):
     'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block'
 
     # Type rules
-    statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
-        statmentType = 'TYPE_ERROR'
         debug.printError('Type Error')
         raise SyntaxError
 
-    p[0] = { 'type' : statmentType }
+    p[0] = { 'type' : 'VOID'}
 
     # For break statement and next waiting functions
     p[0]['nextList'] = TAC.merge(p[5].get('falseList', []), p[6].get('nextList', []))
@@ -481,15 +471,12 @@ def p_if_then_else(p):
     'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block ELSE M_else_branch block'
 
     # Type rules
-    statmentType = 'VOID'
     if p[3]['type'] != 'BOOLEAN':
-        statmentType = 'TYPE_ERROR'
         debug.printError('Type Error')
         raise SyntaxError
 
-    p[0] = { 'type' : statmentType }
+    p[0] = { 'type' : 'VOID' }
 
-    # Emit code
     # backPatch the if branch
     TAC.backPatch(p[5]['falseList'], p[8]['quad'])
     p[0]['nextList'] = p[8]['nextList']
@@ -526,9 +513,6 @@ def p_m_else_branch(p):
 def p_while(p):
     'while_statement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_while_branch block'
 
-    # Type rules
-    statmentType = 'VOID'
-
     # Emit code
     p[0] = {}
     p[0]['nextList'] = []
@@ -543,11 +527,10 @@ def p_while(p):
         # Loop around
         TAC.emit('', '', p[2]['quad'], 'GOTO')
     else:
-        statmentType = 'TYPE_ERROR'
         debug.printError('Type Error')
         raise SyntaxError
 
-    p[0]['type'] = statmentType
+    p[0]['type'] = 'VOID'
 
 def p_m_while_branch(p):
     'M_while_branch : empty'
@@ -572,11 +555,11 @@ def p_print_statement(p):
     if expType in ['STRING', 'NUMBER', 'BOOLEAN', 'UNDEFINED']:
         TAC.emit(p[3]['place'], '', p[3]['type'], 'PRINT')
         debug.printStatement("Print Statement of type %s" %p[3]['type'])
-        p[0]['type'] = 'VOID'
     else:
-        p[0]['type'] = 'TYPE_ERROR'
         debug.printError('Given expression is not a printable type')
         raise SyntaxError
+
+    p[0]['type'] = 'VOID'
 
 ########################################
 ############## EXPRESSIONS #############
