@@ -9,8 +9,6 @@ class SymbolTable:
                     '__parentName__': 'main', 
                     '__type__':'FUNCTION', 
                     '__returnType__': 'UNDEFINED',
-                    '__functionList__' : [],
-                    '__waitingList__' : {},
                     '__level__' : 1
                     }
                 }
@@ -61,8 +59,6 @@ class SymbolTable:
                 '__parentName__': currentScope['__scopeName__'],
                 '__returnType__': 'UNDEFINED',
                 '__type__': 'FUNCTION',
-                '__functionList__': [],
-                '__waitingList__' : {},
                 '__level__' : level
                 }
         self.scope.append(currentScope[functionName])
@@ -150,18 +146,6 @@ class SymbolTable:
     def nameAnon(self):
         self.temporaryCount += 1
         return '__anon' + str(self.temporaryCount) + '__'
-
-    # Function to add a function to the currentScope
-    def addToFunctionList(self, functionName):
-        currentScope = self.scope[len(self.scope) - 1]
-        currentScope['__functionList__'].append(functionName)
-
-    def addToWaitingList(self, functionName, location):
-        currentScope = self.scope[len(self.scope) - 1]
-        if currentScope['__waitingList__'].has_key(functionName):
-            currentScope['__waitingList__'][functionName].append(location)
-        else:
-            currentScope['__waitingList__'][functionName] = [location]
 
     # Function to check if two lists are equal or not
     def equal(self, list1, list2):
