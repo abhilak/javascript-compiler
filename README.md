@@ -1,6 +1,8 @@
 # Practical JavaScript Compiler
 
 ## Issues
+- intoduce callback
+- displays
 - assignment and declaration don't have the semicolon check rule
 - all assignments get an equal to statement
 

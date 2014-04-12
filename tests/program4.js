@@ -1,8 +1,21 @@
-var xy = 1;
-var $xy = 1;
+function x(t::callback) {
+    var i = 1;
 
-function void() {
-    var x = 5;
+    while ( i < 10 ) {
+        i = i + 1;
+        if ( i > 5) {
+            break;
+        } else {
+            t(i);
+            continue;
+        }
+    }
+}
 
-return 8;
-} 
+function printer(n::num) {
+    var name = "srijan";
+    consolelog(n);
+    return 1;
+}
+
+x = printer(1);

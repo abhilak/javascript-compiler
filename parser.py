@@ -147,14 +147,14 @@ def p_declaration_statement(p):
             statmentType = 'SYNTAX_ERROR'
             raise SyntaxError
         else:
-            ST.addIdentifier(identifier['name'], identifier['type'])
+            ST.addIdentifier(name, identifierType)
 
     # Type rules
     p[0] = { 'type' : statementType }
 
 def p_hint(p):
     '''hint : IDENTIFIER OP_HINT HINT_NUMBER
-            | IDENTIFIER OP_HINT HINT_FUNCTION
+            | IDENTIFIER OP_HINT HINT_CALLBACK
             | IDENTIFIER OP_HINT HINT_STRING
             | IDENTIFIER OP_HINT HINT_ARRAY
             | IDENTIFIER OP_HINT HINT_BOOLEAN'''
@@ -163,7 +163,7 @@ def p_hint(p):
 
     # According to the hint assign a type to the identifier
     if p[3] == 'callback':
-        p[0]['type'] = 'FUNCTION'
+        p[0]['type'] = 'CALLBACK'
     elif p[3] == 'num':
         p[0]['type'] = 'NUMBER'
     elif p[3] == 'bool':
@@ -210,7 +210,10 @@ def p_assignment_statment(p):
 
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[4]['type'] == 'FUNCTION':
-            ST.addAttribute(p[2], 'reference', p[4]['name'])
+            ST.addAttribute(p[2], 'name', p[4]['name'])
+        elif p[4]['type'] == 'CALLBACK':
+            debug.printError('Callbacks cannot be used in assginment')
+            raise SyntaxError
 
         ST.addAttribute(p[2], 'place', p[4]['place'])
     else:
@@ -240,8 +243,11 @@ def p_assignment_redefinition(p):
 
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[3]['type'] == 'FUNCTION':
-            ST.addAttribute(p[1], 'reference', p[3]['name'])
-            ST.addAttribute(p[1], 'place', p[3]['place'])
+            ST.addAttribute(p[1], 'name', p[3]['name'])
+        elif p[3]['type'] == 'CALLBACK':
+            debug.printError('Callbacks cannot be used in assginment')
+            raise SyntaxError
+
         # Emit code
         ST.addAttribute(p[1], 'place', p[3]['place'])
 
@@ -302,7 +308,7 @@ def p_scope(p):
             location = TAC.newTemp()
 
             ST.addIdentifier(p[-1], 'FUNCTION')
-            ST.addAttribute(p[-1], 'reference', p[0]['name'])
+            ST.addAttribute(p[-1], 'name', p[0]['name'])
             ST.addAttribute(p[-1], 'place', location)
 
             # Emit the location of the function reference
@@ -338,18 +344,24 @@ def p_return_statement(p):
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
 
+    # If the function returns a function, it is converted to a callback
+    if p[2]['type'] == 'FUNCTION':
+        p[0]['type'] == 'CALLBACK'
+
     # Get the current returnType from function
     returnType = ST.getAttributeFromCurrentScope('returnType')
 
+    # Assign a returnType to the function
     if returnType == 'UNDEFINED':
-        # Assign a returnType to the function
-        ST.addAttributeToCurrentScope('returnType', p[2]['type'])
+        ST.addAttributeToCurrentScope('returnType', p[0]['type'])
     elif p[2]['type'] != returnType:
         debug.printError('Return Types dont match')
         raise SyntaxError
 
     # Emit code for the return type
     TAC.emit(p[2]['place'], '' ,'', 'RETURN')
+
+    debug.printStatement("Return statement of type '%s'" %p[2]['type'])
 
 ########################################
 ######## FUNCTIONS CALLS ###############
@@ -366,7 +378,7 @@ def p_function_call(p):
         raise SyntaxError
     else:
         # We check whether the identifier is a function or a reference
-        if ST.getAttribute(p[1], 'type') == 'FUNCTION':
+        if ST.getAttribute(p[1], 'type') in ['FUNCTION', 'CALLBACK']:
             # Now we have to make sure that parameters of the function match
             place = ST.getAttribute(p[1], 'place')
             if place!= None:
@@ -767,6 +779,8 @@ def p_expression_identifier(p):
     if identifierEntry!= False:
         p[0]['type'] = ST.getAttribute(p[1], 'type')
         p[0]['place'] = ST.getAttribute(p[1], 'place')
+        if p[0]['type'] == 'FUNCTION':
+            p[0]['name'] = ST.getAttribute(p[1], 'name')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])
@@ -780,6 +794,7 @@ def p_expression_function_call(p):
     p[0] = {}
     p[0]['type'] = p[1]['type']
     p[0]['place'] = p[1]['place']
+    p[0]['name'] = p[1].get('name')
 
 ########################################
 ########## BASE TYPES ##################
