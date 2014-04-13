@@ -142,6 +142,7 @@ def p_declaration_statement(p):
         identifierType = identifier.get('type')
 
         if name == None or identifierType == None:
+            statmentType = 'SYNTAX_ERROR'
             debug.printError("No Hint provided for variable")
             raise SyntaxError
         else:
@@ -202,14 +203,17 @@ def p_assignment_statment(p):
 
     identifierEntry = ST.existsInCurrentScope(p[2])
     if identifierEntry == False:
-        # Put the identifier into the symbol_table
-        ST.addIdentifier(p[2], p[4]['type'])
-        statmentType = p[4]['type']
-
         # In case of an assignment, this is a function reference, so we store the name of the function
-        if p[4]['type'] == 'FUNCTION':
+        if p[4]['type'] in ['FUNCTION', 'STRING']:
+            ST.addIdentifier(p[2], p[4]['type'], IdentifierWidth=p[4]['width'])
             ST.addAttribute(p[2], 'name', p[4]['name'])
+        else:
+            ST.addIdentifier(p[2], p[4]['type'])
+
         ST.addAttribute(p[2], 'place', p[4]['place'])
+
+        # Put the identifier into the symbol_table
+        statmentType = p[4]['type']
     else:
         debug.printError('Redefined Variable "%s"' %p[2])
 
@@ -238,6 +242,7 @@ def p_assignment_redefinition(p):
         if p[3]['type'] == 'FUNCTION':
             ST.addAttribute(p[1], 'name', p[3]['name'])
             ST.addAttribute(p[1], 'place', p[3]['place'])
+
         # Emit code
         ST.addAttribute(p[1], 'place', p[3]['place'])
 
@@ -355,6 +360,7 @@ def p_return_statement(p):
             ST.addAttributeToCurrentScope('returnType', p[2]['type'])
             debug.printStatement("Return statement of type '%s'" %p[2]['type'])
     elif p[2]['type'] != returnType:
+        p[0]['type'] = 'TYPE_ERROR'
         debug.printError('Return Types dont match')
         raise SyntaxError
 
@@ -373,6 +379,7 @@ def p_function_call(p):
 
     # If the identifier does not exist then we output error
     if not ST.exists(p[1]):
+        p[0]['type'] = 'REFERENCE_ERROR'
         debug.printError("Function '%s' is not defined" %p[1])
         raise SyntaxError
     else:
@@ -583,7 +590,6 @@ def p_expression_unary(p):
 
     # Type rules
     expType = 'UNDEFINED'
-    errorFlag = 0
 
     # Emit code
     p[0] = {}
@@ -595,16 +601,12 @@ def p_expression_unary(p):
             expType = 'NUMBER'
             TAC.emit(p[0]['place'], p[2]['place'] , '' , 'uni-')
         else:
-            errorFlag = 1
-    elif p[1] == 'typeof':
+            expType = 'TYPE_ERROR'
+            debug.printError('Type Error')
+            raise SyntaxError
+    else:
         expType = 'STRING'
         TAC.emit(p[0]['place'], p[2]['type'] , '' , '=')
-
-    # In case of type errors
-    if errorFlag:
-        expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
-        raise SyntaxError
 
     # Return type of the statment
     p[0]['type'] = expType
@@ -620,7 +622,6 @@ def p_expression_binop(p):
 
     # Type rules
     expType = 'UNDEFINED'
-    errorFlag = 0
 
     # To store information
     p[0] = {}
@@ -631,10 +632,6 @@ def p_expression_binop(p):
         expType = 'NUMBER'
         TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
     else:
-        errorFlag = 1
-
-    # Type Error
-    if errorFlag:
         expType = 'TYPE_ERROR'
         debug.printError('Type Error')
         raise SyntaxError
@@ -653,7 +650,6 @@ def p_expression_relational(p):
 
     # Type rules
     expType = 'UNDEFINED'
-    errorFlag = 0
 
     if p[1]['type'] == p[3]['type']:
         expType = 'BOOLEAN'
@@ -759,9 +755,10 @@ def p_expression_base_type(p):
     p[0]['place'] = TAC.newTemp()
 
     # emit code for backPatch
-    if p[1]['type'] == 'FUNCTION':
-        TAC.emit(p[0]['place'], p[1]['name'], '', '=REF')
+    if p[1]['type'] in ['FUNCTION', 'STRING']:
         p[0]['name'] = p[1]['name']
+        p[0]['width'] = p[1].get('width', 4)
+        TAC.emit(p[0]['place'], p[0]['name'], '', '=REF')
     else:
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
 
@@ -820,7 +817,7 @@ def p_base_type_string(p):
     'base_type : STRING'
 
     # Type rules
-    p[0] = { 'type' : 'STRING' , 'value' : p[1], 'length': len(p[1]) }
+    p[0] = { 'type' : 'STRING' , 'name': ST.nameString(), 'value' : p[1], 'width': len(p[1]) }
 
 def p_base_type_undefine(p):
     'base_type : UNDEFINED'

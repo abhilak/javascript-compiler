@@ -13,6 +13,7 @@ class SymbolTable:
                     }
                 }
         self.temporaryCount = 0
+        self.stringCount = 0
         self.functionList = { 'main': self.symbol_table['main']}
 
         # Two stacks one for offset and other for the current scope
@@ -68,27 +69,23 @@ class SymbolTable:
         self.functionList[functionName] = currentScope[functionName]
 
     # function to add an element to the current scope
-    def addIdentifier(self, identifier, IdentifierType):
+    def addIdentifier(self, identifier, IdentifierType, IdentifierWidth=0):
         # add the scope to the symbol_table
         currentScope = self.scope[len(self.scope) - 1]
 
         # Ladder to decide the width of the Identifier
-        if IdentifierType == 'NUMBER':
-            IdentifierWidth = 4
-        elif IdentifierType == 'BOOLEAN':
-            IdentifierWidth = 1
-        elif IdentifierType == 'STRING':
-            IdentifierWidth = 100
-        elif IdentifierType == 'UNDEFINED':
-            IdentifierWidth = 0
-        elif IdentifierType == 'ARRAY':
-            IdentifierWidth = 400 
-        elif IdentifierType == 'FUNCTION':
-            IdentifierWidth = 4
-        elif IdentifierType == 'CALLBACK':
-            IdentifierWidth = 4
-        else:
-            IdentifierWidth = 0
+        if IdentifierWidth != 0:
+            if IdentifierType in ['NUMBER', 'FUNCTION', 'CALLBACK']:
+                IdentifierWidth = 4
+            elif IdentifierType == 'BOOLEAN':
+                IdentifierWidth = 1
+            elif IdentifierType == 'STRING':
+                IdentifierWidth = 100
+            elif IdentifierType == 'ARRAY':
+                IdentifierWidth = 400 
+            else:
+                # For UNDEFINED
+                IdentifierWidth = 0
 
         # Update the entry
         if not currentScope.has_key(identifier):
@@ -150,6 +147,11 @@ class SymbolTable:
     def nameAnon(self):
         self.temporaryCount += 1
         return '__anon' + str(self.temporaryCount) + '__'
+
+    # A function to provide labels to strings
+    def nameString(self):
+        self.stringCount += 1
+        return '__string' + str(self.stringCount) + '__'
 
     # Function to check if two lists are equal or not
     def equal(self, list1, list2):
