@@ -15,26 +15,26 @@
 # - *
 #
 
-from parser import ST, parseProgram , TAC
-import json
+from parser import ST, parseProgram , TAC, debug
 
 #########################################################################################
 # a function to test the parser
 def test_codeGen(input_file):
     program = open(input_file).read()
     parseProgram(program)
-    # TAC.printCode()
 
-    # Write the Symbol Table to the Log file
-    f = open('symbol.log', 'w')
-    log = json.dumps(ST.symbol_table, sort_keys=True)
-    f.write(log)
-    f.close()
+    # Log the data
+    debug.log(TAC.code, 'TAC_code')
+    debug.log(ST.symbol_table, 'symbol_table')
+    debug.log(ST.functionList, 'functionList')
 
-    f = open('function.log', 'w')
-    log = json.dumps(ST.functionList, sort_keys=True)
-    f.write(log)
-    f.close()
+    # For the strings, we have to create a label in the data region
+
+    # First order of buisness is to add the stack frame
+
+    # Then we have to create the display
+
+    # we have to update all the variables when we call a new function
 
 if __name__ == "__main__":
     from sys import argv

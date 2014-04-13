@@ -1,3 +1,5 @@
+import pprint
+
 class Debug:
     def __init__(self):
         self.showStatement = True
@@ -30,3 +32,9 @@ class Debug:
 
     def getPrev(self):
         return self.prev
+
+    def log(self, parameter, name):
+        f = open('log/' + name + '.log', 'w')
+        pprint.pprint(parameter, stream=f)
+        f.close()
+
