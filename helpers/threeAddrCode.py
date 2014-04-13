@@ -50,11 +50,19 @@ class ThreeAddressCode:
         self.nextQuad[functionName] = 0
 
     # Function to print code
-    def printCode(self):
-        for functionName in self.code.keys():
-            print "\n%s:" %functionName
-            for i in range(len(self.code[functionName])):
-                print "%5d: \t" %i, self.code[functionName][i]
+    def printCode(self, fileName=''):
+        if fileName != '':
+            f = open('log/' + fileName + '.log', 'w')
+            for functionName in self.code.keys():
+                f.write("\n%s:\n" %functionName)
+                for i in range(len(self.code[functionName])):
+                    f.write("%5d: \t%s\n" %(i, self.code[functionName][i]))
+            f.close()
+        else:
+            for functionName in self.code.keys():
+                print "\n%s:" %functionName
+                for i in range(len(self.code[functionName])):
+                    print "%5d: \t" %i, self.code[functionName][i]
 
     # Function to merge two lists
     def merge(self, list1, list2):

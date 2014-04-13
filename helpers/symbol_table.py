@@ -74,7 +74,7 @@ class SymbolTable:
         currentScope = self.scope[len(self.scope) - 1]
 
         # Ladder to decide the width of the Identifier
-        if IdentifierWidth != 0:
+        if IdentifierWidth == 0:
             if IdentifierType in ['NUMBER', 'FUNCTION', 'CALLBACK']:
                 IdentifierWidth = 4
             elif IdentifierType == 'BOOLEAN':

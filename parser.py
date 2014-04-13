@@ -138,15 +138,15 @@ def p_declaration_statement(p):
     # Add identifiers to local scope
     for identifier in p[2]:
         # Put the identifier into the symbol_table
-        name = identifier.get('name')
+        identifierName = identifier.get('name')
         identifierType = identifier.get('type')
 
-        if name == None or identifierType == None:
+        if identifierName == None or identifierType == None:
             statmentType = 'SYNTAX_ERROR'
             debug.printError("No Hint provided for variable")
             raise SyntaxError
         else:
-            ST.addIdentifier(name, identifierType)
+            ST.addIdentifier(identifierName, identifierType)
 
     # Type rules
     p[0] = { 'type' : 'VOID'}
@@ -206,7 +206,7 @@ def p_assignment_statment(p):
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[4]['type'] in ['FUNCTION', 'STRING']:
             ST.addIdentifier(p[2], p[4]['type'], IdentifierWidth=p[4]['width'])
-            ST.addAttribute(p[2], 'name', p[4]['name'])
+            ST.addAttribute(p[2], 'reference', p[4]['reference'])
         else:
             ST.addIdentifier(p[2], p[4]['type'])
 
@@ -216,6 +216,7 @@ def p_assignment_statment(p):
         statmentType = p[4]['type']
     else:
         debug.printError('Redefined Variable "%s"' %p[2])
+        raise SyntaxError
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[2])
@@ -234,18 +235,18 @@ def p_assignment_redefinition(p):
 
     identifierEntry = ST.exists(p[1])
     if identifierEntry == True:
-        # Put the identifier into the symbol_table
-        ST.addAttribute(p[1], 'type', p[3]['type'])
-        statmentType = p[3]['type']
-
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[3]['type'] == 'FUNCTION':
-            ST.addAttribute(p[1], 'name', p[3]['name'])
-            ST.addAttribute(p[1], 'place', p[3]['place'])
+            ST.addAttribute(p[1], 'reference', p[3]['reference'])
+        elif p[3]['type'] == 'STRING':
+            ST.addAttribute(p[1], 'reference', p[3]['reference'])
+            ST.addAttribute(p[1], 'width', p[3]['width'])
 
-        # Emit code
         ST.addAttribute(p[1], 'place', p[3]['place'])
+        ST.addAttribute(p[1], 'type', p[3]['type'])
 
+        # Put the identifier into the symbol_table
+        statmentType = p[3]['type']
     else:
         debug.printError('Undefined Variable "%s"' %p[1])
         raise SyntaxError
@@ -271,14 +272,14 @@ def p_function_statement(p):
     TAC.emit('', '' , -1, 'JUMPBACK')
 
     # print the name of the statement
-    functionName = p[3]['name'] 
+    functionName = p[3]['reference'] 
     ST.deleteScope(functionName)
 
     # Update the code Length of the given function
     ST.addAttribute(functionName, 'codeLength', TAC.getCodeLength(functionName))
 
     # Type rules
-    p[0] = { 'type' : 'FUNCTION', 'name': functionName }
+    p[0] = { 'type' : 'FUNCTION', 'reference': functionName }
 
 def p_scope(p):
     'M_scope : empty'
@@ -286,7 +287,7 @@ def p_scope(p):
     p[0] = {}
 
     # Name the function
-    p[0]['name'] = ST.nameAnon()
+    p[0]['reference'] = ST.nameAnon()
 
     # Now add the identifier as a function reference
     if p[-1] != None:
@@ -302,18 +303,18 @@ def p_scope(p):
             location = TAC.newTemp()
 
             ST.addIdentifier(p[-1], 'FUNCTION')
-            ST.addAttribute(p[-1], 'name', p[0]['name'])
+            ST.addAttribute(p[-1], 'reference', p[0]['reference'])
             ST.addAttribute(p[-1], 'place', location)
 
             # Emit the location of the function reference
-            TAC.emit(location, p[0]['name'], '', '=REF')
+            TAC.emit(location, p[0]['reference'], '', '=REF')
     else:
         # Print to console
-        debug.printStatementBlock('Function Definition "%s"' %p[0]['name'])
+        debug.printStatementBlock('Function Definition "%s"' %p[0]['reference'])
 
     # Create a function scope
-    ST.addScope(p[0]['name'])
-    TAC.createFunctionCode(p[0]['name'])
+    ST.addScope(p[0]['reference'])
+    TAC.createFunctionCode(p[0]['reference'])
     
 def p_anon_name(p):
     'M_anonName : empty'
@@ -651,7 +652,7 @@ def p_expression_relational(p):
     # Type rules
     expType = 'UNDEFINED'
 
-    if p[1]['type'] == p[3]['type']:
+    if p[1]['type'] == p[3]['type'] == 'NUMBER':
         expType = 'BOOLEAN'
     else:
         expType = 'TYPE_ERROR'
@@ -756,9 +757,9 @@ def p_expression_base_type(p):
 
     # emit code for backPatch
     if p[1]['type'] in ['FUNCTION', 'STRING']:
-        p[0]['name'] = p[1]['name']
+        p[0]['reference'] = p[1]['reference']
         p[0]['width'] = p[1].get('width', 4)
-        TAC.emit(p[0]['place'], p[0]['name'], '', '=REF')
+        TAC.emit(p[0]['place'], p[0]['reference'], '', '=REF')
     else:
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
 
@@ -774,7 +775,10 @@ def p_expression_identifier(p):
         p[0]['type'] = ST.getAttribute(p[1], 'type')
         p[0]['place'] = ST.getAttribute(p[1], 'place')
         if p[0]['type'] == 'FUNCTION':
-            p[0]['name'] = ST.getAttribute(p[1], 'name')
+            p[0]['reference'] = ST.getAttribute(p[1], 'reference')
+        elif p[0]['type'] == 'STRING':
+            p[0]['reference'] = ST.getAttribute(p[1], 'reference')
+            p[0]['width'] = ST.getAttribute(p[1], 'width')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])
@@ -817,7 +821,7 @@ def p_base_type_string(p):
     'base_type : STRING'
 
     # Type rules
-    p[0] = { 'type' : 'STRING' , 'name': ST.nameString(), 'value' : p[1], 'width': len(p[1]) }
+    p[0] = { 'type' : 'STRING' , 'reference': ST.nameString(), 'value' : p[1], 'width': len(p[1]) }
 
 def p_base_type_undefine(p):
     'base_type : UNDEFINED'
@@ -831,7 +835,7 @@ def p_base_type_function(p):
     'base_type : function_statement'
 
     # Type rules
-    p[0] = { 'type': 'FUNCTION', 'name': p[1]['name']}
+    p[0] = { 'type': 'FUNCTION', 'reference': p[1]['reference']}
 
 ######## ARRAY EXPRESSION ##############
 

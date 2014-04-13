@@ -12,10 +12,12 @@ function x(t::callback) {
     }
 }
 
-function printer(n::num) {
-    var name = "srijan";
+function printer(n::string) {
     consolelog(n);
     return 1;
 }
 
-x(printer);
+var p = "srijan";
+p = 1;
+consolelog(p);
+printer(p);

@@ -24,7 +24,7 @@ def test_codeGen(input_file):
     parseProgram(program)
 
     # Log the data
-    debug.log(TAC.code, 'TAC_code')
+    TAC.printCode('TAC_code')
     debug.log(ST.symbol_table, 'symbol_table')
     debug.log(ST.functionList, 'functionList')
 
