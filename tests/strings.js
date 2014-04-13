@@ -1,2 +1,5 @@
 var m = 'srijan';
-consolelog(m);
+var k = 'there';
+var j = 'there';
+
+consolelog(j,m,k);

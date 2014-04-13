@@ -554,20 +554,37 @@ def p_m_while_branch(p):
 ############## PRINT ###################
 ########################################
 def p_print_statement(p):
-    'print_statement : PRINT SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS'
+    'print_statement : PRINT SEP_OPEN_PARENTHESIS printList SEP_CLOSE_PARENTHESIS'
 
     p[0] = {}
 
-    # Check if the given expression is printable or not
-    expType = p[3].get('type')
-    if expType in ['STRING', 'NUMBER', 'BOOLEAN', 'UNDEFINED']:
-        TAC.emit(p[3]['place'], '', p[3]['type'], 'PRINT')
-        debug.printStatement("Print Statement of type %s" %p[3]['type'])
-    else:
-        debug.printError('Given expression is not a printable type')
-        raise SyntaxError
+    for printIterator in p[3]:
+        # Check if the given expression is printable or not
+        expType = printIterator.get('type')
+        if expType in ['STRING', 'NUMBER', 'BOOLEAN', 'UNDEFINED']:
+            TAC.emit(printIterator['place'], '', printIterator['type'], 'PRINT')
+            debug.printStatement("Print Statement of type %s" %printIterator['type'])
+        else:
+            debug.printError('Given expression is not a printable type')
+            raise SyntaxError
 
     p[0]['type'] = 'VOID'
+
+def p_printList(p):
+    'printList : expression SEP_COMMA printList'
+
+    p[0] = [ { 'place': p[1]['place'], 'type' : p[1]['type'] } ] + p[3]
+
+def p_printList_base(p):
+    'printList : expression'''
+
+    p[0] = [ { 'place': p[1]['place'], 'type' : p[1]['type'] } ]
+
+def p_printList_empty(p):
+    'printList : empty'''
+
+    p[0] = []
+
 
 ########################################
 ############## EXPRESSIONS #############
@@ -852,7 +869,7 @@ def p_list(p):
 def p_list_base(p):
     'list : expression'''
 
-    p[0] = { 'type' : p[0]['type']}
+    p[0] = { 'type' : p[1]['type']}
 
 def p_list_empty(p):
     'list : empty'''
