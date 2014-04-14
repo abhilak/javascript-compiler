@@ -205,7 +205,7 @@ def p_assignment_statment(p):
     if identifierEntry == False:
         # In case of an assignment, this is a function reference, so we store the name of the function
         if p[4]['type'] in ['FUNCTION', 'STRING']:
-            ST.addIdentifier(p[2], p[4]['type'], IdentifierWidth=p[4]['width'])
+            ST.addIdentifier(p[2], p[4]['type'])
             ST.addAttribute(p[2], 'reference', p[4]['reference'])
         else:
             ST.addIdentifier(p[2], p[4]['type'])
@@ -236,11 +236,8 @@ def p_assignment_redefinition(p):
     identifierEntry = ST.exists(p[1])
     if identifierEntry == True:
         # In case of an assignment, this is a function reference, so we store the name of the function
-        if p[3]['type'] == 'FUNCTION':
+        if p[3]['type'] in ['FUNCTION', 'STRING']:
             ST.addAttribute(p[1], 'reference', p[3]['reference'])
-        elif p[3]['type'] == 'STRING':
-            ST.addAttribute(p[1], 'reference', p[3]['reference'])
-            ST.addAttribute(p[1], 'width', p[3]['width'])
 
         ST.addAttribute(p[1], 'place', p[3]['place'])
         ST.addAttribute(p[1], 'type', p[3]['type'])
@@ -775,7 +772,6 @@ def p_expression_base_type(p):
     # emit code for backPatch
     if p[1]['type'] in ['FUNCTION', 'STRING']:
         p[0]['reference'] = p[1]['reference']
-        p[0]['width'] = p[1].get('width', 4)
         TAC.emit(p[0]['place'], p[0]['reference'], '', '=REF')
     else:
         TAC.emit(p[0]['place'], p[1]['value'], '', '=')
@@ -788,14 +784,11 @@ def p_expression_identifier(p):
     # Type rules
     p[0] = {}
     identifierEntry = ST.exists(p[1])
-    if identifierEntry!= False:
+    if identifierEntry != False:
         p[0]['type'] = ST.getAttribute(p[1], 'type')
         p[0]['place'] = ST.getAttribute(p[1], 'place')
-        if p[0]['type'] == 'FUNCTION':
+        if p[0]['type'] in ['FUNCTION', 'STRING']:
             p[0]['reference'] = ST.getAttribute(p[1], 'reference')
-        elif p[0]['type'] == 'STRING':
-            p[0]['reference'] = ST.getAttribute(p[1], 'reference')
-            p[0]['width'] = ST.getAttribute(p[1], 'width')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])
@@ -838,7 +831,10 @@ def p_base_type_string(p):
     'base_type : STRING'
 
     # Type rules
-    p[0] = { 'type' : 'STRING' , 'reference': ST.nameString(), 'value' : p[1], 'width': len(p[1]) }
+    p[0] = { 'type' : 'STRING' , 'reference': ST.nameString(), 'value' : p[1] }
+
+    # Whenever a string is defined, we have to add it to the function's data region
+    ST.addToStringList(p[0]['reference'], p[1])
 
 def p_base_type_undefine(p):
     'base_type : UNDEFINED'

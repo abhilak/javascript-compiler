@@ -9,6 +9,7 @@ class SymbolTable:
                     '__parentName__': 'main', 
                     '__type__':'FUNCTION', 
                     '__returnType__': 'UNDEFINED',
+                    '__stringList__' : [],
                     '__level__' : 1
                     }
                 }
@@ -60,6 +61,7 @@ class SymbolTable:
                 '__parentName__': currentScope['__scopeName__'],
                 '__returnType__': 'UNDEFINED',
                 '__type__': 'FUNCTION',
+                '__stringList__' : [],
                 '__level__' : level
                 }
         self.scope.append(currentScope[functionName])
@@ -80,7 +82,7 @@ class SymbolTable:
             elif IdentifierType == 'BOOLEAN':
                 IdentifierWidth = 1
             elif IdentifierType == 'STRING':
-                IdentifierWidth = 100
+                IdentifierWidth = 4
             elif IdentifierType == 'ARRAY':
                 IdentifierWidth = 400 
             else:
@@ -116,6 +118,10 @@ class SymbolTable:
             return self.functionList[functionName]['__' + attribute + '__']
         else:
             return None
+
+    def addToStringList(self, label, string):
+        currentScope = self.scope[len(self.scope) - 1]
+        currentScope['__stringList__'].append({ label : string })
 
     # Get the attribute of a given identifier
     def getAttribute(self, identifier, attributeName):
