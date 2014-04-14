@@ -89,15 +89,19 @@ class SymbolTable:
                 # For UNDEFINED
                 IdentifierWidth = 0
 
+        # increment the offset of the top
+        currentOffset = self.offset.pop()
+
         # Update the entry
         if not currentScope.has_key(identifier):
             currentScope[identifier] = {}
+
         currentScope[identifier]['__width__'] = IdentifierWidth
         currentScope[identifier]['__type__'] = IdentifierType
+        currentScope[identifier]['__offset__'] = currentOffset
+        currentScope[identifier]['__ScopeLevel__'] = currentScope['__level__']
 
-        # increment the offset of the top
-        currentOffset = self.offset.pop() + IdentifierWidth
-        self.offset.append(currentOffset)
+        self.offset.append(currentOffset + IdentifierWidth)
 
     # add an attribute to the identifier
     def addAttribute(self, identifier, attributeName, attributeValue):

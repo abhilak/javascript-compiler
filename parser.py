@@ -786,9 +786,22 @@ def p_expression_identifier(p):
     identifierEntry = ST.exists(p[1])
     if identifierEntry != False:
         p[0]['type'] = ST.getAttribute(p[1], 'type')
-        p[0]['place'] = ST.getAttribute(p[1], 'place')
-        if p[0]['type'] in ['FUNCTION', 'STRING']:
-            p[0]['reference'] = ST.getAttribute(p[1], 'reference')
+
+        # Here we have to load in the value of the variable
+        identifierEntry = ST.existsInCurrentScope(p[1])
+        if identifierEntry == False:
+            p[0]['place'] = ST.newTemp()
+            TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'LOAD_DISPLAY')
+        else:
+            p[0]['place'] = ST.getAttribute(p[1], 'place')
+
+            # A thing to note:
+            # A callback doesn't have a reference because, we cannot determine it's linkage
+            # But functions have a reference because we can determine them
+            if p[0]['type'] in ['FUNCTION', 'STRING']:
+                p[0]['reference'] = ST.getAttribute(p[1], 'reference')
+
+
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])

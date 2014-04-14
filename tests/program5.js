@@ -1,7 +1,8 @@
 var m = "srijan";
 
-var k = "srijan";
-
 function print(str::string) {
-    consolelog(str);
+    var k = str;
+    consolelog(k);
 } 
+
+print(m);
