@@ -265,7 +265,7 @@ def p_function_statement(p):
     TAC.noop(p[8]['loopBeginList'])
 
     # Here we have to have statements so that we can return back to the calling function
-    TAC.emit('', '' , -1, 'JUMPBACK')
+    TAC.emit('', '' , '', 'JUMPBACK')
 
     # print the name of the statement
     functionName = p[3]['reference'] 
@@ -395,7 +395,7 @@ def p_function_call(p):
             # The name of the function
             debug.printStatementBlock("Function call to '%s'" %p[1])
 
-            # Emit code
+            # We jump to the function
             TAC.emit('', '', place, 'JUMPLABEL')
 
             # The type of the statment is dependent on the input condition

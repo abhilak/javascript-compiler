@@ -1,42 +1,34 @@
-# List of all the allowed statements
-# - NOOP
-# - GOTO
-# - JUMP
-# - COND_GOTO
-#     - Not sure how to tackle this pesky thing, do we evaluate it directly and use COND_GOTO_Z?
-# - COND_GOTO_Z
-# - RETURN
-# - PARAM
-# - =
-# - +
-# - -
-# - /
-# - %
-# - *
-#
-
-from parser import ST, parseProgram , TAC, debug
+from sys import argv
+from parser import ST, parseProgram , TAC, debug, ThreeAddressCode
+from helpers import runtimeCode as RuntimeCode
 
 #########################################################################################
-# a function to test the parser
-def test_codeGen(input_file):
-    program = open(input_file).read()
-    parseProgram(program)
 
-    # Log the data
-    TAC.printCode('TAC_code')
-    debug.log(ST.symbol_table, 'symbol_table')
-    debug.log(ST.functionList, 'functionList')
+# Parse the program to get the threeAddressCode
+filename, input_file = argv 
+program = open(input_file).read()
+parseProgram(program)
 
-    # For the strings, we have to create a label in the data region
+# Log the data
+TAC.printCode('TAC_code')
+debug.log(ST.symbol_table, 'symbols')
+debug.log(ST.functionList, 'functionList')
 
-    # First order of buisness is to add the stack frame
+# We have to parser the TAC to add the stack frame statements
+# Everytime the word 'JUMPLABEL appears, we have to do this
+RTC = RuntimeCode.RuntimeCode(ST)
 
-    # Then we have to create the display
+for function in TAC.code:
+    RTC.addFunction(function)
+    for line in TAC.code[function]:
+        if line[3] == 'JUMPLABEL':
+            RTC.addLine(['SP', ST.getAttributeFromFunctionList(function, 'width'), '', 'ADD_STACK'])
+            RTC.addLine(['*SP', ST.addressSize, '', 'MOVE'])
+        else:
+            RTC.addLine(line)
 
-    # we have to update all the variables when we call a new function
+RTC.printCode()
 
-if __name__ == "__main__":
-    from sys import argv
-    filename, input_file = argv 
-    test_codeGen(input_file)
+# For the strings, we have to create a label in the data region
+
+# Then we have to create the display

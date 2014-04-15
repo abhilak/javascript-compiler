@@ -16,6 +16,11 @@ class SymbolTable:
         self.temporaryCount = 0
         self.stringCount = 0
         self.functionList = { 'main': self.symbol_table['main']}
+        self.instructionSize = 4
+        self.addressSize = 4
+        self.booleanSize = 1
+        self.undefinedSize = 0
+        self.numberSize = 4
 
         # Two stacks one for offset and other for the current scope
         self.offset = [0]
@@ -77,17 +82,15 @@ class SymbolTable:
 
         # Ladder to decide the width of the Identifier
         if IdentifierWidth == 0:
-            if IdentifierType in ['NUMBER', 'FUNCTION', 'CALLBACK']:
-                IdentifierWidth = 4
+            if IdentifierType in ['FUNCTION', 'CALLBACK', 'STRING']:
+                IdentifierWidth = self.addressSize
             elif IdentifierType == 'BOOLEAN':
-                IdentifierWidth = 1
-            elif IdentifierType == 'STRING':
-                IdentifierWidth = 4
-            elif IdentifierType == 'ARRAY':
-                IdentifierWidth = 400 
+                IdentifierWidth = self.booleanSize
+            elif IdentifierType == 'NUMBER':
+                IdentifierWidth = self.numberSize
             else:
                 # For UNDEFINED
-                IdentifierWidth = 0
+                IdentifierWidth = self.undefinedSize
 
         # increment the offset of the top
         currentOffset = self.offset.pop()
@@ -174,4 +177,11 @@ class SymbolTable:
                 else:
                     return False
             return True
+
+    # Get the function attribute from functionlist
+    def getAttributeFromFunctionList(self, function, attributeName):
+        if self.functionList.has_key(function):
+            return self.functionList[function]['__' + attributeName + '__']
+        else:
+            return None
 
