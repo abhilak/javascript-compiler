@@ -10,12 +10,12 @@ print(m);
 
 
 function callFunction(p::callback){
-    p = function temp () {
+    p = function () {
         var car = str;
         print(car);
     };
 }
 
-// callFunction(p);
+callFunction(print);
 
 

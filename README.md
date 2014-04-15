@@ -1,16 +1,7 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- intoduce callback
-- displays
 - assignment and declaration don't have the semicolon check rule
-- all assignments get an equal to statement
-
-```
-t1 = 'srijan'
-^not sure that this is the way to handle them
-```
-- Create a new label for the string and then pass that label (strings are constants)
 
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
@@ -33,6 +24,7 @@ t1 = 'srijan'
     - Normal implementation
     - Thinking of making it a C type array with only one type of element
 - Parameters as an array ' arguments array'
+- A variable cache for variables loaded in from another scope
 
 ## Meetings
 ### First Meeting

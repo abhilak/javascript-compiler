@@ -201,13 +201,15 @@ def p_assignment_statment(p):
 
     identifierEntry = ST.existsInCurrentScope(p[2])
     if identifierEntry == False:
-
         # Store information about the identifier
         ST.addIdentifier(p[2], p[4]['type'])
         ST.addAttribute(p[2], 'place', p[4]['place'])
 
         # Put the identifier into the symbol_table
         statmentType = p[4]['type']
+
+        # Store the value of the identifier back into memory
+        TAC.emit(p[4]['place'], '', ST.getAttribute(p[2], 'offset'), 'STORE')
     else:
         debug.printError('Redefined Variable "%s"' %p[2])
         raise SyntaxError
@@ -229,8 +231,15 @@ def p_assignment_redefinition(p):
 
     identifierEntry = ST.exists(p[1])
     if identifierEntry == True:
-        ST.addAttribute(p[1], 'place', p[3]['place'])
         ST.addAttribute(p[1], 'type', p[3]['type'])
+
+        # Check if the function is in the current scope or parent one
+        identifierEntry = ST.existsInCurrentScope(p[1])
+        if identifierEntry != False:
+            ST.addAttribute(p[1], 'place', p[3]['place'])
+            TAC.emit(p[3]['place'], '', ST.getAttribute(p[1], 'offset'), 'STORE')
+        else:
+            TAC.emit(p[3]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'STORE_DISPLAY')
 
         # Put the identifier into the symbol_table
         statmentType = p[3]['type']
@@ -294,6 +303,7 @@ def p_scope(p):
 
             # Emit the location of the function reference
             TAC.emit(location, p[0]['reference'], '', '=REF')
+            TAC.emit(location, '', ST.getAttribute(p[-1], 'offset'), 'STORE')
     else:
         # Print to console
         debug.printStatementBlock('Function Definition "%s"' %p[0]['reference'])
@@ -372,25 +382,33 @@ def p_function_call(p):
         raise SyntaxError
     else:
         identifierType = ST.getAttribute(p[1], 'type')
+
+        # If the function exists in the current scope
         if identifierType in [ 'FUNCTION', 'CALLBACK' ]:
-            place = ST.getAttribute(p[1], 'place')
-            if place!= None:
-                debug.printStatementBlock("Function call to '%s'" %p[1])
+            identifierEntry = ST.existsInCurrentScope(p[1])
+            if identifierEntry != False:
+                place = ST.getAttribute(p[1], 'place')
+            else:
+                place = TAC.newTemp()
+                TAC.emit(place, ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
 
-                # Emit code
-                TAC.emit('', '', place, 'JUMPLABEL')
+            # The name of the function
+            debug.printStatementBlock("Function call to '%s'" %p[1])
 
-                # The type of the statment is dependent on the input condition
-                if identifierType == 'FUNCTION':
-                    returnPlace = TAC.newTemp()
-                    TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
+            # Emit code
+            TAC.emit('', '', place, 'JUMPLABEL')
 
-                    # In case the function call is used in an expression
-                    p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
-                    p[0]['place'] = returnPlace
-                else:
-                    # In case the function call is used in an expression
-                    p[0]['type'] = 'CALLBACK'
+            # The type of the statment is dependent on the input condition
+            if identifierType == 'FUNCTION':
+                returnPlace = TAC.newTemp()
+                TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
+
+                # In case the function call is used in an expression
+                p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
+                p[0]['place'] = returnPlace
+            else:
+                # In case the function call is used in an expression
+                p[0]['type'] = 'CALLBACK'
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1])
@@ -773,6 +791,9 @@ def p_expression_identifier(p):
 
     # Type rules
     p[0] = {}
+
+    # We have to check if the identifier exists in the current scope or not, and
+    # accordingly load it in
     identifierEntry = ST.exists(p[1])
     if identifierEntry != False:
         p[0]['type'] = ST.getAttribute(p[1], 'type')

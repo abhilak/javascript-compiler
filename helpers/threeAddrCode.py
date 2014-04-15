@@ -56,13 +56,16 @@ class ThreeAddressCode:
             for functionName in self.code.keys():
                 f.write("\n%s:\n" %functionName)
                 for i in range(len(self.code[functionName])):
-                    f.write("%5d: \t%s\n" %(i, self.code[functionName][i]))
+                    codePoint = self.code[functionName][i]
+                    f.write("%5d: \t%s\n" %(4 * i, codePoint))
+                    # f.write("%4d: \t%s\t\t%s\t\t%s\t\t%s\n" %(4 * i, codePoint[0], codePoint[1], codePoint[2], codePoint[3]))
             f.close()
         else:
             for functionName in self.code.keys():
                 print "\n%s:" %functionName
                 for i in range(len(self.code[functionName])):
-                    print "%5d: \t" %i, self.code[functionName][i]
+                    codePoint = self.code[functionName][i]
+                    print "%5d: \t%s\n" %(4 * i, codePoint)
 
     # Function to merge two lists
     def merge(self, list1, list2):
@@ -74,7 +77,7 @@ class ThreeAddressCode:
     def backPatch(self, locationList, location):
         currentFunction = self.ST.getCurrentScope()
         for position in locationList:
-            self.code[currentFunction][position][2] = location
+            self.code[currentFunction][position][2] = 4 * location
         
     # This function converts every location in the locationList to null
     def noop(self, locationList):
