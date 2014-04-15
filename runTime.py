@@ -18,16 +18,27 @@ debug.log(ST.functionList, 'functionList')
 # Everytime the word 'JUMPLABEL appears, we have to do this
 RTC = RuntimeCode.RuntimeCode(ST)
 
+# First we dump the entire string list of the functions
+# print ".data"
+# for functionName in TAC.code:
+#     functionEntry = ST.functionList[function]
+#     for string in functionEntry['__stringList__']:
+#         
 for function in TAC.code:
     RTC.addFunction(function)
+    i = 0
     for line in TAC.code[function]:
+        i += 1
         if line[3] == 'JUMPLABEL':
             RTC.addLine(['SP', ST.getAttributeFromFunctionList(function, 'width'), '', 'ADD_STACK'])
-            RTC.addLine(['*SP', ST.addressSize, '', 'MOVE'])
+            RTC.addLine(['*SP', '', 4 * (i + 2), 'MOVE'])
+            RTC.addLine(line)
+        elif line[3] == 'JUMPBACK':
+            RTC.addLine(['', '', '0(SP)', 'JUMPBACK'])
         else:
             RTC.addLine(line)
 
-RTC.printCode()
+# RTC.printCode()
 
 # For the strings, we have to create a label in the data region
 
