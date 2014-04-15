@@ -191,34 +191,52 @@ def p_arg_list_empty(p):
 ############# ASSIGNMENT ###############
 ########################################
 def p_assignment_statment(p):
-    'assignment : VAR IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'
-
+    'assignment : VAR assignList SEP_SEMICOLON'
+    
     # In case the var is not present
-    statmentType = 'VOID'
+    p[0] = { 'type' : 'VOID' }
 
-    # To store information
-    p[0] = {}
-
-    identifierEntry = ST.existsInCurrentScope(p[2])
-    if identifierEntry == False:
+    # Now we add all of these statements
+    for identifierEntry in p[2]:
         # Store information about the identifier
-        ST.addIdentifier(p[2], p[4]['type'])
-        ST.addAttribute(p[2], 'place', p[4]['place'])
-
-        # Put the identifier into the symbol_table
-        statmentType = p[4]['type']
+        ST.addIdentifier(identifierEntry['name'], identifierEntry['type'])
+        ST.addAttribute(identifierEntry['name'], 'place', identifierEntry['place'])
 
         # Store the value of the identifier back into memory
-        TAC.emit(p[4]['place'], '', ST.getAttribute(p[2], 'offset'), 'STORE')
+        TAC.emit(identifierEntry['place'], '', ST.getAttribute(identifierEntry['name'], 'offset'), 'STORE')
+
+        # print the name of the statement
+        debug.printStatement("ASSIGNMENT of %s" %identifierEntry['name'])
+
+def p_assignList(p):
+    'assignList : IDENTIFIER OP_ASSIGNMENT expression SEP_COMMA assignList'
+
+    identifier = {}
+    identifierEntry = ST.existsInCurrentScope(p[2])
+    if identifierEntry == False:
+        identifier['name'] = p[1]
+        identifier['type'] = p[3]['type']
+        identifier['place'] = p[3]['place']
     else:
-        debug.printError('Redefined Variable "%s"' %p[2])
+        debug.printError('Redefined Variable "%s"' %p[1])
         raise SyntaxError
 
-    # print the name of the statement
-    debug.printStatement("ASSIGNMENT of %s" %p[2])
+    p[0] = [identifier] + p[5]
 
-    # Type rules
-    p[0]['type'] =  statmentType
+def p_assignList_base(p):
+    'assignList : IDENTIFIER OP_ASSIGNMENT expression'
+
+    identifier = {}
+    identifierEntry = ST.existsInCurrentScope(p[2])
+    if identifierEntry == False:
+        identifier['name'] = p[1]
+        identifier['type'] = p[3]['type']
+        identifier['place'] = p[3]['place']
+    else:
+        debug.printError('Redefined Variable "%s"' %p[1])
+        raise SyntaxError
+
+    p[0] = [identifier]
 
 def p_assignment_redefinition(p):
     'assignment : IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'

@@ -1,5 +1,3 @@
-var x = 1;
-var y = 2;
-var z = 3;
+var x = 1, y = 2, z = 3;
 
 x = y + z;
