@@ -38,7 +38,7 @@ for function in TAC.code:
             RTC.addLine(['*SP', '', 4 * (i + 2), 'MOVE'])
             RTC.addLine(line)
         elif line[3] == 'JUMPBACK':
-            RTC.addLine(['', '', '0(SP)', 'JUMPBACK'])
+            RTC.addLine(['jr', '$ra', '', ''])
         elif line[3] == 'LOAD':
             RTC.addLine(['lw',line[0],str(line[2])+'(sp)',''])
         elif line[3] == 'STORE':
@@ -78,6 +78,12 @@ for function in TAC.code:
             RTC.addLine(['beq',line[0],'$0',line[2]])
         elif line[3] == 'GOTO':
             RTC.addLine(['b',line[2],'',''])
+        elif line[3] == 'FUNCTION_RETURN':
+            RTC.addLine(['move',line[0],'$v0',''])
+        elif line[3] == 'RETURN':
+            RTC.addLine(['move','$v0',line[0],''])
+        elif line[3] == 'HALT':
+            RTC.addLine(['jal', 'exit', '', ''])
         else:
             RTC.addLine(line)
 
@@ -86,4 +92,4 @@ for function in TAC.code:
 RTC.printCode()
 
 # Include the common library functions
-RTC.includeLibrary('lib/code.s')
+# RTC.includeLibrary('lib/code.s')
