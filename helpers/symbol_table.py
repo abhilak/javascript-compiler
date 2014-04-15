@@ -10,7 +10,7 @@ class SymbolTable:
                     '__type__':'FUNCTION', 
                     '__returnType__': 'UNDEFINED',
                     '__stringList__' : [],
-                    '__level__' : 1
+                    '__level__' : 0
                     }
                 }
         self.temporaryCount = 0

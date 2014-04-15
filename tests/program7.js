@@ -1,3 +1,5 @@
 var x = 1, y = 2, z = 3;
 
-x = y + z;
+function temp() {
+    return x + y + z;
+}

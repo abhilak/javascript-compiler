@@ -41,7 +41,7 @@ for function in TAC.code:
         else:
             RTC.addLine(line)
 
-# RTC.printCode()
+RTC.printCode()
 
 # For the strings, we have to create a label in the data region
 
