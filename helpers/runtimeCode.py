@@ -29,3 +29,6 @@ class RuntimeCode:
                     codePoint = self.code[functionName][i]
                     print "%5d: \t%s" %(self.ST.instructionSize * i, codePoint)
 
+    def includeLibrary(self, library):
+        print open(library).read()
+

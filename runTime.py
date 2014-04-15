@@ -14,12 +14,13 @@ TAC.printCode('TAC_code')
 debug.log(ST.symbol_table, 'symbols')
 debug.log(ST.functionList, 'functionList')
 
-# We have to parser the TAC to add the stack frame statements
-# Everytime the word 'JUMPLABEL appears, we have to do this
+# We create a new object which will store the code
 RTC = RuntimeCode.RuntimeCode(ST)
 
-# First we dump the entire string list of the functions
-print ".data"
+# Include the common library data
+RTC.includeLibrary('lib/data.s')
+
+# Print the strings which will be used in the program
 for functionName in TAC.code:
     functionEntry = ST.functionList[functionName]
     for stringEntry in functionEntry['__stringList__']:
@@ -41,8 +42,8 @@ for function in TAC.code:
         else:
             RTC.addLine(line)
 
+# Print the generated code
 RTC.printCode()
 
-# For the strings, we have to create a label in the data region
-
-# Then we have to create the display
+# Include the common library functions
+RTC.includeLibrary('lib/code.s')

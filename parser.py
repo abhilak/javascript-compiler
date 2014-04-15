@@ -94,6 +94,11 @@ def p_statement_no_semicolon(p):
     p[0]['loopEndList'] = p[1].get('loopEndList', [])
     p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
 
+def p_statement_semicolon(p):
+    'statement : SEP_SEMICOLON'
+
+    p[0] = {}
+
 # To notify the user of a missing semicolon
 def p_statement_error(p):
     '''statement : break_statement M_quad 
@@ -525,7 +530,7 @@ def p_m_if_branch(p):
 
     p[0] = {}
     p[0]['falseList'] = [TAC.getNextQuad()]
-    TAC.emit(p[-2]['place'], 'GOTO', -1, 'COND_GOTO_Z')
+    TAC.emit(p[-2]['place'], '', -1, 'COND_GOTO_Z')
 
 def p_m_else_branch(p):
     'M_else_branch : empty'
@@ -559,7 +564,7 @@ def p_while(p):
         # Loop around
         TAC.emit('', '', p[2]['quad'], 'GOTO')
     else:
-        debug.printError('Type Error')
+        debug.printError('The condition of while should be a boolean')
         raise SyntaxError
 
     p[0]['type'] = 'VOID'
@@ -569,7 +574,7 @@ def p_m_while_branch(p):
 
     p[0] = {}
     p[0]['falseList'] = [TAC.getNextQuad()]
-    TAC.emit(p[-2]['place'], 'GOTO', -1, 'COND_GOTO_Z')
+    TAC.emit(p[-2]['place'], '', -1, 'COND_GOTO_Z')
 
     # Print to the console
     debug.printStatementBlock("While Statement")
