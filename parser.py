@@ -147,6 +147,7 @@ def p_declaration_statement(p):
             raise SyntaxError
         else:
             ST.addIdentifier(identifierName, identifierType)
+            debug.printStatementBlock("Declaration '%s' of type '%s'" %(identifierName, identifierType))
 
     # Type rules
     p[0] = { 'type' : 'VOID'}
@@ -171,9 +172,6 @@ def p_hint(p):
         p[0]['type'] = 'STRING'
     else:
         p[0]['type'] = 'ARRAY'
-
-    # print the name of the statement
-    debug.printStatementBlock("Declaration of '%s' of type '%s'" %(p[0]['name'], p[0]['type']))
 
 def p_arg_list(p):
     'argList : hint SEP_COMMA argList'
@@ -203,13 +201,9 @@ def p_assignment_statment(p):
 
     identifierEntry = ST.existsInCurrentScope(p[2])
     if identifierEntry == False:
-        # In case of an assignment, this is a function reference, so we store the name of the function
-        if p[4]['type'] in ['FUNCTION', 'STRING']:
-            ST.addIdentifier(p[2], p[4]['type'])
-            ST.addAttribute(p[2], 'reference', p[4]['reference'])
-        else:
-            ST.addIdentifier(p[2], p[4]['type'])
 
+        # Store information about the identifier
+        ST.addIdentifier(p[2], p[4]['type'])
         ST.addAttribute(p[2], 'place', p[4]['place'])
 
         # Put the identifier into the symbol_table
@@ -235,10 +229,6 @@ def p_assignment_redefinition(p):
 
     identifierEntry = ST.exists(p[1])
     if identifierEntry == True:
-        # In case of an assignment, this is a function reference, so we store the name of the function
-        if p[3]['type'] in ['FUNCTION', 'STRING']:
-            ST.addAttribute(p[1], 'reference', p[3]['reference'])
-
         ST.addAttribute(p[1], 'place', p[3]['place'])
         ST.addAttribute(p[1], 'type', p[3]['type'])
 
@@ -300,7 +290,6 @@ def p_scope(p):
             location = TAC.newTemp()
 
             ST.addIdentifier(p[-1], 'FUNCTION')
-            ST.addAttribute(p[-1], 'reference', p[0]['reference'])
             ST.addAttribute(p[-1], 'place', location)
 
             # Emit the location of the function reference
@@ -331,6 +320,7 @@ def p_insert_args(p):
             ST.addIdentifier(argument['name'], argument['type'])
 
         ST.addAttribute(argument['name'], 'place', place)
+        debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
 
 ########################################
 ######## RETURN STATEMENT ##############
@@ -790,17 +780,10 @@ def p_expression_identifier(p):
         # Here we have to load in the value of the variable
         identifierEntry = ST.existsInCurrentScope(p[1])
         if identifierEntry == False:
-            p[0]['place'] = ST.newTemp()
-            TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'LOAD_DISPLAY')
+            p[0]['place'] = TAC.newTemp()
+            TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
         else:
             p[0]['place'] = ST.getAttribute(p[1], 'place')
-
-            # A thing to note:
-            # A callback doesn't have a reference because, we cannot determine it's linkage
-            # But functions have a reference because we can determine them
-            if p[0]['type'] in ['FUNCTION', 'STRING']:
-                p[0]['reference'] = ST.getAttribute(p[1], 'reference')
-
 
     else:
         p[0]['type'] = 'REFERENCE_ERROR'

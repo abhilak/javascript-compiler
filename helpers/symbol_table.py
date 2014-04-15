@@ -99,7 +99,7 @@ class SymbolTable:
         currentScope[identifier]['__width__'] = IdentifierWidth
         currentScope[identifier]['__type__'] = IdentifierType
         currentScope[identifier]['__offset__'] = currentOffset
-        currentScope[identifier]['__ScopeLevel__'] = currentScope['__level__']
+        currentScope[identifier]['__scopeLevel__'] = currentScope['__level__']
 
         self.offset.append(currentOffset + IdentifierWidth)
 
