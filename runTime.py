@@ -35,7 +35,7 @@ for function in TAC.code:
         i += 1
         if line[3] == 'JUMPLABEL':
             RTC.addLine(['SP', ST.getAttributeFromFunctionList(function, 'width'), '', 'ADD_STACK'])
-            RTC.addLine(['*SP', '', 4 * (i + 2), 'MOVE'])
+            RTC.addLine(['move', 'sp', 4 * (i + 2), ''])
             RTC.addLine(line)
         elif line[3] == 'JUMPBACK':
             RTC.addLine(['jr', '$ra', '', ''])
@@ -84,6 +84,12 @@ for function in TAC.code:
             RTC.addLine(['move','$v0',line[0],''])
         elif line[3] == 'HALT':
             RTC.addLine(['jal', 'exit', '', ''])
+        elif line[3] == 'PRINT' and line[2] == 'NUMBER':
+            RTC.addLine(['move', '$a0', line[0], ''])
+            RTC.addLine(['jr', 'print_int', '', ''])
+        elif line[3] == 'PRINT' and line[2] == 'STRING':
+            RTC.addLine(['move', '$a0', line[0], ''])
+            RTC.addLine(['jr', 'print_string', '', ''])
         else:
             RTC.addLine(line)
 

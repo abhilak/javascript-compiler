@@ -1,3 +1,3 @@
 .data
-    __display__:     .space     200
+        __display__:    .space     200
 

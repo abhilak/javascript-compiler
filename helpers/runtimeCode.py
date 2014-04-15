@@ -3,6 +3,7 @@ class RuntimeCode:
         self.code = {}
         self.ST = SymbolTable
         self.currentFunction = ''
+        self.regCount = 1
 
     def addLine(self, line):
         self.code[self.currentFunction].append(line)
@@ -27,8 +28,16 @@ class RuntimeCode:
                 print "\n%s:" %functionName
                 for i in range(len(self.code[functionName])):
                     codePoint = self.code[functionName][i]
-                    print "%5d: \t%s" %(self.ST.instructionSize * i, codePoint)
+                    # print "%5d: \t%s" %(self.ST.instructionSize * i, codePoint)
+                    print "\t%s\t%s\t%s\t%s" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3])
 
     def includeLibrary(self, library):
         print open(library).read()
+
+    def nextReg(self):
+        nextValue = self.regCount
+        self.regCount = ( self.regCount + 1 )%31
+        if self.regCount == 0:
+            self.regCount = 1
+        return '$r' + str(nextValue)
 
