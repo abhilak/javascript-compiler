@@ -62,6 +62,7 @@ def p_statment(p):
                  | break_statement M_quad SEP_SEMICOLON
                  | continue_statement M_quad SEP_SEMICOLON
                  | return_statement M_quad SEP_SEMICOLON
+                 | empty M_quad SEP_SEMICOLON
                  | print_statement M_quad SEP_SEMICOLON
                  | function_call M_quad SEP_SEMICOLON'''
 
@@ -93,11 +94,6 @@ def p_statement_no_semicolon(p):
     # break statements and continue statements need to pushed up
     p[0]['loopEndList'] = p[1].get('loopEndList', [])
     p[0]['loopBeginList'] = p[1].get('loopBeginList', [])
-
-def p_statement_semicolon(p):
-    'statement : SEP_SEMICOLON'
-
-    p[0] = {}
 
 # To notify the user of a missing semicolon
 def p_statement_error(p):
@@ -152,7 +148,7 @@ def p_declaration_statement(p):
             raise SyntaxError
         else:
             ST.addIdentifier(identifierName, identifierType)
-            debug.printStatementBlock("Declaration '%s' of type '%s'" %(identifierName, identifierType))
+            debug.printStatement("Declaration '%s' of type '%s'" %(identifierName, identifierType))
 
     # Type rules
     p[0] = { 'type' : 'VOID'}
@@ -923,6 +919,8 @@ def p_list_empty(p):
 ########################################
 def p_empty(p):
     'empty :'
+
+    p[0] = {}
 
 ########################################
 ############# ERROR ####################

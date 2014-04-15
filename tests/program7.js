@@ -1,7 +1,3 @@
-var x = 1, y = 2, z = 3;
+var y::num, z::num, p::num;
 
-while ( true ) {
-    z = 2;
-}
-
-
+y = 2;
