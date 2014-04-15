@@ -1,5 +1,5 @@
-var m = function(str::string) {
-    consolelog(str);
-};
+var x = 1;
+var y = 2;
+var z = 3;
 
-m("srijan");
+x = y + z;

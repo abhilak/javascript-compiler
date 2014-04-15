@@ -388,6 +388,7 @@ def p_function_call(p):
             identifierEntry = ST.existsInCurrentScope(p[1])
             if identifierEntry != False:
                 place = ST.getAttribute(p[1], 'place')
+                TAC.emit(place, '', ST.getAttribute(p[1], 'offset'), 'LOAD')
             else:
                 place = TAC.newTemp()
                 TAC.emit(place, ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
@@ -805,6 +806,7 @@ def p_expression_identifier(p):
             TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
         else:
             p[0]['place'] = ST.getAttribute(p[1], 'place')
+            TAC.emit(p[0]['place'], '', ST.getAttribute(p[1], 'offset'), 'LOAD')
 
     else:
         p[0]['type'] = 'REFERENCE_ERROR'

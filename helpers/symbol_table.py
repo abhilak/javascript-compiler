@@ -128,7 +128,7 @@ class SymbolTable:
 
     def addToStringList(self, label, string):
         currentScope = self.scope[len(self.scope) - 1]
-        currentScope['__stringList__'].append({ label : string })
+        currentScope['__stringList__'].append([label,string])
 
     # Get the attribute of a given identifier
     def getAttribute(self, identifier, attributeName):

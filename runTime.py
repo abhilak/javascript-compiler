@@ -19,11 +19,14 @@ debug.log(ST.functionList, 'functionList')
 RTC = RuntimeCode.RuntimeCode(ST)
 
 # First we dump the entire string list of the functions
-# print ".data"
-# for functionName in TAC.code:
-#     functionEntry = ST.functionList[function]
-#     for string in functionEntry['__stringList__']:
-#         
+print ".data"
+for functionName in TAC.code:
+    functionEntry = ST.functionList[functionName]
+    for stringEntry in functionEntry['__stringList__']:
+        print '\t%s:\t.asciiz\t"%s"' %(stringEntry[0], stringEntry[1])
+
+print ".text"
+
 for function in TAC.code:
     RTC.addFunction(function)
     i = 0
@@ -38,7 +41,7 @@ for function in TAC.code:
         else:
             RTC.addLine(line)
 
-# RTC.printCode()
+RTC.printCode()
 
 # For the strings, we have to create a label in the data region
 
