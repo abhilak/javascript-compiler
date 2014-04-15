@@ -39,8 +39,48 @@ for function in TAC.code:
             RTC.addLine(line)
         elif line[3] == 'JUMPBACK':
             RTC.addLine(['', '', '0(SP)', 'JUMPBACK'])
+        elif line[3] == 'LOAD':
+            RTC.addLine(['lw',line[0],str(line[2])+'(sp)',''])
+        elif line[3] == 'STORE':
+            RTC.addLine(['sw',line[0],str(line[2])+'(sp)',''])
+        elif line[3] == '=':
+            RTC.addLine(['abs',line[0],line[1],''])
+        elif line[3] == '=REF':
+            RTC.addLine(['la',line[0],line[1],''])
+        elif line[3] == 'uni-':
+            RTC.addLine(['neg',line[0],line[1],''])
+        elif line[3] == '+':
+            RTC.addLine(['add',line[0],line[1],line[2]])
+        elif line[3] == '-':
+            RTC.addLine(['sub',line[0],line[1],line[2]])
+        elif line[3] == '*':
+            RTC.addLine(['mult',line[1],line[2],''])
+            RTC.addLine(['mflo',line[0],'',''])
+        elif line[3] == '/':
+            RTC.addLine(['div',line[1],line[2],''])
+            RTC.addLine(['mflo',line[0],'',''])
+        elif line[3] == '%':
+            RTC.addLine(['div',line[1],line[2],''])
+            RTC.addLine(['mflhi',line[0],'',''])
+        elif line[3] == '<':
+            RTC.addLine(['slt',line[0],line[1],line[2]])
+        elif line[3] == '>':
+            RTC.addLine(['sgt',line[0],line[1],line[2]])
+        elif line[3] == '<=':
+            RTC.addLine(['sle',line[0],line[1],line[2]])
+        elif line[3] == '>=':
+            RTC.addLine(['sge',line[0],line[1],line[2]])
+        elif line[3] == '==':
+            RTC.addLine(['seq',line[0],line[1],line[2]])
+        elif line[3] == '!=':
+            RTC.addLine(['sne',line[0],line[1],line[2]])
+        elif line[3] == 'COND_GOTO_Z':
+            RTC.addLine(['beq',line[0],'$0',line[2]])
+        elif line[3] == 'GOTO':
+            RTC.addLine(['b',line[2],'',''])
         else:
             RTC.addLine(line)
+
 
 # Print the generated code
 RTC.printCode()
