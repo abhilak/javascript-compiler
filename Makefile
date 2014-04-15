@@ -1,5 +1,9 @@
 
 .PHONY: clean
 
+all:
+	mkdir log
+
 clean:
-	rm -f log/*
+	rm -rf log
+
