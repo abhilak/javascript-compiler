@@ -340,6 +340,7 @@ def p_scope(p):
             displayValue, offset = ST.getAttribute(p[-1], 'scopeLevel'), ST.getAttribute(p[-1], 'offset')
             location = ST.newTemp((displayValue, offset))
             ST.addAttribute(p[-1], 'place', location)
+            ST.addAttribute(p[-1], 'reference', p[0]['reference'])
 
             # Emit the location of the function reference
             TAC.emit(location, p[0]['reference'], '', '=REF')
@@ -391,10 +392,6 @@ def p_return_statement(p):
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
 
-    # If the function returns a function, it is converted to a callback
-    if p[2]['type'] == 'FUNCTION':
-        p[0]['type'] == 'CALLBACK'
-
     # Get the current returnType from function
     returnType = ST.getAttributeFromCurrentScope('returnType')
 
@@ -440,15 +437,14 @@ def p_function_call(p):
         if identifierType in [ 'FUNCTION', 'CALLBACK' ]:
             identifierEntry = ST.existsInCurrentScope(p[1])
             if identifierEntry == False:
-                # store the address into the address descriptor
-                displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-                place = ST.newTemp((displayValue, offset))
-
-                # TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
+                if not ST.getAttribute(p[1], ST.getCurrentScope()):
+                    displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+                    place = ST.newTemp((displayValue, offset))
+                    ST.addAttribute(p[1], ST.getCurrentScope(), place)
+                else:
+                    place = ST.getAttribute(p[1], ST.getCurrentScope())
             else:
                 place = ST.getAttribute(p[1], 'place')
-
-                # TAC.emit(p[0]['place'], '', ST.getAttribute(p[1], 'offset'), 'LOAD')
 
             # Now we print the param statements
             for param in p[3]:
@@ -472,7 +468,9 @@ def p_function_call(p):
 
                     p[0]['place'] = returnPlace
             else:
-                p[0]['type'] = 'CALLBACK'
+                p[0]['type'] = 'ERROR'
+                debug.printError('Not a function "%s"' %p[1])
+                raise SyntaxError
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1])

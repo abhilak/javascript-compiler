@@ -20,6 +20,7 @@ RTC = RuntimeCode.RuntimeCode(ST, TAC)
 counter = 0;
 
 RTC.fixLabels()
+
 for function in TAC.code:
     RTC.addFunction(function)
 
@@ -91,6 +92,7 @@ for function in TAC.code:
             counter = 0 ;
             reg = RTC.nextReg(line[2])
             RTC.addLine(['jal', reg, '', ''])
+            RTC.reloadParents(ST.getAttributeFromFunctionList(function, 'level'))
 
         elif line[3] == 'JUMPBACK':
             RTC.addLine(['b', function + 'end', '', ''])
@@ -105,18 +107,26 @@ for function in TAC.code:
             reg2 = RTC.nextReg(line[1])
             RTC.addLine(['move', reg1, reg2, ''])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == '=i':
             reg = RTC.nextReg(line[0])
             RTC.addLine(['li', reg, line[1], ''])
+
+            RTC.flushTemporary(line[0])
 
         elif line[3] == '=REF':
             reg = RTC.nextReg(line[0])
             RTC.addLine(['la', reg, line[1], ''])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == 'uni-':
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
             RTC.addLine(['neg', reg1, reg2, ''])
+
+            RTC.flushTemporary(line[0])
 
         elif line[3] == '+':
             reg1 = RTC.nextReg(line[0])
@@ -124,11 +134,15 @@ for function in TAC.code:
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['add', reg1, reg2, reg3])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == '-':
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['sub', reg1, reg2, reg3])
+
+            RTC.flushTemporary(line[0])
 
         elif line[3] == '*':
             reg1 = RTC.nextReg(line[1])
@@ -137,12 +151,16 @@ for function in TAC.code:
             RTC.addLine(['mult', reg1, reg2,''])
             RTC.addLine(['mflo', reg3,'',''])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == '/':
             reg1 = RTC.nextReg(line[1])
             reg2 = RTC.nextReg(line[2])
             reg3 = RTC.nextReg(line[0])
             RTC.addLine(['div', reg1, reg2, ''])
             RTC.addLine(['mflo', reg3, '', ''])
+
+            RTC.flushTemporary(line[0])
 
         elif line[3] == '%':
             reg1 = RTC.nextReg(line[1])
@@ -151,11 +169,15 @@ for function in TAC.code:
             RTC.addLine(['div', reg1, reg2, ''])
             RTC.addLine(['mfhi', reg3, '', ''])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == '<':
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['slt', reg1, reg2, reg3])
+
+            RTC.flushTemporary(line[0])
 
         elif line[3] == '>':
             reg1 = RTC.nextReg(line[0])
@@ -163,11 +185,15 @@ for function in TAC.code:
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['sgt', reg1, reg2, reg3])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == '<=':
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['sle', reg1, reg2, reg3])
+
+            RTC.flushTemporary(line[0])
 
         elif line[3] == '>=':
             reg1 = RTC.nextReg(line[0])
@@ -175,17 +201,23 @@ for function in TAC.code:
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['sge', reg1, reg2, reg3])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == '==':
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['seq', reg1, reg2, reg3])
 
+            RTC.flushTemporary(line[0])
+
         elif line[3] == '!=':
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
             reg3 = RTC.nextReg(line[2])
             RTC.addLine(['sne', reg1, reg2, reg3])
+
+            RTC.flushTemporary(line[0])
 
         elif line[3] == 'COND_GOTO_Z':
             reg1 = RTC.nextReg(line[0])
@@ -229,6 +261,7 @@ for function in TAC.code:
 
     if function != 'main':
         RTC.addLine(['LABEL', function + 'end', '', ''])
+        # RTC.flushRegisters(ST.getAttributeFromFunctionList(function, 'level'))
         RTC.addLine(['addi','$sp','$sp',ST.getAttributeFromFunctionList(function,'width')])
         RTC.addLine(['lw','$ra','0($sp)',''])
         RTC.addLine(['lw','$fp','4($sp)',''])

@@ -56,7 +56,7 @@ class RuntimeCode:
                     f.write('\t%s:\t.asciiz\t"%s"' %(stringEntry[0], stringEntry[1]))
 
             # Start of the code
-            f.write('.text\n')
+            f.write('\n.text\n')
 
             # For each function, we have to print the data
             for functionName in self.code.keys():
@@ -89,7 +89,8 @@ class RuntimeCode:
                     # print "%5d: \t%s" %(self.ST.instructionSize * i, codePoint)
                     print "\t%s\t%s\t%s\t%s" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3])
 
-        self.TAC.printCode()
+        # self.TAC.printCode()
+        pprint.pprint(self.ST.addressDescriptor)
 
     def nextReg(self, temporary):
         if temporary in self.registerDescriptor.values():
@@ -186,37 +187,65 @@ class RuntimeCode:
         self.labelCount += 1
         return '__' + self.labelBase + str(self.labelCount) + '__'
 
-    def flushRegisters(self):
-        temporaries = filter(None, list(set(self.registerDescriptor.values())))
-        for temporary in temporaries:
-            if self.ST.addressDescriptor[temporary]['memory'] != None:
-                (level, offset) = self.ST.addressDescriptor[temporary]['memory']
-                reg = self.ST.addressDescriptor[temporary]['register']
-
-                # First we load in the value of the activation record where we have to store the value
-                self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
-                self.addLine(['li', '$s6', level, ''])         # put the index into $s5
-                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
-                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
-                self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
-
-                # Now we store the value to the location in the stack
-                self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
-                self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
-                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
-                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
-                self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
-
-                self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
-
-                # Set the store bit
-                self.ST.addressDescriptor[temporary]['store'] = True
-
-        # Now we clean out all the registers
-        self.resetRegisters()
-
+    def reloadParents(self, level):
         for temporary in self.ST.addressDescriptor:
-            self.ST.addressDescriptor['register'] = None
+            if self.ST.addressDescriptor[temporary]['memory'] != None:
+                if self.ST.addressDescriptor[temporary]['memory'][0] <= level and self.ST.addressDescriptor[temporary]['register'] != None:
+                    (level, offset) = self.ST.addressDescriptor[temporary]['memory']
+                    reg = self.ST.addressDescriptor[temporary]['register']
+                    print 'restore', temporary, level, reg
+
+                    # First we load in the value of the activation record where we have to store the value
+                    self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
+                    self.addLine(['li', '$s6', level, ''])         # put the index into $s5
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    # Now we store the value to the location in the stack
+                    self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
+                    self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    self.addLine(['lw', reg, '0($s7)', ''])        # store the value into the record
+
+                    # Set the store bit
+                    self.ST.addressDescriptor[temporary]['store'] = True
+
+    def flushRegisters(self, level):
+        for temporary in self.ST.addressDescriptor:
+            if self.ST.addressDescriptor[temporary]['memory'] != None:
+                if self.ST.addressDescriptor[temporary]['memory'][0] <= level and self.ST.addressDescriptor[temporary]['register'] != None:
+                    (level, offset) = self.ST.addressDescriptor[temporary]['memory']
+                    reg = self.ST.addressDescriptor[temporary]['register']
+                    print 'flush', temporary, level, reg
+
+                    # First we load in the value of the activation record where we have to store the value
+                    self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
+                    self.addLine(['li', '$s6', level, ''])         # put the index into $s5
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    # Now we store the value to the location in the stack
+                    self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
+                    self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
+
+                    # Set the store bit
+                    self.ST.addressDescriptor[temporary]['store'] = True
+
+                    # Delete the register allocated to this
+                    self.ST.addressDescriptor[temporary]['register'] = None
+                    self.registerDescriptor[reg] = None
+                    self.freeReg.append(reg)
+                    self.regInUse.pop(self.regInUse.index(reg))
 
     def flushTemporary(self, temporary):
         if self.ST.addressDescriptor[temporary]['memory'] != None:
