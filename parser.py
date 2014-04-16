@@ -57,15 +57,15 @@ def p_statments(p):
 
 # The set of statements that require a semi-colon termination
 def p_statment(p):
-    '''statement : assignment M_quad 
+    '''statement : assignment M_quad SEP_SEMICOLON
                  | declaration M_quad
                  | break_statement M_quad SEP_SEMICOLON
                  | continue_statement M_quad SEP_SEMICOLON
                  | return_statement M_quad SEP_SEMICOLON
-                 | empty M_quad SEP_SEMICOLON
                  | print_statement M_quad SEP_SEMICOLON
                  | function_call M_quad SEP_SEMICOLON'''
 
+    # the empty semicolon rules introduces a shift reduce conflict
     # Emit code
     p[0] = {}
 
@@ -97,7 +97,8 @@ def p_statement_no_semicolon(p):
 
 # To notify the user of a missing semicolon
 def p_statement_error(p):
-    '''statement : break_statement M_quad 
+    '''statement : assignment M_quad
+                 | break_statement M_quad 
                  | return_statement M_quad
                  | continue_statement M_quad
                  | print_statement M_quad
@@ -134,7 +135,7 @@ def p_mark_statements(p):
 ############# DECLARATION ##############
 ########################################
 def p_declaration_statement(p):
-    '''declaration : VAR argList SEP_SEMICOLON'''
+    'declaration : VAR argList SEP_SEMICOLON'
 
     # Add identifiers to local scope
     for identifier in p[2]:
@@ -210,7 +211,7 @@ def p_hint_error(p):
 ############# ASSIGNMENT ###############
 ########################################
 def p_assignment_statment(p):
-    'assignment : VAR assignList SEP_SEMICOLON'
+    'assignment : VAR assignList'
     
     # In case the var is not present
     p[0] = { 'type' : 'VOID' }
@@ -838,7 +839,7 @@ def p_expression_base_type(p):
         p[0]['reference'] = p[1]['reference']
         TAC.emit(p[0]['place'], p[0]['reference'], '', '=REF')
     else:
-        TAC.emit(p[0]['place'], p[1]['value'], '', '=')
+        TAC.emit(p[0]['place'], p[1]['value'], '', '=i')
 
 ######## IDENTIFIER EXPRESSION ###########
 
