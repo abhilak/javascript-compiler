@@ -142,16 +142,40 @@ def p_declaration_statement(p):
         identifierName = identifier.get('name')
         identifierType = identifier.get('type')
 
-        if identifierName == None or identifierType == None:
-            statmentType = 'SYNTAX_ERROR'
-            debug.printError("No Hint provided for variable")
-            raise SyntaxError
-        else:
-            ST.addIdentifier(identifierName, identifierType)
-            debug.printStatement("Declaration '%s' of type '%s'" %(identifierName, identifierType))
+        ST.addIdentifier(identifierName, identifierType)
+        debug.printStatement("Declaration '%s' of type '%s'" %(identifierName, identifierType))
 
     # Type rules
-    p[0] = { 'type' : 'VOID'}
+    p[0] = {}
+
+def p_arg_list(p):
+    'argList : hint SEP_COMMA argList'
+    
+    p[0] = []
+
+    identifierEntry = ST.existsInCurrentScope(p[1]['name'])
+    if identifierEntry == False:
+        p[0] = [ p[1] ] + p[3]
+    else:
+        debug.printError('Redefined Variable "%s"' %p[1]['name'])
+        raise SyntaxError
+
+def p_arg_list_base(p):
+    'argList : hint'
+
+    p[0] = []
+
+    identifierEntry = ST.existsInCurrentScope(p[1]['name'])
+    if identifierEntry == False:
+        p[0] = [p[1]]
+    else:
+        debug.printError('Redefined Variable "%s"' %p[1]['name'])
+        raise SyntaxError
+
+def p_arg_list_empty(p):
+    'argList : empty'''
+
+    p[0] = [ ]
 
 def p_hint(p):
     '''hint : IDENTIFIER OP_HINT HINT_NUMBER
@@ -174,19 +198,13 @@ def p_hint(p):
     else:
         p[0]['type'] = 'ARRAY'
 
-def p_arg_list(p):
-    'argList : hint SEP_COMMA argList'
-    
-    # Creating the argList to be passed to the function
-    p[0] = [ p[1] ] + p[3]
+def p_hint_error(p):
+    'hint : IDENTIFIER'
 
-def p_arg_list_base(p):
-    'argList : hint'''
-    p[0] = [ p[1] ]
+    debug.printError("No hint provided for variable '%s'" %p[1])
 
-def p_arg_list_empty(p):
-    'argList : empty'''
-    p[0] = [ ]
+    # Pass in any empty object
+    p[0] = {'name': p[1]}
 
 ########################################
 ############# ASSIGNMENT ###############
@@ -202,7 +220,7 @@ def p_assignment_statment(p):
         # Store information about the identifier
         ST.addIdentifier(identifierEntry['name'], identifierEntry['type'])
 
-        # Store the value of the identifier back into memory
+        # This is a new variable, so we link the temporary to our variable
         displayValue, offset = ST.getAttribute(identifierEntry['name'], 'scopeLevel'), ST.getAttribute(identifierEntry['name'], 'offset')
         ST.changeMemoryLocationOfTemp(identifierEntry['place'], (displayValue, offset))
         ST.addAttribute(identifierEntry['name'], 'place', identifierEntry['place'])
@@ -245,9 +263,6 @@ def p_assignList_base(p):
 def p_assignment_redefinition(p):
     'assignment : IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'
 
-    # In case the var is not present
-    statmentType = 'VOID'
-
     # To store information
     p[0] = {}
 
@@ -257,30 +272,23 @@ def p_assignment_redefinition(p):
 
         # Check if the function is in the current scope or parent one
         identifierEntry = ST.existsInCurrentScope(p[1])
-        if identifierEntry != False:
-            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-            ST.changeMemoryLocationOfTemp(p[3]['place'], (displayValue, offset))
-            ST.addAttribute(p[1], 'place', p[3]['place'])
+        if identifierEntry == True:
+            place = ST.getAttribute(p[1], 'place')
+            TAC.emit(place, p[3]['place'], '', '=')
 
             # TAC.emit(p[3]['place'], '', ST.getAttribute(p[1], 'offset'), 'STORE')
         else:
             displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-            ST.changeMemoryLocationOfTemp(p[3]['place'], (displayValue, offset))
+            place = ST.newTemp((displayValue, offset))
+            TAC.emit(place, p[3]['place'], '', '=')
 
             # TAC.emit(p[3]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'STORE_DISPLAY')
-            pass
-
-        # Put the identifier into the symbol_table
-        statmentType = p[3]['type']
     else:
         debug.printError('Undefined Variable "%s"' %p[1])
         raise SyntaxError
 
     # print the name of the statement
     debug.printStatement("ASSIGNMENT of %s" %p[1])
-
-    # Type rules
-    p[0]['type'] =  statmentType
 
 ########################################
 ############## FUNCTIONS ###############
@@ -300,9 +308,6 @@ def p_function_statement(p):
     functionName = p[3]['reference'] 
     ST.deleteScope(functionName)
 
-    # Update the code Length of the given function
-    ST.addAttribute(functionName, 'codeLength', TAC.getCodeLength(functionName))
-
     # Type rules
     p[0] = { 'type' : 'FUNCTION', 'reference': functionName }
 
@@ -315,15 +320,16 @@ def p_scope(p):
     p[0]['reference'] = ST.nameAnon()
 
     # Now add the identifier as a function reference
-    if p[-1] != None:
-
+    if p[-1] != None: # Check for anon function
         # Check if the function exists or not
-        if ST.exists(p[-1]):
+        if ST.existsInCurrentScope(p[-1]):
             debug.printError("Redefinition of function '%s'" %p[-1])
+            raise SyntaxError
         else:
             # Print to console
             debug.printStatementBlock("Definition of function '%s'" %p[-1])
 
+            # Create a new variable to hold the function
             ST.addIdentifier(p[-1], 'FUNCTION')
 
             # Create a new temporary for the function and store it in the addressList
@@ -353,17 +359,21 @@ def p_insert_args(p):
     # Add identifiers to local scope
     for argument in p[-2]:
         # Any callback is stored as a CALLBACK which is a different type
-        if argument['type'] == 'FUNCTION':
-            ST.addIdentifier(argument['name'], 'CALLBACK')
+        if ST.existsInCurrentScope(argument['name']):
+            debug.printError("Redefinition of argument '%s'" %argument['name'])
+            raise SyntaxError
         else:
-            ST.addIdentifier(argument['name'], argument['type'])
+            if argument['type'] == 'FUNCTION':
+                ST.addIdentifier(argument['name'], 'CALLBACK')
+            else:
+                ST.addIdentifier(argument['name'], argument['type'])
 
-        # store the address into the address descriptor
-        displayValue, offset = ST.getAttribute(argument['name'], 'scopeLevel'), ST.getAttribute(argument['name'], 'offset')
-        place = ST.newTemp((displayValue, offset))
-        ST.addAttribute(argument['name'], 'place', place)
+            # store the address into the address descriptor
+            displayValue, offset = ST.getAttribute(argument['name'], 'scopeLevel'), ST.getAttribute(argument['name'], 'offset')
+            place = ST.newTemp((displayValue, offset))
+            ST.addAttribute(argument['name'], 'place', place)
 
-        debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
+            debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
 
 ########################################
 ######## RETURN STATEMENT ##############
@@ -394,6 +404,9 @@ def p_return_statement(p):
         p[0]['type'] = 'TYPE_ERROR'
         debug.printError('Return Types dont match')
         raise SyntaxError
+    else:
+        # In this case, the return types match, so we needn't do anything
+        pass
 
     # Emit code for the return type
     TAC.emit(p[2]['place'], '' ,'', 'RETURN')
@@ -423,10 +436,16 @@ def p_function_call(p):
                 # store the address into the address descriptor
                 displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
                 place = ST.newTemp((displayValue, offset))
+
                 # TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
             else:
                 place = ST.getAttribute(p[1], 'place')
+
                 # TAC.emit(p[0]['place'], '', ST.getAttribute(p[1], 'offset'), 'LOAD')
+
+            # Now we print the param statements
+            for param in p[3]:
+                TAC.emit(param, '', '', 'PARAM')
 
             # The name of the function
             debug.printStatementBlock("Function call to '%s'" %p[1])
@@ -434,12 +453,12 @@ def p_function_call(p):
             # We jump to the function
             TAC.emit('', '', place, 'JUMPLABEL')
 
+            # In case the function call is used in an expression
             # The type of the statment is dependent on the input condition
             if identifierType == 'FUNCTION':
                 returnPlace = ST.newTemp()
                 TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
 
-                # In case the function call is used in an expression
                 p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
                 p[0]['place'] = returnPlace
             else:
@@ -453,17 +472,17 @@ def p_function_call(p):
 def p_parameters(p):
     'actualParameters : expression SEP_COMMA actualParameters'
 
-    # Emit code
-    TAC.emit(p[1]['place'], '', '', 'PARAM')
+    p[0] = [p[1]['place']] + p[3]
 
 def p_parameters_base(p):
     'actualParameters : expression'
 
-    # Emit code
-    TAC.emit(p[1]['place'], '', '', 'PARAM')
+    p[0] = [p[1]['place']]
 
 def p_parameters_empty(p):
     'actualParameters : empty'
+
+    p[0] = []
 
 ########################################
 ######## BREAK STATEMENT ###############
@@ -474,7 +493,7 @@ def p_break_statement(p):
     debug.printStatement('Break')
 
     # Type rules
-    p[0] = { 'type' : 'VOID' }
+    p[0] = {}
 
     # Emit code
     p[0]['loopEndList'] = [TAC.getNextQuad()]
@@ -489,7 +508,7 @@ def p_continue_statement(p):
     debug.printStatement('Continue')
 
     # Type rules
-    p[0] = { 'type' : 'VOID' }
+    p[0] = {}
 
     # Emit code
     p[0]['loopBeginList'] = [TAC.getNextQuad()]
@@ -503,10 +522,10 @@ def p_if_then(p):
 
     # Type rules
     if p[3]['type'] != 'BOOLEAN':
-        debug.printError('Type Error')
+        debug.printError('If condition must be a boolean')
         raise SyntaxError
 
-    p[0] = { 'type' : 'VOID'}
+    p[0] = {}
 
     # For break statement and next waiting functions
     p[0]['nextList'] = TAC.merge(p[5].get('falseList', []), p[6].get('nextList', []))
@@ -521,10 +540,10 @@ def p_if_then_else(p):
 
     # Type rules
     if p[3]['type'] != 'BOOLEAN':
-        debug.printError('Type Error')
+        debug.printError('If condition must be a boolean')
         raise SyntaxError
 
-    p[0] = { 'type' : 'VOID' }
+    p[0] = {}
 
     # backPatch the if branch
     TAC.backPatch(p[5]['falseList'], p[8]['quad'])
@@ -609,7 +628,8 @@ def p_print_statement(p):
             debug.printError('Given expression is not a printable type')
             raise SyntaxError
 
-    p[0]['type'] = 'VOID'
+    # We print a new line
+    TAC.emit('', '', 'NEW_LINE', 'PRINT')
 
 def p_printList(p):
     'printList : expression SEP_COMMA printList'
@@ -831,7 +851,7 @@ def p_expression_identifier(p):
     # We have to check if the identifier exists in the current scope or not, and
     # accordingly load it in
     identifierEntry = ST.exists(p[1])
-    if identifierEntry != False:
+    if identifierEntry == True:
         p[0]['type'] = ST.getAttribute(p[1], 'type')
 
         # Here we have to load in the value of the variable

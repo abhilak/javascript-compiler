@@ -16,18 +16,7 @@ debug.log(ST.symbol_table, 'symbols')
 debug.log(ST.functionList, 'functionList')
 
 # We create a new object which will store the code
-RTC = RuntimeCode.RuntimeCode(ST)
-
-# Include the common library data
-RTC.includeLibrary('lib/data.s')
-
-# Print the strings which will be used in the program
-for functionName in TAC.code:
-    functionEntry = ST.functionList[functionName]
-    for stringEntry in functionEntry['__stringList__']:
-        print '\t%s:\t.asciiz\t"%s"' %(stringEntry[0], stringEntry[1])
-
-print ".text"
+RTC = RuntimeCode.RuntimeCode(ST, TAC)
 
 for function in TAC.code:
     RTC.addFunction(function)
@@ -96,6 +85,8 @@ for function in TAC.code:
             RTC.addLine(['move','$v0',line[0],''])
         elif line[3] == 'HALT':
             RTC.addLine(['jal', 'exit', '', ''])
+        elif line[3] == 'PRINT' and line[0] == '':
+            RTC.addLine(['jr', 'print_newline', '', ''])
         elif line[3] == 'PRINT':
             reg = RTC.nextReg(line[0])
             if line[2] == 'NUMBER':
@@ -114,11 +105,8 @@ for function in TAC.code:
 
 
 # Print the generated code
-RTC.printCode()
+RTC.printCode('pro')
 # TAC.printCode()
 
-pprint.pprint(RTC.registerDescriptor)
-pprint.pprint(ST.addressDescriptor)
-
-# Include the common library functions
-# RTC.includeLibrary('lib/code.s')
+# pprint.pprint(RTC.registerDescriptor)
+# pprint.pprint(ST.addressDescriptor)
