@@ -1,7 +1,8 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- assignment and declaration don't have the semicolon check rule
+- declaration don't have the semicolon check rule
+- empty statement
 
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed

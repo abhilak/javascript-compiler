@@ -50,6 +50,9 @@ class RuntimeCode:
                 for stringEntry in functionEntry['__stringList__']:
                     f.write('\t%s:\t.asciiz\t"%s"' %(stringEntry[0], stringEntry[1]))
 
+            # Start of the code
+            f.write('.text\n')
+
             # For each function, we have to print the data
             for functionName in self.code.keys():
                 f.write("\n%s:\n" %functionName)

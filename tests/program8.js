@@ -1,2 +1,2 @@
 var m::num;
-var k = 1
+var k = 1;
