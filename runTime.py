@@ -18,10 +18,11 @@ debug.log(ST.functionList, 'functionList')
 # We create a new object which will store the code
 RTC = RuntimeCode.RuntimeCode(ST, TAC)
 counter = 0;
+
+RTC.fixLabels()
 for function in TAC.code:
     RTC.addFunction(function)
     lineNumber = -1
-    unresolvedLabels = {}
 
     #allocate space for the registers by updating stack pointer
     RTC.addLine(['sub', '$sp','$sp','72'])
@@ -68,10 +69,6 @@ for function in TAC.code:
 
     for line in TAC.code[function]:
         lineNumber += 1
-
-        # Here we have to add a label to this line
-        if lineNumber in unresolvedLabels.keys():
-            RTC.addLine(['LABEL', unresolvedLabels[lineNumber], '', '' ])
 
         if lineNumber == 0:
             pass
@@ -183,25 +180,10 @@ for function in TAC.code:
 
         elif line[3] == 'COND_GOTO_Z':
             reg1 = RTC.nextReg(line[0])
-
-            # Generate label
-            if unresolvedLabels.has_key(line[2]):
-                label = unresolvedLabels[line[2]]
-            else:
-                label = RTC.nameLabel()
-                unresolvedLabels[line[2]] = label
-
-            RTC.addLine(['beq', reg1, '$0', label])
+            RTC.addLine(['beq', reg1, '$0', line[2]])
 
         elif line[3] == 'GOTO':
-            # Generate label
-            if unresolvedLabels.has_key(line[2]):
-                label = unresolvedLabels[line[2]]
-            else:
-                label = RTC.nameLabel()
-                unresolvedLabels[line[2]] = label
-
-            RTC.addLine(['b', label, '', ''])
+            RTC.addLine(['b', line[2], '', ''])
 
         elif line[3] == 'FUNCTION_RETURN':
             reg1 = RTC.nextReg(line[0])

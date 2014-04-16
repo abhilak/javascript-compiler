@@ -1,12 +1,7 @@
 
-var i = 1;
+var i =1;
 
-var k = i;
-
-var m = function () {
+while ( i < 10 ) {
+    i = i + 1;
     consolelog(i);
-    return 11;
-};
-
-var y = m();
-consolelog(y);
+}

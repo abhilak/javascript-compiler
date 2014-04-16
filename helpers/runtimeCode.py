@@ -1,3 +1,4 @@
+from helpers import threeAddrCode as ThreeAddressCode
 import pprint
 class RuntimeCode:
     def __init__(self, SymbolTable, ThreeAddressCode):
@@ -188,9 +189,27 @@ class RuntimeCode:
                 # Set the store bit
                 self.ST.addressDescriptor[temporary]['store'] = True
 
-#     def fixLabels(self): 
-#         for function in self.TAC.code:
-#             unresolvedLabels = {}
-#             lineNumber = 
-#             for line in self.TAC.code[function]:
-#
+    def fixLabels(self): 
+        for function in self.TAC.code:
+            unresolvedLabels = {}
+            for line in self.TAC.code[function]:
+                if line[3] in ['COND_GOTO_Z', 'GOTO']:
+                    # Generate label
+                    if unresolvedLabels.has_key(line[2]):
+                        label = unresolvedLabels[line[2]]
+                    else:
+                        label = self.nameLabel()
+                        unresolvedLabels[line[2]] = label
+
+                    line[2] = label
+
+            lineNumber = -1
+            count = 0
+            for line in range(len(self.TAC.code[function])):
+                lineNumber += 1
+
+                if lineNumber in unresolvedLabels.keys():
+                    effectiveLineNumber = lineNumber + count
+                    self.TAC.code[function].insert(effectiveLineNumber, ['LABEL', unresolvedLabels[lineNumber], '', ''])
+                    count += 1
+                    del unresolvedLabels[lineNumber]
