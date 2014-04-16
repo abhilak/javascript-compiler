@@ -13,7 +13,7 @@ print_string:
 	jr		$ra
 
 print_boolean:
-    li      $v0, 1
+    li      $v0, 4
     beq     $a0, $zero, print_false
 print_true:
     la      $a0, __true__
@@ -25,13 +25,13 @@ print_boolean_end:
     jr      $ra
 
 print_undefined:
-    li      $v0, 1
+    li      $v0, 4
     la      $a0, __undefined__
     syscall
     jr      $ra
 
 print_newline:
-    li      $v0, 1
+    li      $v0, 4
     la      $a0, __newline__
     syscall
     jr      $ra
