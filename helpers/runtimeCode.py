@@ -1,3 +1,4 @@
+import pprint
 class RuntimeCode:
     def __init__(self, SymbolTable, ThreeAddressCode):
         self.code = {}
@@ -26,6 +27,7 @@ class RuntimeCode:
                 '$s7' : None
                 }
         self.freeReg = [ reg for reg in self.registerDescriptor.keys() ]
+        self.regInUse = []
 
     def addLine(self, line):
         self.code[self.currentFunction].append(line)
@@ -65,7 +67,7 @@ class RuntimeCode:
                     elif codePoint[3] == '':
                         f.write("\t%s\t\t%s,\t%s\n" %(codePoint[0], codePoint[1], codePoint[2]))
                     else:
-                        f.write("\t%s\t\t%s,%s,%s\n" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3]))
+                        f.write("\t%s\t\t%s,\t%s,\t%s\n" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3]))
 
             # Write out the libraray routines
             data = open('lib/code.s').read()
@@ -81,16 +83,32 @@ class RuntimeCode:
                     # print "%5d: \t%s" %(self.ST.instructionSize * i, codePoint)
                     print "\t%s\t%s\t%s\t%s" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3])
 
+        self.TAC.printCode()
+
     def nextReg(self, temporary):
-        if len(self.freeReg) == 0:
-            print 'Spilling Required'
-            pass
+        if temporary in self.registerDescriptor.values():
+            reg = self.ST.addressDescriptor[temporary]['register']
         else:
-            if temporary in self.registerDescriptor.values():
-                reg = self.ST.addressDescriptor[temporary]['register']
+            if len(self.freeReg) == 0:
+                # We use the register which was first used
+                reg = self.regInUse.pop(0)
+
+                # Now we flush this register
+                correspondingTemporary = self.registerDescriptor[reg]
+                self.ST.addressDescriptor[correspondingTemporary]['register'] = None
+
+                # Update the registerDescriptor
+                self.registerDescriptor[reg] = temporary
+
+                # Now we have to store the temporary back to memory
+                print 'store the corres temp'
             else:
                 reg = self.freeReg.pop()
-                self.ST.addressDescriptor[temporary]['register'] = reg
+
+            # Now we allocate this register to the passed temporary
+            self.ST.addressDescriptor[temporary]['register'] = reg
+            self.regInUse.append(reg)
+
             self.registerDescriptor[reg] = temporary
             return reg
 
