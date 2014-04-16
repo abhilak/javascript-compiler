@@ -143,10 +143,10 @@ for function in TAC.code:
             RTC.addLine(['jal', 'exit', '', ''])
 
         elif line[3] == 'PRINT' and line[0] == '':
-            RTC.addLine(['jr', 'print_newline', '', ''])
+            RTC.addLine(['jal', 'print_newline', '', ''])
 
         elif line[3] == 'PRINT' and line[2] == 'UNDEFINED':
-            RTC.addLine(['jr', 'print_undefined', '', ''])
+            RTC.addLine(['jal', 'print_undefined', '', ''])
 
         elif line[3] == 'PRINT':
             # get a free register
@@ -154,11 +154,11 @@ for function in TAC.code:
             RTC.addLine(['move', '$a0', reg, ''])
 
             if line[2] == 'NUMBER':
-                RTC.addLine(['jr', 'print_integer', '', ''])
+                RTC.addLine(['jal', 'print_integer', '', ''])
             elif line[2] == 'STRING':
-                RTC.addLine(['jr', 'print_string', '', ''])
+                RTC.addLine(['jal', 'print_string', '', ''])
             else:
-                RTC.addLine(['jr', 'print_boolean', '', ''])
+                RTC.addLine(['jal', 'print_boolean', '', ''])
 
         else:
             RTC.addLine(line)
