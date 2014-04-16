@@ -1,8 +1,9 @@
 var i =1;
 
 function print(k::num) {
-    consolelog(k);
+    i = 5;
 }
 
-print(i);
 
+print(2);
+consolelog(i);

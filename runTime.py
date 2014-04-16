@@ -41,7 +41,7 @@ for function in TAC.code:
     RTC.addLine(['lw','$s7','0($s6)',''])
     RTC.addLine(['sw','$s7','8($sp)',''])
     #set display[level]
-    RTC.addLine(['la', '$v0', str(ST.getAttributeFromFunctionList(function, 'width'))+'($sp)' , ''])
+    RTC.addLine(['la', '$v0', '-' + str(ST.getAttributeFromFunctionList(function, 'width'))+'($sp)' , ''])
     RTC.addLine(['sw','$v0','0($s6)',''])
     #store remaining registers
     RTC.addLine(['sw','$t0','12($sp)',''])
