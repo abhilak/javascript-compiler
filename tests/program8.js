@@ -1,9 +1,12 @@
 var i =1;
 
 function print(k::num) {
-    i = 5;
+    function foo() {
+        k = 5;
+    }
+
+    foo();
+    consolelog(k);
 }
 
-
-print(2);
-consolelog(i);
+print();

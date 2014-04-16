@@ -219,6 +219,7 @@ for function in TAC.code:
             RTC.addLine(line)
 
     RTC.addLine(['LABEL', function + 'end', '', ''])
+    RTC.flushRegisters()
     RTC.addLine(['addi','$sp','$sp',ST.getAttributeFromFunctionList(function,'width')])
     RTC.addLine(['lw','$ra','0($sp)',''])
     RTC.addLine(['lw','$fp','4($sp)',''])
