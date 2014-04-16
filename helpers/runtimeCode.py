@@ -189,8 +189,6 @@ class RuntimeCode:
                 # Set the store bit
                 self.ST.addressDescriptor[temporary]['store'] = True
 
-        pprint.pprint(self.ST.addressDescriptor)
-
     def fixLabels(self): 
         for function in self.TAC.code:
             unresolvedLabels = {}
