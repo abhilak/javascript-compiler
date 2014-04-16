@@ -368,7 +368,7 @@ def p_insert_args(p):
 
             # store the address into the address descriptor
             displayValue, offset = ST.getAttribute(argument['name'], 'scopeLevel'), ST.getAttribute(argument['name'], 'offset')
-            place = ST.newTemp((displayValue, offset))
+            place = ST.newTemp((displayValue, offset), store=True)
             ST.addAttribute(argument['name'], 'place', place)
 
             debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
