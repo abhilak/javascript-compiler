@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 
 var k::num;
