@@ -21,10 +21,15 @@ class SymbolTable:
         self.booleanSize = 1
         self.undefinedSize = 0
         self.numberSize = 4
+        self.addressDescriptor = {}
 
         # Two stacks one for offset and other for the current scope
         self.offset = [0]
         self.scope = [self.symbol_table['main']]
+
+        # For creating the temporaries
+        self.tempBase = "t"
+        self.tempCount = 0
 
     # Print the symbol_table
     def printSymbolTable(self):
@@ -184,4 +189,17 @@ class SymbolTable:
             return self.functionList[function]['__' + attributeName + '__']
         else:
             return None
+
+    # Function to create new temporaries
+    def newTemp(self, memoryLocation=''):
+        self.tempCount = self.tempCount + 1
+        createdTemp = self.tempBase + str(self.tempCount)
+        if memoryLocation == '':
+            self.addressDescriptor[createdTemp] = {'memory': None , 'register': None}
+        else:
+            self.addressDescriptor[createdTemp] = {'memory': memoryLocation , 'register': None}
+        return createdTemp
+
+    def changeMemoryLocationOfTemp(self, tempName, memoryLocation):
+        self.addressDescriptor[tempName]['memory'] = memoryLocation
 

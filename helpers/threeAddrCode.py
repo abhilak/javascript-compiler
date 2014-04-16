@@ -8,18 +8,11 @@ class ThreeAddressCode:
         self.quad = {'main': -1}
         self.nextQuad = {'main': 0}
 
-        self.tempBase = "t"
-        self.tempCount = 0
         self.printCodeValue = True
 
         # Contains an instance of the SymbolTable
         self.ST = ST
         
-    # Function to create new temporaries
-    def newTemp(self):
-        self.tempCount = self.tempCount + 1
-        return self.tempBase + str(self.tempCount)
-
     # Increment the quad for a given function
     def incrementQuad(self):
         currentFunction = self.ST.getCurrentScope()

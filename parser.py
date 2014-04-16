@@ -201,10 +201,13 @@ def p_assignment_statment(p):
     for identifierEntry in p[2]:
         # Store information about the identifier
         ST.addIdentifier(identifierEntry['name'], identifierEntry['type'])
-        ST.addAttribute(identifierEntry['name'], 'place', identifierEntry['place'])
 
         # Store the value of the identifier back into memory
-        TAC.emit(identifierEntry['place'], '', ST.getAttribute(identifierEntry['name'], 'offset'), 'STORE')
+        displayValue, offset = ST.getAttribute(identifierEntry['name'], 'scopeLevel'), ST.getAttribute(identifierEntry['name'], 'offset')
+        ST.changeMemoryLocationOfTemp(identifierEntry['place'], (displayValue, offset))
+        ST.addAttribute(identifierEntry['name'], 'place', identifierEntry['place'])
+
+        # TAC.emit(identifierEntry['place'], '', ST.getAttribute(identifierEntry['name'], 'offset'), 'STORE')
 
         # print the name of the statement
         debug.printStatement("ASSIGNMENT of %s" %identifierEntry['name'])
@@ -255,10 +258,17 @@ def p_assignment_redefinition(p):
         # Check if the function is in the current scope or parent one
         identifierEntry = ST.existsInCurrentScope(p[1])
         if identifierEntry != False:
+            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+            ST.changeMemoryLocationOfTemp(p[3]['place'], (displayValue, offset))
             ST.addAttribute(p[1], 'place', p[3]['place'])
-            TAC.emit(p[3]['place'], '', ST.getAttribute(p[1], 'offset'), 'STORE')
+
+            # TAC.emit(p[3]['place'], '', ST.getAttribute(p[1], 'offset'), 'STORE')
         else:
-            TAC.emit(p[3]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'STORE_DISPLAY')
+            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+            ST.changeMemoryLocationOfTemp(p[3]['place'], (displayValue, offset))
+
+            # TAC.emit(p[3]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'STORE_DISPLAY')
+            pass
 
         # Put the identifier into the symbol_table
         statmentType = p[3]['type']
@@ -314,15 +324,16 @@ def p_scope(p):
             # Print to console
             debug.printStatementBlock("Definition of function '%s'" %p[-1])
 
-            # add the place for this function
-            location = TAC.newTemp()
-
             ST.addIdentifier(p[-1], 'FUNCTION')
+
+            # Create a new temporary for the function and store it in the addressList
+            displayValue, offset = ST.getAttribute(p[-1], 'scopeLevel'), ST.getAttribute(p[-1], 'offset')
+            location = ST.newTemp((displayValue, offset))
             ST.addAttribute(p[-1], 'place', location)
 
             # Emit the location of the function reference
             TAC.emit(location, p[0]['reference'], '', '=REF')
-            TAC.emit(location, '', ST.getAttribute(p[-1], 'offset'), 'STORE')
+            # TAC.emit(location, '', ST.getAttribute(p[-1], 'offset'), 'STORE')
     else:
         # Print to console
         debug.printStatementBlock('Function Definition "%s"' %p[0]['reference'])
@@ -341,14 +352,17 @@ def p_insert_args(p):
 
     # Add identifiers to local scope
     for argument in p[-2]:
-        place = TAC.newTemp()
         # Any callback is stored as a CALLBACK which is a different type
         if argument['type'] == 'FUNCTION':
             ST.addIdentifier(argument['name'], 'CALLBACK')
         else:
             ST.addIdentifier(argument['name'], argument['type'])
 
+        # store the address into the address descriptor
+        displayValue, offset = ST.getAttribute(argument['name'], 'scopeLevel'), ST.getAttribute(argument['name'], 'offset')
+        place = ST.newTemp((displayValue, offset))
         ST.addAttribute(argument['name'], 'place', place)
+
         debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
 
 ########################################
@@ -405,12 +419,14 @@ def p_function_call(p):
         # If the function exists in the current scope
         if identifierType in [ 'FUNCTION', 'CALLBACK' ]:
             identifierEntry = ST.existsInCurrentScope(p[1])
-            if identifierEntry != False:
-                place = ST.getAttribute(p[1], 'place')
-                TAC.emit(place, '', ST.getAttribute(p[1], 'offset'), 'LOAD')
+            if identifierEntry == False:
+                # store the address into the address descriptor
+                displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+                place = ST.newTemp((displayValue, offset))
+                # TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
             else:
-                place = TAC.newTemp()
-                TAC.emit(place, ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
+                place = ST.getAttribute(p[1], 'place')
+                # TAC.emit(p[0]['place'], '', ST.getAttribute(p[1], 'offset'), 'LOAD')
 
             # The name of the function
             debug.printStatementBlock("Function call to '%s'" %p[1])
@@ -420,7 +436,7 @@ def p_function_call(p):
 
             # The type of the statment is dependent on the input condition
             if identifierType == 'FUNCTION':
-                returnPlace = TAC.newTemp()
+                returnPlace = ST.newTemp()
                 TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
 
                 # In case the function call is used in an expression
@@ -636,7 +652,7 @@ def p_expression_unary(p):
 
     # Emit code
     p[0] = {}
-    p[0]['place'] = TAC.newTemp()
+    p[0]['place'] = ST.newTemp()
 
     # Conditional branch to figure out what code to emit and check types
     if p[1] == '-':
@@ -645,7 +661,7 @@ def p_expression_unary(p):
             TAC.emit(p[0]['place'], p[2]['place'] , '' , 'uni-')
         else:
             expType = 'TYPE_ERROR'
-            debug.printError('Type Error')
+            debug.printError('Type Mismatch in expression')
             raise SyntaxError
     else:
         expType = 'STRING'
@@ -668,7 +684,7 @@ def p_expression_binop(p):
 
     # To store information
     p[0] = {}
-    p[0]['place'] = TAC.newTemp()
+    p[0]['place'] = ST.newTemp()
 
     # To emit codes
     if p[1]['type'] == 'NUMBER' and p[3]['type'] == 'NUMBER':
@@ -676,7 +692,7 @@ def p_expression_binop(p):
         TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Type Mismatch in Arithematic Expression')
         raise SyntaxError
 
     p[0]['type'] = expType
@@ -698,11 +714,11 @@ def p_expression_relational(p):
         expType = 'BOOLEAN'
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Operands to relational expressions must be numbers')
         raise SyntaxError
     
     p[0] = { 'type' : expType }
-    p[0]['place'] = TAC.newTemp()
+    p[0]['place'] = ST.newTemp()
 
     # Emit code
     TAC.emit(p[0]['place'], p[1]['place'], p[3]['place'], p[2])
@@ -717,14 +733,14 @@ def p_expression_logical_and(p):
 
     # Backpatching code
     p[0] = {}
-    p[0]['place'] = TAC.newTemp()
+    p[0]['place'] = ST.newTemp()
 
     if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
         expType = 'BOOLEAN'
         TAC.emit(p[0]['place'], p[1]['place'], p[4]['place'] , p[2])
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Operands to logical expressions must be integers')
         raise SyntaxError
 
     # Type of the expression
@@ -738,14 +754,14 @@ def p_expression_logical_or(p):
 
     # Backpatching code
     p[0] = {}
-    p[0]['place'] = TAC.newTemp()
+    p[0]['place'] = ST.newTemp()
 
     if p[1]['type'] == p[4]['type'] == 'BOOLEAN':
         expType = 'BOOLEAN'
         TAC.emit(p[0]['place'], p[1]['place'], p[4]['place'] , p[2])
     else:
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Operands to logical expressions must be integers')
         raise SyntaxError
 
     # Type of the expression
@@ -759,11 +775,11 @@ def p_expression_logical_not(p):
 
     # Backpatching code
     p[0] = {}
-    p[0]['place'] = TAC.newTemp()
+    p[0]['place'] = ST.newTemp()
 
     if p[2]['type'] != 'BOOLEAN':
         expType = 'TYPE_ERROR'
-        debug.printError('Type Error')
+        debug.printError('Operands to logical expressions must be integers')
         raise SyntaxError
     else:
         TAC.emit(p[0]['place'], p[2]['place'], '' , p[1])
@@ -795,7 +811,7 @@ def p_expression_base_type(p):
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
 
-    p[0]['place'] = TAC.newTemp()
+    p[0]['place'] = ST.newTemp()
 
     # emit code for backPatch
     if p[1]['type'] in ['FUNCTION', 'STRING']:
@@ -821,12 +837,13 @@ def p_expression_identifier(p):
         # Here we have to load in the value of the variable
         identifierEntry = ST.existsInCurrentScope(p[1])
         if identifierEntry == False:
-            p[0]['place'] = TAC.newTemp()
-            TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
+            # store the address into the address descriptor
+            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+            p[0]['place'] = ST.newTemp((displayValue, offset))
+            # TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
         else:
             p[0]['place'] = ST.getAttribute(p[1], 'place')
-            TAC.emit(p[0]['place'], '', ST.getAttribute(p[1], 'offset'), 'LOAD')
-
+            # TAC.emit(p[0]['place'], '', ST.getAttribute(p[1], 'offset'), 'LOAD')
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])

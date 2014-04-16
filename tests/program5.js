@@ -6,7 +6,7 @@ function print(str::string) {
     consolelog(k);
 } 
 
-print(m);
+var p = print(m);
 
 
 function callFunction(p::callback){

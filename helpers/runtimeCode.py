@@ -4,6 +4,7 @@ class RuntimeCode:
         self.ST = SymbolTable
         self.currentFunction = ''
         self.regCount = 1
+        self.registerDescriptor = {}
 
     def addLine(self, line):
         self.code[self.currentFunction].append(line)
