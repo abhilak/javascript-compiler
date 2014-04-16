@@ -29,9 +29,9 @@ print_undefined:
     la      $a0, __undefined__
     syscall
     jr      $ra
-    
-input_integer:
-	li		$v0, 5
-	syscall				
-	jr		$ra	
 
+print_newline:
+    li      $v0, 1
+    la      $a0, __newline__
+    syscall
+    jr      $ra
