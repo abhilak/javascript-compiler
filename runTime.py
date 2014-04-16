@@ -49,7 +49,7 @@ for function in TAC.code:
         elif line[3] == '=':
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
-            RTC.addLine([move, reg1, reg2, ''])
+            RTC.addLine(['move', reg1, reg2, ''])
         elif line[3] == '=i':
             reg = RTC.nextReg(line[0])
             RTC.addLine(['li', reg, line[1], ''])
@@ -127,7 +127,7 @@ for function in TAC.code:
             RTC.addLine(['move', '$a0', reg, ''])
 
             if line[2] == 'NUMBER':
-                RTC.addLine(['jr', 'print_int', '', ''])
+                RTC.addLine(['jr', 'print_integer', '', ''])
             elif line[2] == 'STRING':
                 RTC.addLine(['jr', 'print_string', '', ''])
             else:
