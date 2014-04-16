@@ -1,6 +1,6 @@
 
 
-var k = 1;
+var k::num;
 if ( true ) {
     k = 3;
 } else {

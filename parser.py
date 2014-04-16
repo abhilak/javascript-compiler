@@ -19,6 +19,9 @@ def p_start(p):
     # Here we have to have statements so that we can return back to the calling function
     TAC.emit('', '' , -1, 'HALT')
 
+    # Main has zero parameters
+    ST.addAttributeToCurrentScope('numParam', 0)
+
     # Now delete the main scope
     ST.deleteScope('main')
     
@@ -146,6 +149,8 @@ def p_declaration_statement(p):
         identifierEntry = ST.existsInCurrentScope(identifierName)
         if identifierEntry == False:
             ST.addIdentifier(identifierName, identifierType)
+            place = ST.newTemp()
+            ST.addAttribute(identifierName, 'place', place)
         else:
             debug.printError('Redefined Variable "%s"' %identifierName)
             raise SyntaxError
@@ -363,6 +368,9 @@ def p_insert_args(p):
             ST.addAttribute(argument['name'], 'place', place)
 
             debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
+
+    # Now we store the number of parameters in the function
+    ST.addAttributeToCurrentScope('numParam', len(p[-2]))
 
 ########################################
 ######## RETURN STATEMENT ##############
