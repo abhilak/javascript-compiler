@@ -276,8 +276,14 @@ def p_assignment_redefinition(p):
 
             # TAC.emit(p[3]['place'], '', ST.getAttribute(p[1], 'offset'), 'STORE')
         else:
-            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-            place = ST.newTemp((displayValue, offset))
+            # store the address into the address descriptor
+            if not ST.getAttribute(p[1], ST.getCurrentScope()):
+                displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+                place = ST.newTemp((displayValue, offset))
+                ST.addAttribute(p[1], ST.getCurrentScope(), place)
+            else:
+                place = ST.getAttribute(p[1], ST.getCurrentScope())
+
             TAC.emit(place, p[3]['place'], '', '=')
 
             # TAC.emit(p[3]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'STORE_DISPLAY')
@@ -861,8 +867,12 @@ def p_expression_identifier(p):
         identifierEntry = ST.existsInCurrentScope(p[1])
         if identifierEntry == False:
             # store the address into the address descriptor
-            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-            p[0]['place'] = ST.newTemp((displayValue, offset))
+            if not ST.getAttribute(p[1], ST.getCurrentScope()):
+                displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+                p[0]['place'] = ST.newTemp((displayValue, offset))
+                ST.addAttribute(p[1], ST.getCurrentScope(), p[0]['place'])
+            else:
+                p[0]['place'] = ST.getAttribute(p[1], ST.getCurrentScope())
             # TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
         else:
             p[0]['place'] = ST.getAttribute(p[1], 'place')

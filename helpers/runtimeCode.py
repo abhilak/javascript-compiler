@@ -7,6 +7,11 @@ class RuntimeCode:
         self.TAC = ThreeAddressCode
         self.currentFunction = ''
         self.regCount = 1
+        self.labelCount = -1 
+        self.labelBase = 'label'
+        self.resetRegisters()
+
+    def resetRegisters(self):
         self.registerDescriptor = {
                 '$t0' : None,
                 '$t1' : None,
@@ -26,8 +31,6 @@ class RuntimeCode:
                 }
         self.freeReg = [ reg for reg in self.registerDescriptor.keys() ]
         self.regInUse = []
-        self.labelCount = -1 
-        self.labelBase = 'label'
 
     def addLine(self, line):
         self.code[self.currentFunction].append(line)
@@ -77,6 +80,7 @@ class RuntimeCode:
 
             # CLose the file
             f.close()
+
         else:
             for functionName in self.code.keys():
                 print "\n%s:" %functionName
@@ -85,7 +89,6 @@ class RuntimeCode:
                     # print "%5d: \t%s" %(self.ST.instructionSize * i, codePoint)
                     print "\t%s\t%s\t%s\t%s" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3])
 
-        pprint.pprint(self.ST.addressDescriptor)
         self.TAC.printCode()
 
     def nextReg(self, temporary):
@@ -99,7 +102,6 @@ class RuntimeCode:
                 # Now we flush this register
                 correspondingTemporary = self.registerDescriptor[reg]
                 self.ST.addressDescriptor[correspondingTemporary]['register'] = None
-                print 'flushing', reg, correspondingTemporary
 
                 # Update the registerDescriptor
                 self.registerDescriptor[reg] = temporary
@@ -178,7 +180,6 @@ class RuntimeCode:
             self.registerDescriptor[reg] = temporary
 
         # Return the register
-        print reg, temporary
         return reg
 
     def nameLabel(self):
@@ -210,6 +211,36 @@ class RuntimeCode:
 
                 # Set the store bit
                 self.ST.addressDescriptor[temporary]['store'] = True
+
+        # Now we clean out all the registers
+        self.resetRegisters()
+
+        for temporary in self.ST.addressDescriptor:
+            self.ST.addressDescriptor['register'] = None
+
+    def flushTemporary(self, temporary):
+        if self.ST.addressDescriptor[temporary]['memory'] != None:
+            (level, offset) = self.ST.addressDescriptor[temporary]['memory']
+            reg = self.ST.addressDescriptor[temporary]['register']
+
+            # First we load in the value of the activation record where we have to store the value
+            self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
+            self.addLine(['li', '$s6', level, ''])         # put the index into $s5
+            self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
+            self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
+            self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+            # Now we store the value to the location in the stack
+            self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
+            self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
+            self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
+            self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
+            self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+            self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
+
+            # Set the store bit
+            self.ST.addressDescriptor[temporary]['store'] = True
 
     def fixLabels(self): 
         for function in self.TAC.code:

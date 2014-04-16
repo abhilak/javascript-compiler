@@ -4,6 +4,7 @@ function print(k::num) {
     k = 1;
     function foo() {
         k = 10;
+        consolelog(k);
     }
 
     foo();

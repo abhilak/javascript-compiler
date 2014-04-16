@@ -88,13 +88,13 @@ for function in TAC.code:
 
     for line in TAC.code[function]:
         if line[3] == 'JUMPLABEL':
-            RTC.flushRegisters()
             counter = 0 ;
             reg = RTC.nextReg(line[2])
             RTC.addLine(['jal', reg, '', ''])
 
         elif line[3] == 'JUMPBACK':
             RTC.addLine(['b', function + 'end', '', ''])
+
         elif line[3] == 'PARAM':
             reg = RTC.nextReg(line[0])
             RTC.addLine(['move', '$a'+str(counter), reg,''])
@@ -104,6 +104,7 @@ for function in TAC.code:
             reg1 = RTC.nextReg(line[0])
             reg2 = RTC.nextReg(line[1])
             RTC.addLine(['move', reg1, reg2, ''])
+
         elif line[3] == '=i':
             reg = RTC.nextReg(line[0])
             RTC.addLine(['li', reg, line[1], ''])
@@ -228,7 +229,6 @@ for function in TAC.code:
 
     if function != 'main':
         RTC.addLine(['LABEL', function + 'end', '', ''])
-        RTC.flushRegisters()
         RTC.addLine(['addi','$sp','$sp',ST.getAttributeFromFunctionList(function,'width')])
         RTC.addLine(['lw','$ra','0($sp)',''])
         RTC.addLine(['lw','$fp','4($sp)',''])
