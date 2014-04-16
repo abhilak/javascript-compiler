@@ -143,7 +143,13 @@ def p_declaration_statement(p):
         identifierName = identifier.get('name')
         identifierType = identifier.get('type')
 
-        ST.addIdentifier(identifierName, identifierType)
+        identifierEntry = ST.existsInCurrentScope(identifierName)
+        if identifierEntry == False:
+            ST.addIdentifier(identifierName, identifierType)
+        else:
+            debug.printError('Redefined Variable "%s"' %identifierName)
+            raise SyntaxError
+
         debug.printStatement("Declaration '%s' of type '%s'" %(identifierName, identifierType))
 
     # Type rules
@@ -152,26 +158,12 @@ def p_declaration_statement(p):
 def p_arg_list(p):
     'argList : hint SEP_COMMA argList'
     
-    p[0] = []
-
-    identifierEntry = ST.existsInCurrentScope(p[1]['name'])
-    if identifierEntry == False:
-        p[0] = [ p[1] ] + p[3]
-    else:
-        debug.printError('Redefined Variable "%s"' %p[1]['name'])
-        raise SyntaxError
+    p[0] = [ p[1] ] + p[3]
 
 def p_arg_list_base(p):
     'argList : hint'
 
-    p[0] = []
-
-    identifierEntry = ST.existsInCurrentScope(p[1]['name'])
-    if identifierEntry == False:
-        p[0] = [p[1]]
-    else:
-        debug.printError('Redefined Variable "%s"' %p[1]['name'])
-        raise SyntaxError
+    p[0] = [p[1]]
 
 def p_arg_list_empty(p):
     'argList : empty'''
@@ -217,32 +209,33 @@ def p_assignment_statment(p):
     p[0] = { 'type' : 'VOID' }
 
     # Now we add all of these statements
-    for identifierEntry in p[2]:
-        # Store information about the identifier
-        ST.addIdentifier(identifierEntry['name'], identifierEntry['type'])
+    for identifier in p[2]:
+        identifierEntry = ST.existsInCurrentScope(identifier['name'])
+        if identifierEntry == False:
+            # Store information about the identifier
+            ST.addIdentifier(identifier['name'], identifier['type'])
 
-        # This is a new variable, so we link the temporary to our variable
-        displayValue, offset = ST.getAttribute(identifierEntry['name'], 'scopeLevel'), ST.getAttribute(identifierEntry['name'], 'offset')
-        ST.changeMemoryLocationOfTemp(identifierEntry['place'], (displayValue, offset))
-        ST.addAttribute(identifierEntry['name'], 'place', identifierEntry['place'])
+            # This is a new variable, so we link the temporary to our variable
+            displayValue, offset = ST.getAttribute(identifier['name'], 'scopeLevel'), ST.getAttribute(identifier['name'], 'offset')
+            ST.changeMemoryLocationOfTemp(identifier['place'], (displayValue, offset))
+            ST.addAttribute(identifier['name'], 'place', identifier['place'])
 
-        # TAC.emit(identifierEntry['place'], '', ST.getAttribute(identifierEntry['name'], 'offset'), 'STORE')
+            # TAC.emit(identifierEntry['place'], '', ST.getAttribute(identifierEntry['name'], 'offset'), 'STORE')
 
-        # print the name of the statement
-        debug.printStatement("ASSIGNMENT of %s" %identifierEntry['name'])
+            # print the name of the statement
+            debug.printStatement("ASSIGNMENT of %s" %identifier['name'])
+        else:
+            debug.printError('Redefined Variable "%s"' %identifier['name'])
+            raise SyntaxError
 
 def p_assignList(p):
     'assignList : IDENTIFIER OP_ASSIGNMENT expression SEP_COMMA assignList'
 
+    # Create an identifier instance to pass
     identifier = {}
-    identifierEntry = ST.existsInCurrentScope(p[2])
-    if identifierEntry == False:
-        identifier['name'] = p[1]
-        identifier['type'] = p[3]['type']
-        identifier['place'] = p[3]['place']
-    else:
-        debug.printError('Redefined Variable "%s"' %p[1])
-        raise SyntaxError
+    identifier['name'] = p[1]
+    identifier['type'] = p[3]['type']
+    identifier['place'] = p[3]['place']
 
     p[0] = [identifier] + p[5]
 
@@ -250,19 +243,14 @@ def p_assignList_base(p):
     'assignList : IDENTIFIER OP_ASSIGNMENT expression'
 
     identifier = {}
-    identifierEntry = ST.existsInCurrentScope(p[2])
-    if identifierEntry == False:
-        identifier['name'] = p[1]
-        identifier['type'] = p[3]['type']
-        identifier['place'] = p[3]['place']
-    else:
-        debug.printError('Redefined Variable "%s"' %p[1])
-        raise SyntaxError
+    identifier['name'] = p[1]
+    identifier['type'] = p[3]['type']
+    identifier['place'] = p[3]['place']
 
     p[0] = [identifier]
 
 def p_assignment_redefinition(p):
-    'assignment : IDENTIFIER OP_ASSIGNMENT expression SEP_SEMICOLON'
+    'assignment : IDENTIFIER OP_ASSIGNMENT expression'
 
     # To store information
     p[0] = {}
