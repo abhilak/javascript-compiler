@@ -47,8 +47,9 @@ for function in TAC.code:
             RTC.addLine(['sw',line[0],str(line[2])+'(sp)',''])
 
         elif line[3] == '=':
-            reg = RTC.nextReg(line[0])
-            RTC.addLine(['abs', reg, line[1], ''])
+            reg1 = RTC.nextReg(line[0])
+            reg2 = RTC.nextReg(line[1])
+            RTC.addLine([move, reg1, reg2, ''])
         elif line[3] == '=i':
             reg = RTC.nextReg(line[0])
             RTC.addLine(['li', reg, line[1], ''])
