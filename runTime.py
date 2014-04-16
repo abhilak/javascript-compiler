@@ -1,6 +1,7 @@
 from sys import argv
 from parser import ST, parseProgram , TAC, debug, ThreeAddressCode
 from helpers import runtimeCode as RuntimeCode
+import pprint
 
 #########################################################################################
 
@@ -36,6 +37,10 @@ for function in TAC.code:
         # We set up the instructions for the activation record over here
         if i == 0:
             pass
+            # set the frame pointer
+            # save the value of display
+            # save registers
+            # update the stack pointer to the value above this
 
         # Expand upon the TAC
         if line[3] == 'JUMPLABEL':
@@ -49,9 +54,11 @@ for function in TAC.code:
         elif line[3] == 'STORE':
             RTC.addLine(['sw',line[0],str(line[2])+'(sp)',''])
         elif line[3] == '=':
-            RTC.addLine(['abs',line[0],line[1],''])
+            reg = RTC.nextReg(line[0])
+            RTC.addLine(['abs', reg, line[1], ''])
         elif line[3] == '=REF':
-            RTC.addLine(['la',line[0],line[1],''])
+            reg = RTC.nextReg(line[0])
+            RTC.addLine(['la', reg, line[1], ''])
         elif line[3] == 'uni-':
             RTC.addLine(['neg',line[0],line[1],''])
         elif line[3] == '+':
@@ -90,14 +97,15 @@ for function in TAC.code:
         elif line[3] == 'HALT':
             RTC.addLine(['jal', 'exit', '', ''])
         elif line[3] == 'PRINT':
+            reg = RTC.nextReg(line[0])
             if line[2] == 'NUMBER':
-                RTC.addLine(['move', '$a0', line[0], ''])
+                RTC.addLine(['move', '$a0', reg, ''])
                 RTC.addLine(['jr', 'print_int', '', ''])
             elif line[2] == 'STRING':
-                RTC.addLine(['move', '$a0', line[0], ''])
+                RTC.addLine(['move', '$a0', reg, ''])
                 RTC.addLine(['jr', 'print_string', '', ''])
             elif line[2] == 'BOOLEAN':
-                RTC.addLine(['move', '$a0', line[0], ''])
+                RTC.addLine(['move', '$a0', reg, ''])
                 RTC.addLine(['jr', 'print_boolean', '', ''])
             else:
                 RTC.addLine(['jr', 'print_undefined', '', ''])
@@ -107,6 +115,10 @@ for function in TAC.code:
 
 # Print the generated code
 RTC.printCode()
+# TAC.printCode()
+
+pprint.pprint(RTC.registerDescriptor)
+pprint.pprint(ST.addressDescriptor)
 
 # Include the common library functions
 # RTC.includeLibrary('lib/code.s')

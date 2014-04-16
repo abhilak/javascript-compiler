@@ -4,7 +4,27 @@ class RuntimeCode:
         self.ST = SymbolTable
         self.currentFunction = ''
         self.regCount = 1
-        self.registerDescriptor = {}
+        self.registerDescriptor = {
+                '$t0' : None,
+                '$t1' : None,
+                '$t2' : None,
+                '$t3' : None,
+                '$t4' : None,
+                '$t5' : None,
+                '$t6' : None,
+                '$t7' : None,
+                '$t8' : None,
+                '$t9' : None,
+                '$s0' : None,
+                '$s1' : None,
+                '$s2' : None,
+                '$s3' : None,
+                '$s4' : None,
+                '$s5' : None,
+                '$s6' : None,
+                '$s7' : None
+                }
+        self.freeReg = [ reg for reg in self.registerDescriptor.keys() ]
 
     def addLine(self, line):
         self.code[self.currentFunction].append(line)
@@ -35,10 +55,16 @@ class RuntimeCode:
     def includeLibrary(self, library):
         print open(library).read()
 
-    def nextReg(self):
-        nextValue = self.regCount
-        self.regCount = ( self.regCount + 1 )%31
-        if self.regCount == 0:
-            self.regCount = 1
-        return '$r' + str(nextValue)
+    def nextReg(self, temporary):
+        if len(self.freeReg) == 0:
+            print 'Spilling Required'
+            pass
+        else:
+            if temporary in self.registerDescriptor.values():
+                reg = self.ST.addressDescriptor[temporary]['register']
+            else:
+                reg = self.freeReg.pop()
+                self.ST.addressDescriptor[temporary]['register'] = reg
+            self.registerDescriptor[reg] = temporary
+            return reg
 
