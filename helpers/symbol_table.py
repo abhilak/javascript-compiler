@@ -18,7 +18,7 @@ class SymbolTable:
         self.functionList = { 'main': self.symbol_table['main']}
         self.instructionSize = 4
         self.addressSize = 4
-        self.booleanSize = 1
+        self.booleanSize = 4
         self.undefinedSize = 0
         self.numberSize = 4
         self.addressDescriptor = {}
