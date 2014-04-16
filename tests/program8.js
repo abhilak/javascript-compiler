@@ -1,3 +1,4 @@
+// Nesting of functions and lexical scoping
 var i = 1;
 
 function print(k::num) {

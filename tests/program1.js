@@ -1,21 +1,7 @@
-var m = function (t::bool) {
-    if ( t ) {
-        return 1;
-    } else {
-        return 2;
-    }
-};
+// Simple loop
+var i = 1;
 
-function z(y::num, t::callback) {
-    var k = y>2 && 1 < 2;
-    m(true);
-
-    m();
-
-    return function () {
-        return 11;
-    };
+while ( i < 10 ) {
+    consolelog(i);
+    i = i + 1;
 }
-
-
-z();

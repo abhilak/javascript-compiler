@@ -1,23 +1,7 @@
-function x(t::callback) {
-    var i = 1;
 
-    while ( i < 10 ) {
-        i = i + 1;
-        if ( i > 5) {
-            break;
-        } else {
-            t(i);
-            continue;
-        }
-    }
-}
+// Simple addition
+var x = 1;
+var y = 2;
+var z = x + y;
 
-function printer(n::string) {
-    consolelog(n);
-    return 1;
-}
-
-var p = "srijan";
-p = 1;
-consolelog(p);
-printer(p);
+consolelog(z);

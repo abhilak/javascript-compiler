@@ -630,7 +630,7 @@ def p_print_statement(p):
             raise SyntaxError
 
     # We print a new line
-    TAC.emit('', '', 'NEW_LINE', 'PRINT')
+    # TAC.emit('', '', 'NEW_LINE', 'PRINT')
 
 def p_printList(p):
     'printList : expression SEP_COMMA printList'
