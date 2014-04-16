@@ -261,7 +261,6 @@ for function in TAC.code:
 
     if function != 'main':
         RTC.addLine(['LABEL', function + 'end', '', ''])
-        # RTC.flushRegisters(ST.getAttributeFromFunctionList(function, 'level'))
         RTC.addLine(['addi','$sp','$sp',ST.getAttributeFromFunctionList(function,'width')])
         RTC.addLine(['lw','$ra','0($sp)',''])
         RTC.addLine(['lw','$fp','4($sp)',''])

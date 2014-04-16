@@ -1,21 +1,16 @@
-var m = "srijan";
-var str = "sri";
 
-function print(str::string) {
-    var k = str;
-    consolelog(k);
-} 
+function fib(n::num) {
+    if (n == 0) {
+        return 0;
+    } 
 
-var p = print(m);
+    if (n == 1) {
+        return 1;
+    }
 
+    return fib(n-1) + fib(n-2);
 
-function callFunction(p::callback){
-    p = function () {
-        var car = str;
-        print(car);
-    };
 }
 
-callFunction(print);
-
-
+var x = fib(3);
+consolelog(x);
