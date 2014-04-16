@@ -85,6 +85,7 @@ class RuntimeCode:
                     # print "%5d: \t%s" %(self.ST.instructionSize * i, codePoint)
                     print "\t%s\t%s\t%s\t%s" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3])
 
+        pprint.pprint(self.ST.addressDescriptor)
         self.TAC.printCode()
 
     def nextReg(self, temporary):
@@ -98,14 +99,13 @@ class RuntimeCode:
                 # Now we flush this register
                 correspondingTemporary = self.registerDescriptor[reg]
                 self.ST.addressDescriptor[correspondingTemporary]['register'] = None
+                print 'flushing', reg, correspondingTemporary
 
                 # Update the registerDescriptor
                 self.registerDescriptor[reg] = temporary
 
                 # Now we have to store the temporary back to memory
-                print 'store the corres temp'
-
-                if self.ST.addressDescriptor[temporary]['memory'] != None:
+                if self.ST.addressDescriptor[correspondingTemporary]['memory'] != None:
                     # Get the value of level and offset
                     (level, offset) = self.ST.addressDescriptor[correspondingTemporary]['memory']
 
@@ -126,7 +126,28 @@ class RuntimeCode:
                     self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
 
                     # Set the store bit
-                    self.ST.addressDescriptor[temporary]['store'] = True
+                    self.ST.addressDescriptor[correspondingTemporary]['store'] = True
+
+                # We have to load the value from memory into the register
+                if self.ST.addressDescriptor[temporary]['memory'] != None:
+                    # Get the value of level and offset
+                    (level, offset) = self.ST.addressDescriptor[temporary]['memory']
+
+                    # First we load in the value of the activation record where we have to store the value
+                    self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
+                    self.addLine(['li', '$s6', level, ''])         # put the index into $s5
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    # Now we store the value to the location in the stack
+                    self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
+                    self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    self.addLine(['lw', reg, '0($s7)', ''])        # store the value into the record
             else:
                 reg = self.freeReg.pop()
 
@@ -157,6 +178,7 @@ class RuntimeCode:
             self.registerDescriptor[reg] = temporary
 
         # Return the register
+        print reg, temporary
         return reg
 
     def nameLabel(self):
