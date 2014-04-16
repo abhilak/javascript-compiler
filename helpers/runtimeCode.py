@@ -28,6 +28,8 @@ class RuntimeCode:
                 }
         self.freeReg = [ reg for reg in self.registerDescriptor.keys() ]
         self.regInUse = []
+        self.labelCount = -1 
+        self.labelBase = 'label'
 
     def addLine(self, line):
         self.code[self.currentFunction].append(line)
@@ -60,8 +62,10 @@ class RuntimeCode:
                 f.write("\n%s:\n" %functionName)
                 for i in range(len(self.code[functionName])):
                     codePoint = self.code[functionName][i]
-                    if codePoint[1] == '':
-                        f.write("\t%s\n" %(codePoint[0]))
+                    if codePoint[0] == 'LABEL':
+                        f.write("%s:\n" %codePoint[1])
+                    elif codePoint[1] == '':
+                        f.write("\t%s\n" %codePoint[0])
                     elif codePoint[2] == '':
                         f.write("\t%s\t\t%s\n" %(codePoint[0], codePoint[1]))
                     elif codePoint[3] == '':
@@ -110,5 +114,10 @@ class RuntimeCode:
             self.regInUse.append(reg)
 
             self.registerDescriptor[reg] = temporary
-            return reg
 
+        # Return the register
+        return reg
+
+    def nameLabel(self):
+        self.labelCount += 1
+        return '__' + self.labelBase + str(self.labelCount) + '__'

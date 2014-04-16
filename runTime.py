@@ -20,11 +20,16 @@ RTC = RuntimeCode.RuntimeCode(ST, TAC)
 
 for function in TAC.code:
     RTC.addFunction(function)
-    i = -1
+    lineNumber = -1
+    unresolvedLabels = {}
     for line in TAC.code[function]:
-        i += 1
-        # We set up the instructions for the activation record over here
-        if i == 0:
+        lineNumber += 1
+
+        # Here we have to add a label to this line
+        if lineNumber in unresolvedLabels.keys():
+            RTC.addLine(['LABEL', unresolvedLabels[lineNumber], '', '' ])
+
+        if lineNumber == 0:
             pass
             # set the frame pointer
             # save the value of display
@@ -126,10 +131,25 @@ for function in TAC.code:
 
         elif line[3] == 'COND_GOTO_Z':
             reg1 = RTC.nextReg(line[0])
-            RTC.addLine(['beq',reg1,'$0',line[2]])
+
+            # Generate label
+            if unresolvedLabels.has_key(line[2]):
+                label = unresolvedLabels[line[2]]
+            else:
+                label = RTC.nameLabel()
+                unresolvedLabels[line[2]] = label
+
+            RTC.addLine(['beq', reg1, '$0', label])
 
         elif line[3] == 'GOTO':
-            RTC.addLine(['b',line[2],'',''])
+            # Generate label
+            if unresolvedLabels.has_key(line[2]):
+                label = unresolvedLabels[line[2]]
+            else:
+                label = RTC.nameLabel()
+                unresolvedLabels[line[2]] = label
+
+            RTC.addLine(['b', label, '', ''])
 
         elif line[3] == 'FUNCTION_RETURN':
             reg1 = RTC.nextReg(line[0])
