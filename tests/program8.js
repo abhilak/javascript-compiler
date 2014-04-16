@@ -1,8 +1,12 @@
-var x = false;
-var m = function(t::bool, x::callback) {
-    x = true;
-    return 1;
 
+var i = 1;
+
+var k = i;
+
+var m = function () {
+    consolelog(i);
+    return 11;
 };
-var y = m(x);
+
+var y = m();
 consolelog(y);

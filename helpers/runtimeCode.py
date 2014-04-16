@@ -161,3 +161,36 @@ class RuntimeCode:
     def nameLabel(self):
         self.labelCount += 1
         return '__' + self.labelBase + str(self.labelCount) + '__'
+
+    def flushRegisters(self):
+        temporaries = filter(None, list(set(self.registerDescriptor.values())))
+        for temporary in temporaries:
+            if self.ST.addressDescriptor[temporary]['memory'] != None:
+                (level, offset) = self.ST.addressDescriptor[temporary]['memory']
+                reg = self.ST.addressDescriptor[temporary]['register']
+
+                # First we load in the value of the activation record where we have to store the value
+                self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
+                self.addLine(['li', '$s6', level, ''])         # put the index into $s5
+                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
+                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
+                self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                # Now we store the value to the location in the stack
+                self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
+                self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
+                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
+                self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
+                self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
+
+                # Set the store bit
+                self.ST.addressDescriptor[temporary]['store'] = True
+
+#     def fixLabels(self): 
+#         for function in self.TAC.code:
+#             unresolvedLabels = {}
+#             lineNumber = 
+#             for line in self.TAC.code[function]:
+#

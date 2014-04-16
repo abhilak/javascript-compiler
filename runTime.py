@@ -33,14 +33,15 @@ for function in TAC.code:
     RTC.addLine(['la','$fp','72($sp)',''])
     #storing display[level]
     RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'level'),''])
-    RTC.addLine(['la', '$s5', '_display__', ''])
+    RTC.addLine(['la', '$s5', '__display__', ''])
     RTC.addLine(['add', '$v0', '$v0', '$v0'])
     RTC.addLine(['add', '$v0', '$v0', '$v0'])
     RTC.addLine(['add', '$s6', '$v0', '$s5'])
     RTC.addLine(['lw','$s7','0($s6)',''])
     RTC.addLine(['sw','$s7','8($sp)',''])
     #set display[level]
-    RTC.addLine(['sw',str(ST.getAttributeFromFunctionList(function, 'width'))+'($sp)','$s6',''])
+    RTC.addLine(['la', '$v0', str(ST.getAttributeFromFunctionList(function, 'width'))+'($sp)' , ''])
+    RTC.addLine(['sw','$v0','0($s6)',''])
     #store remaining registers
     RTC.addLine(['sw','$t0','12($sp)',''])
     RTC.addLine(['sw','$t1','16($sp)',''])
@@ -84,8 +85,10 @@ for function in TAC.code:
             # RTC.addLine(['SP', ST.getAttributeFromFunctionList(function, 'width'), '', 'ADD_STACK'])
             # RTC.addLine(['*SP', '', 4 * (i + 2), 'MOVE'])
             # RTC.addLine(line)
+            RTC.flushRegisters()
             counter = 0 ;
-            RTC.addLine(['jal',line[2],'',''])
+            reg = RTC.nextReg(line[2])
+            RTC.addLine(['jal',reg,'',''])
 
         elif line[3] == 'JUMPBACK':
             RTC.addLine(['b', function + 'end', '', ''])
@@ -240,11 +243,11 @@ for function in TAC.code:
 
     RTC.addLine(['lw','$a0','8($sp)',''])
     RTC.addLine(['li','$a1',ST.getAttributeFromFunctionList(function, 'level'),''])
-    RTC.addLine(['la', '$s5', '_display__', ''])
+    RTC.addLine(['la', '$s5', '__display__', ''])
     RTC.addLine(['add', '$a1', '$a1', '$a1'])
     RTC.addLine(['add', '$a1', '$a1', '$a1'])
     RTC.addLine(['add', '$s6', '$a1', '$s5'])
-    RTC.addLine(['sw','$a0','$s6',''])
+    RTC.addLine(['sw','$a0','0($s6)',''])
 
     RTC.addLine(['lw','$t0','12($sp)',''])
     RTC.addLine(['lw','$t1','16($sp)',''])
