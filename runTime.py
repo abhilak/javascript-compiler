@@ -23,49 +23,62 @@ RTC.fixLabels()
 for function in TAC.code:
     RTC.addFunction(function)
     lineNumber = -1
-
-    #allocate space for the registers by updating stack pointer
-    RTC.addLine(['sub', '$sp','$sp','72'])
-    #store return address of the caller
-    RTC.addLine(['sw','$ra','0($sp)',''])
-    #sstore the frame pointer of the caller
-    RTC.addLine(['sw','$fp','4($sp)',''])
-    #set fame pointer of the callee
-    RTC.addLine(['la','$fp','72($sp)',''])
-    #storing display[level]
-    RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'level'),''])
-    RTC.addLine(['la', '$s5', '__display__', ''])
-    RTC.addLine(['add', '$v0', '$v0', '$v0'])
-    RTC.addLine(['add', '$v0', '$v0', '$v0'])
-    RTC.addLine(['add', '$s6', '$v0', '$s5'])
-    RTC.addLine(['lw','$s7','0($s6)',''])
-    RTC.addLine(['sw','$s7','8($sp)',''])
-    #set display[level]
-    RTC.addLine(['la', '$v0', '-' + str(ST.getAttributeFromFunctionList(function, 'width'))+'($sp)' , ''])
-    RTC.addLine(['sw','$v0','0($s6)',''])
-    #store remaining registers
-    RTC.addLine(['sw','$t0','12($sp)',''])
-    RTC.addLine(['sw','$t1','16($sp)',''])
-    RTC.addLine(['sw','$t2','20($sp)',''])
-    RTC.addLine(['sw','$t3','24($sp)',''])
-    RTC.addLine(['sw','$t4','28($sp)',''])
-    RTC.addLine(['sw','$t5','32($sp)',''])
-    RTC.addLine(['sw','$t6','36($sp)',''])
-    RTC.addLine(['sw','$t7','40($sp)',''])
-    RTC.addLine(['sw','$t8','44($sp)',''])
-    RTC.addLine(['sw','$t9','48($sp)',''])
-    RTC.addLine(['sw','$s0','52($sp)',''])
-    RTC.addLine(['sw','$s1','56($sp)',''])
-    RTC.addLine(['sw','$s2','60($sp)',''])
-    RTC.addLine(['sw','$s3','64($sp)',''])
-    RTC.addLine(['sw','$s4','68($sp)',''])
-    # RTC.addLine(['sw','$s5','72($sp)',''])
-    # RTC.addLine(['sw','$s6','76($sp)',''])
-    # RTC.addLine(['sw','$s7','80($sp)',''])
-    RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'width'),''])
-    RTC.addLine(['sub','$sp','$sp','$v0'])
-    for x in range(ST.getAttributeFromFunctionList(function, 'numParam')):
-        RTC.addLine(['sw','$a'+str(x),str(4*x)+'($sp)',''])
+    if (function == 'main'):
+        #allocate space for the registers by updating stack pointer
+        RTC.addLine(['sub', '$sp','$sp','200'])
+        #set fame pointer of the callee
+        RTC.addLine(['la','$fp','200($sp)',''])
+        RTC.addLine(['la', '$s5', '__display__', ''])
+        RTC.addLine(['lw','$s7','0($s5)',''])
+        #set display[level]
+        RTC.addLine(['la', '$v0', '-' + str(ST.getAttributeFromFunctionList(function, 'width'))+'($sp)' , ''])
+        RTC.addLine(['sw','$v0','0($s5)',''])
+        RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'width'),''])
+        RTC.addLine(['sub','$sp','$sp','$v0'])
+    
+    else:
+        #allocate space for the registers by updating stack pointer
+        RTC.addLine(['sub', '$sp','$sp','72'])
+        #store return address of the caller
+        RTC.addLine(['sw','$ra','0($sp)',''])
+        #sstore the frame pointer of the caller
+        RTC.addLine(['sw','$fp','4($sp)',''])
+        #set fame pointer of the callee
+        RTC.addLine(['la','$fp','72($sp)',''])
+        #storing display[level]
+        RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'level'),''])
+        RTC.addLine(['la', '$s5', '__display__', ''])
+        RTC.addLine(['add', '$v0', '$v0', '$v0'])
+        RTC.addLine(['add', '$v0', '$v0', '$v0'])
+        RTC.addLine(['add', '$s6', '$v0', '$s5'])
+        RTC.addLine(['lw','$s7','0($s6)',''])
+        RTC.addLine(['sw','$s7','8($sp)',''])
+        #set display[level]
+        RTC.addLine(['la', '$v0', '-' + str(ST.getAttributeFromFunctionList(function, 'width'))+'($sp)' , ''])
+        RTC.addLine(['sw','$v0','0($s6)',''])
+        #store remaining registers
+        RTC.addLine(['sw','$t0','12($sp)',''])
+        RTC.addLine(['sw','$t1','16($sp)',''])
+        RTC.addLine(['sw','$t2','20($sp)',''])
+        RTC.addLine(['sw','$t3','24($sp)',''])
+        RTC.addLine(['sw','$t4','28($sp)',''])
+        RTC.addLine(['sw','$t5','32($sp)',''])
+        RTC.addLine(['sw','$t6','36($sp)',''])
+        RTC.addLine(['sw','$t7','40($sp)',''])
+        RTC.addLine(['sw','$t8','44($sp)',''])
+        RTC.addLine(['sw','$t9','48($sp)',''])
+        RTC.addLine(['sw','$s0','52($sp)',''])
+        RTC.addLine(['sw','$s1','56($sp)',''])
+        RTC.addLine(['sw','$s2','60($sp)',''])
+        RTC.addLine(['sw','$s3','64($sp)',''])
+        RTC.addLine(['sw','$s4','68($sp)',''])
+        # RTC.addLine(['sw','$s5','72($sp)',''])
+        # RTC.addLine(['sw','$s6','76($sp)',''])
+        # RTC.addLine(['sw','$s7','80($sp)',''])
+        RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'width'),''])
+        RTC.addLine(['sub','$sp','$sp','$v0'])
+        for x in range(ST.getAttributeFromFunctionList(function, 'numParam')):
+            RTC.addLine(['sw','$a'+str(x),str(4*x)+'($sp)',''])
 
     for line in TAC.code[function]:
         lineNumber += 1
