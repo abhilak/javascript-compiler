@@ -49,6 +49,9 @@ for function in TAC.code:
         elif line[3] == '=':
             reg = RTC.nextReg(line[0])
             RTC.addLine(['abs', reg, line[1], ''])
+        elif line[3] == '=i':
+            reg = RTC.nextReg(line[0])
+            RTC.addLine(['li', reg, line[1], ''])
 
         elif line[3] == '=REF':
             reg = RTC.nextReg(line[0])
@@ -58,7 +61,10 @@ for function in TAC.code:
             RTC.addLine(['neg',line[0],line[1],''])
 
         elif line[3] == '+':
-            RTC.addLine(['add',line[0],line[1],line[2]])
+            reg1 = RTC.nextReg(line[0])
+            reg2 = RTC.nextReg(line[1])
+            reg3 = RTC.nextReg(line[2])
+            RTC.addLine(['add',reg1,reg2,reg3])
 
         elif line[3] == '-':
             RTC.addLine(['sub',line[0],line[1],line[2]])
