@@ -6,6 +6,7 @@ function print(k::num) {
         consolelog(k);
     }
 
+    i = 8;
     foo();
     consolelog(k);
 }

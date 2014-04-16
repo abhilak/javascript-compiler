@@ -273,8 +273,6 @@ def p_assignment_redefinition(p):
         if identifierEntry == True:
             place = ST.getAttribute(p[1], 'place')
             TAC.emit(place, p[3]['place'], '', '=')
-
-            # TAC.emit(p[3]['place'], '', ST.getAttribute(p[1], 'offset'), 'STORE')
         else:
             # store the address into the address descriptor
             if not ST.getAttribute(p[1], ST.getCurrentScope()):
@@ -285,8 +283,6 @@ def p_assignment_redefinition(p):
                 place = ST.getAttribute(p[1], ST.getCurrentScope())
 
             TAC.emit(place, p[3]['place'], '', '=')
-
-            # TAC.emit(p[3]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'level'), 'STORE_DISPLAY')
     else:
         debug.printError('Undefined Variable "%s"' %p[1])
         raise SyntaxError
@@ -375,7 +371,7 @@ def p_insert_args(p):
 
             # store the address into the address descriptor
             displayValue, offset = ST.getAttribute(argument['name'], 'scopeLevel'), ST.getAttribute(argument['name'], 'offset')
-            place = ST.newTemp((displayValue, offset), store=True)
+            place = ST.newTemp((displayValue, offset), loadFromMemory=True)
             ST.addAttribute(argument['name'], 'place', place)
 
             debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
@@ -468,9 +464,7 @@ def p_function_call(p):
 
                     p[0]['place'] = returnPlace
             else:
-                p[0]['type'] = 'ERROR'
-                debug.printError('Not a function "%s"' %p[1])
-                raise SyntaxError
+                p[0]['type'] = 'CALLBACK'
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
             debug.printError('Not a function "%s"' %p[1])
@@ -867,7 +861,7 @@ def p_expression_identifier(p):
             # store the address into the address descriptor
             if not ST.getAttribute(p[1], ST.getCurrentScope()):
                 displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-                p[0]['place'] = ST.newTemp((displayValue, offset))
+                p[0]['place'] = ST.newTemp((displayValue, offset), loadFromMemory=True)
                 ST.addAttribute(p[1], ST.getCurrentScope(), p[0]['place'])
             else:
                 p[0]['place'] = ST.getAttribute(p[1], ST.getCurrentScope())

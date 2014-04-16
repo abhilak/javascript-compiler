@@ -2,7 +2,7 @@ import pprint
 
 class Debug:
     def __init__(self):
-        self.showStatement = True
+        self.showStatement = False
         self.printErrors = True 
         self.lineNumber = 1
         self.prev = 0

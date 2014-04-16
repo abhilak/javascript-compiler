@@ -90,7 +90,7 @@ class RuntimeCode:
                     print "\t%s\t%s\t%s\t%s" %(codePoint[0], codePoint[1], codePoint[2], codePoint[3])
 
         # self.TAC.printCode()
-        pprint.pprint(self.ST.addressDescriptor)
+        # pprint.pprint(self.ST.addressDescriptor)
 
     def nextReg(self, temporary):
         if temporary in self.registerDescriptor.values():
@@ -193,7 +193,6 @@ class RuntimeCode:
                 if self.ST.addressDescriptor[temporary]['memory'][0] <= level and self.ST.addressDescriptor[temporary]['register'] != None:
                     (level, offset) = self.ST.addressDescriptor[temporary]['memory']
                     reg = self.ST.addressDescriptor[temporary]['register']
-                    print 'restore', temporary, level, reg
 
                     # First we load in the value of the activation record where we have to store the value
                     self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
@@ -270,6 +269,12 @@ class RuntimeCode:
 
             # Set the store bit
             self.ST.addressDescriptor[temporary]['store'] = True
+
+            # Delete the register allocated to this
+            self.ST.addressDescriptor[temporary]['register'] = None
+            self.registerDescriptor[reg] = None
+            self.freeReg.append(reg)
+            self.regInUse.pop(self.regInUse.index(reg))
 
     def fixLabels(self): 
         for function in self.TAC.code:
