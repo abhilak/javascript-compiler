@@ -22,9 +22,6 @@ class RuntimeCode:
                 '$s2' : None,
                 '$s3' : None,
                 '$s4' : None,
-                '$s5' : None,
-                '$s6' : None,
-                '$s7' : None
                 }
         self.freeReg = [ reg for reg in self.registerDescriptor.keys() ]
         self.regInUse = []
@@ -106,8 +103,51 @@ class RuntimeCode:
 
                 # Now we have to store the temporary back to memory
                 print 'store the corres temp'
+
+                if self.ST.addressDescriptor[temporary]['memory'] != None:
+                    # Get the value of level and offset
+                    (level, offset) = self.ST.addressDescriptor[correspondingTemporary]['memory']
+
+                    # First we load in the value of the activation record where we have to store the value
+                    self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
+                    self.addLine(['li', '$s6', level, ''])         # put the index into $s5
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    # Now we store the value to the location in the stack
+                    self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
+                    self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
+
+                    # Set the store bit
+                    self.ST.addressDescriptor[temporary]['store'] = True
             else:
                 reg = self.freeReg.pop()
+
+                if self.ST.addressDescriptor[temporary]['memory'] != None and self.ST.addressDescriptor[temporary]['store']:
+                    # Get the value of level and offset
+                    (level, offset) = self.ST.addressDescriptor[temporary]['memory']
+
+                    # First we load in the value of the activation record where we have to store the value
+                    self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
+                    self.addLine(['li', '$s6', level, ''])         # put the index into $s5
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the index again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    # Now we store the value to the location in the stack
+                    self.addLine(['lw', '$s5', '0($s7)', ''])      # load the value into display
+                    self.addLine(['li', '$s6', offset, ''])        # put the offset into $s6
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset
+                    self.addLine(['add', '$s6', '$s6', '$s6'])     # double the offset again (now 4x)
+                    self.addLine(['add', '$s7', '$s5', '$s6'])     # combine the two components of the address
+
+                    self.addLine(['lw', reg, '0($s7)', ''])        # store the value into the record
 
             # Now we allocate this register to the passed temporary
             self.ST.addressDescriptor[temporary]['register'] = reg

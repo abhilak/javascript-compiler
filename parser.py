@@ -149,7 +149,8 @@ def p_declaration_statement(p):
         identifierEntry = ST.existsInCurrentScope(identifierName)
         if identifierEntry == False:
             ST.addIdentifier(identifierName, identifierType)
-            place = ST.newTemp()
+            displayValue, offset = ST.getAttribute(identifierName, 'scopeLevel'), ST.getAttribute(identifierName, 'offset')
+            place = ST.newTemp((displayValue, offset))
             ST.addAttribute(identifierName, 'place', place)
         else:
             debug.printError('Redefined Variable "%s"' %identifierName)
@@ -224,6 +225,7 @@ def p_assignment_statment(p):
             displayValue, offset = ST.getAttribute(identifier['name'], 'scopeLevel'), ST.getAttribute(identifier['name'], 'offset')
             ST.changeMemoryLocationOfTemp(identifier['place'], (displayValue, offset))
             ST.addAttribute(identifier['name'], 'place', identifier['place'])
+            ST.addAttribute(identifier['name'], 'reference', identifier['reference'])
 
             # TAC.emit(identifierEntry['place'], '', ST.getAttribute(identifierEntry['name'], 'offset'), 'STORE')
 
@@ -241,6 +243,7 @@ def p_assignList(p):
     identifier['name'] = p[1]
     identifier['type'] = p[3]['type']
     identifier['place'] = p[3]['place']
+    identifier['reference'] = p[3].get('reference')
 
     p[0] = [identifier] + p[5]
 
@@ -251,6 +254,7 @@ def p_assignList_base(p):
     identifier['name'] = p[1]
     identifier['type'] = p[3]['type']
     identifier['place'] = p[3]['place']
+    identifier['reference'] = p[3].get('reference')
 
     p[0] = [identifier]
 
@@ -452,14 +456,16 @@ def p_function_call(p):
 
             # In case the function call is used in an expression
             # The type of the statment is dependent on the input condition
-            if identifierType == 'FUNCTION':
-                returnPlace = ST.newTemp()
-                TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
+            if identifierType != 'CALLBACK':
+                reference = ST.getAttribute(p[1], 'reference')
+                p[0]['type'] = ST.getAttributeFromFunctionList(reference, 'returnType')
 
-                p[0]['type'] = ST.getFunctionAttribute(p[1], 'returnType')
-                p[0]['place'] = returnPlace
+                if p[0]['type'] != 'CALLBACK':
+                    returnPlace = ST.newTemp()
+                    TAC.emit(returnPlace, '', '', 'FUNCTION_RETURN')
+
+                    p[0]['place'] = returnPlace
             else:
-                # In case the function call is used in an expression
                 p[0]['type'] = 'CALLBACK'
         else:
             p[0]['type'] = 'REFERENCE_ERROR'
@@ -873,6 +879,7 @@ def p_expression_function_call(p):
     # Return the value of the function
     p[0] = {}
     p[0]['type'] = p[1]['type']
+
     if p[1]['type'] == 'CALLBACK':
         debug.printError('Callback functions cannot be used as expressions')
         raise SyntaxError

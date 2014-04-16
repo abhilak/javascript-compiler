@@ -1,8 +1,8 @@
+var x = false;
+var m = function(t::bool, x::callback) {
+    x = true;
+    return 1;
 
-
-var k::num;
-if ( true ) {
-    k = 3;
-} else {
-    k = 4;
-}
+};
+var y = m(x);
+consolelog(y);

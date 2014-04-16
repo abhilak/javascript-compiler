@@ -38,8 +38,8 @@ for function in TAC.code:
 
         # Expand upon the TAC
         if line[3] == 'JUMPLABEL':
-            RTC.addLine(['SP', ST.getAttributeFromFunctionList(function, 'width'), '', 'ADD_STACK'])
-            RTC.addLine(['*SP', '', 4 * (i + 2), 'MOVE'])
+            # RTC.addLine(['SP', ST.getAttributeFromFunctionList(function, 'width'), '', 'ADD_STACK'])
+            # RTC.addLine(['*SP', '', 4 * (i + 2), 'MOVE'])
             RTC.addLine(line)
 
         elif line[3] == 'JUMPBACK':

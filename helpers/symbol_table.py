@@ -195,9 +195,9 @@ class SymbolTable:
         self.tempCount = self.tempCount + 1
         createdTemp = self.tempBase + str(self.tempCount)
         if memoryLocation == '':
-            self.addressDescriptor[createdTemp] = {'memory': None , 'register': None}
+            self.addressDescriptor[createdTemp] = {'memory': None , 'register': None, 'store': False}
         else:
-            self.addressDescriptor[createdTemp] = {'memory': memoryLocation , 'register': None}
+            self.addressDescriptor[createdTemp] = {'memory': memoryLocation , 'register': None, 'store': False}
         return createdTemp
 
     def changeMemoryLocationOfTemp(self, tempName, memoryLocation):
