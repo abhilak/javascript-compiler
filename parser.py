@@ -878,7 +878,7 @@ def p_base_type_undefine(p):
     'base_type : UNDEFINED'
 
     # Type rules
-    p[0] = { 'type' : 'UNDEFINED', 'value' : 'UNDEFINED'}
+    p[0] = { 'type' : 'UNDEFINED', 'value' : 0}
 
 ######## FUNCTION EXPRESSION ###########
 

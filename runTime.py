@@ -30,12 +30,17 @@ print ".text"
 
 for function in TAC.code:
     RTC.addFunction(function)
-    i = 0
+    i = -1
     for line in TAC.code[function]:
         i += 1
+        # We set up the instructions for the activation record over here
+        if i == 0:
+            pass
+
+        # Expand upon the TAC
         if line[3] == 'JUMPLABEL':
             RTC.addLine(['SP', ST.getAttributeFromFunctionList(function, 'width'), '', 'ADD_STACK'])
-            RTC.addLine(['move', 'sp', 4 * (i + 2), ''])
+            RTC.addLine(['*SP', '', 4 * (i + 2), 'MOVE'])
             RTC.addLine(line)
         elif line[3] == 'JUMPBACK':
             RTC.addLine(['jr', '$ra', '', ''])
@@ -84,12 +89,18 @@ for function in TAC.code:
             RTC.addLine(['move','$v0',line[0],''])
         elif line[3] == 'HALT':
             RTC.addLine(['jal', 'exit', '', ''])
-        elif line[3] == 'PRINT' and line[2] == 'NUMBER':
-            RTC.addLine(['move', '$a0', line[0], ''])
-            RTC.addLine(['jr', 'print_int', '', ''])
-        elif line[3] == 'PRINT' and line[2] == 'STRING':
-            RTC.addLine(['move', '$a0', line[0], ''])
-            RTC.addLine(['jr', 'print_string', '', ''])
+        elif line[3] == 'PRINT':
+            if line[2] == 'NUMBER':
+                RTC.addLine(['move', '$a0', line[0], ''])
+                RTC.addLine(['jr', 'print_int', '', ''])
+            elif line[2] == 'STRING':
+                RTC.addLine(['move', '$a0', line[0], ''])
+                RTC.addLine(['jr', 'print_string', '', ''])
+            elif line[2] == 'BOOLEAN':
+                RTC.addLine(['move', '$a0', line[0], ''])
+                RTC.addLine(['jr', 'print_boolean', '', ''])
+            else:
+                RTC.addLine(['jr', 'print_undefined', '', ''])
         else:
             RTC.addLine(line)
 
