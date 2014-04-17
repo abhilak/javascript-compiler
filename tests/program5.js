@@ -1,16 +1,15 @@
-
-function fib(n::num) {
-    if (n == 0) {
-        return 0;
-    } 
-
-    if (n == 1) {
-        return 1;
+// multiple function calls
+function temp () {
+    function fib(n::num) {
+        if (n == 0) {
+            return 0;
+        } else {
+            return 2;
+        }
     }
 
-    return fib(n-1) + fib(n-2);
-
+    var x = fib(3);
+    consolelog(x);
 }
 
-var x = fib(3);
-consolelog(x);
+temp();

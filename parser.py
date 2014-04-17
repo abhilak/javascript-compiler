@@ -435,7 +435,7 @@ def p_function_call(p):
             if identifierEntry == False:
                 if not ST.getAttribute(p[1], ST.getCurrentScope()):
                     displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-                    place = ST.newTemp((displayValue, offset))
+                    place = ST.newTemp((displayValue, offset),loadFromMemory=True)
                     ST.addAttribute(p[1], ST.getCurrentScope(), place)
                 else:
                     place = ST.getAttribute(p[1], ST.getCurrentScope())
