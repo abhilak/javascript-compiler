@@ -1,7 +1,8 @@
+#! /usr/bin/python
 from sys import argv
-from parser import ST, parseProgram , TAC, debug, ThreeAddressCode
 from helpers import runtimeCode as RuntimeCode
-import pprint
+
+from parser import ST, parseProgram , TAC, debug, ThreeAddressCode
 
 #########################################################################################
 

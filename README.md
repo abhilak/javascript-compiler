@@ -2,10 +2,9 @@
 
 ## Issues
 - declaration doesn't have the semicolon check rule
-- empty statement
-- both the parent and the child stores the registers
-- flushing of temporary registers
-- flushing all dirty registers at the end of the function
+- Plain semicolon error message
+- Look into the way registers are allocated, make a better 
+register allocation scheme
 
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
