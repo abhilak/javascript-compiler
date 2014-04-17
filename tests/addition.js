@@ -1,7 +1,8 @@
 
 // Simple addition
+var z::num;
 var x = 1;
 var y = 2;
-var z = x + y;
+z = x + y;
 
 consolelog(z);

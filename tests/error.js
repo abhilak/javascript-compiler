@@ -1,9 +1,6 @@
-var k = 1;
-
-if ( 1 ) {
-    consolelog(k)
+if ( true ) {
+    ;
 }
 
-while ( 1 ) {
-    consolelog(k);
-}
+
+

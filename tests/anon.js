@@ -1,6 +1,6 @@
 // Anonymous functions and callbacks as parameters
 
-var m = function call(t::callback) {
+var m = function (t::callback) {
     t();
 };
 

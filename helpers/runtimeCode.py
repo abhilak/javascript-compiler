@@ -53,7 +53,7 @@ class RuntimeCode:
             for functionName in self.TAC.code:
                 functionEntry = self.ST.functionList[functionName]
                 for stringEntry in functionEntry['__stringList__']:
-                    f.write('\t%s:\t.asciiz\t"%s"' %(stringEntry[0], stringEntry[1]))
+                    f.write('\t%s:\t.asciiz\t"%s"\n' %(stringEntry[0], stringEntry[1]))
 
             # Start of the code
             f.write('\n.text\n')

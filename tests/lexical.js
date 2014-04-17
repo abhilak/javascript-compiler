@@ -4,7 +4,7 @@ var i = 1;
 function print(k::num) {
     k = 1;
     function foo() {
-        k = 8;
+        var k = 8;
         consolelog(k);
     }
 
