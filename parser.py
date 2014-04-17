@@ -370,6 +370,7 @@ def p_insert_args(p):
                 ST.addIdentifier(argument['name'], argument['type'])
 
             # store the address into the address descriptor
+            # The parameters have to loaded in form memory
             displayValue, offset = ST.getAttribute(argument['name'], 'scopeLevel'), ST.getAttribute(argument['name'], 'offset')
             place = ST.newTemp((displayValue, offset), loadFromMemory=True)
             ST.addAttribute(argument['name'], 'place', place)
@@ -434,6 +435,7 @@ def p_function_call(p):
             identifierEntry = ST.existsInCurrentScope(p[1])
             if identifierEntry == False:
                 if not ST.getAttribute(p[1], ST.getCurrentScope()):
+                    # The definition of the function has to be loaded in from memory
                     displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
                     place = ST.newTemp((displayValue, offset),loadFromMemory=True)
                     ST.addAttribute(p[1], ST.getCurrentScope(), place)
@@ -860,6 +862,7 @@ def p_expression_identifier(p):
         if identifierEntry == False:
             # store the address into the address descriptor
             if not ST.getAttribute(p[1], ST.getCurrentScope()):
+                # If an identifier is used, we assume that it is present in memory
                 displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
                 p[0]['place'] = ST.newTemp((displayValue, offset), loadFromMemory=True)
                 ST.addAttribute(p[1], ST.getCurrentScope(), p[0]['place'])

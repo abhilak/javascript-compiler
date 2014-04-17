@@ -10,17 +10,20 @@ filename, input_file = argv
 program = open(input_file).read()
 parseProgram(program)
 
-# Log the data
+# Log the data for inspection
 TAC.printCode('TAC_code')
 debug.log(ST.symbol_table, 'symbols')
 debug.log(ST.functionList, 'functionList')
+debug.log(ST.addressDescriptor, 'addressDescriptor')
 
 # We create a new object which will store the code
 RTC = RuntimeCode.RuntimeCode(ST, TAC)
 counter = 0;
 
+# Fix the labesl of the code, replace numbers with labels
 RTC.fixLabels()
 
+# We now traverse over the entire code to generate data
 for function in TAC.code:
     RTC.addFunction(function)
 
@@ -84,6 +87,8 @@ for function in TAC.code:
         RTC.addLine(['sw','$s4','68($sp)',''])
         RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'width'),''])
         RTC.addLine(['sub','$sp','$sp','$v0'])
+
+        # Copy the parameters
         for x in range(ST.getAttributeFromFunctionList(function, 'numParam')):
             RTC.addLine(['sw','$a' + str(x), str(4*x) + '($sp)', ''])
 
@@ -260,6 +265,7 @@ for function in TAC.code:
             RTC.addLine(line)
 
     if function != 'main':
+        # We unload all the data
         RTC.addLine(['LABEL', function + 'end', '', ''])
         RTC.addLine(['addi','$sp','$sp',ST.getAttributeFromFunctionList(function,'width')])
         RTC.addLine(['lw','$ra','0($sp)',''])
