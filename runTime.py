@@ -97,7 +97,7 @@ for function in TAC.code:
             counter = 0 ;
             reg = RTC.nextReg(line[2])
             RTC.addLine(['jal', reg, '', ''])
-            RTC.reloadParents(ST.getAttributeFromFunctionList(function, 'level'))
+            RTC.reloadParents(ST.getAttributeFromFunctionList(function, 'level'), function)
 
         elif line[3] == 'JUMPBACK':
             RTC.addLine(['b', function + 'end', '', ''])

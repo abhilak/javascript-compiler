@@ -187,9 +187,10 @@ class RuntimeCode:
         self.labelCount += 1
         return '__' + self.labelBase + str(self.labelCount) + '__'
 
-    def reloadParents(self, level):
+    # Reload all registers which belong to parents
+    def reloadParents(self, level, function):
         for temporary in self.ST.addressDescriptor:
-            if self.ST.addressDescriptor[temporary]['memory'] != None:
+            if self.ST.addressDescriptor[temporary]['memory'] != None and self.ST.addressDescriptor[temporary]['scope'] == function:
                 if self.ST.addressDescriptor[temporary]['memory'][0] <= level and self.ST.addressDescriptor[temporary]['register'] != None:
                     (level, offset) = self.ST.addressDescriptor[temporary]['memory']
                     reg = self.ST.addressDescriptor[temporary]['register']
@@ -213,13 +214,13 @@ class RuntimeCode:
                     # Set the store bit
                     self.ST.addressDescriptor[temporary]['store'] = True
 
-    def flushRegisters(self, level):
+    # Flush all registers to memory which belong to this function
+    def flushRegisters(self, level, function):
         for temporary in self.ST.addressDescriptor:
-            if self.ST.addressDescriptor[temporary]['memory'] != None:
+            if self.ST.addressDescriptor[temporary]['memory'] != None and self.ST.addressDescriptor[temporary]['scope'] == function:
                 if self.ST.addressDescriptor[temporary]['memory'][0] <= level and self.ST.addressDescriptor[temporary]['register'] != None:
                     (level, offset) = self.ST.addressDescriptor[temporary]['memory']
                     reg = self.ST.addressDescriptor[temporary]['register']
-                    print 'flush', temporary, level, reg
 
                     # First we load in the value of the activation record where we have to store the value
                     self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
@@ -246,6 +247,7 @@ class RuntimeCode:
                     self.freeReg.append(reg)
                     self.regInUse.pop(self.regInUse.index(reg))
 
+    # flush a given temporary to memory
     def flushTemporary(self, temporary):
         if self.ST.addressDescriptor[temporary]['memory'] != None:
             (level, offset) = self.ST.addressDescriptor[temporary]['memory']
@@ -276,6 +278,7 @@ class RuntimeCode:
             self.freeReg.append(reg)
             self.regInUse.pop(self.regInUse.index(reg))
 
+    # Patch all the labels in the functions
     def fixLabels(self): 
         for function in self.TAC.code:
             unresolvedLabels = {}

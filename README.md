@@ -1,8 +1,11 @@
 # Practical JavaScript Compiler
 
 ## Issues
-- declaration don't have the semicolon check rule
+- declaration doesn't have the semicolon check rule
 - empty statement
+- both the parent and the child stores the registers
+- flushing of temporary registers
+- flushing all dirty registers at the end of the function
 
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
