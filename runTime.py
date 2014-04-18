@@ -86,6 +86,8 @@ for function in TAC.code:
         RTC.addLine(['sw','$s2','60($sp)',''])
         RTC.addLine(['sw','$s3','64($sp)',''])
         RTC.addLine(['sw','$s4','68($sp)',''])
+
+        # Create space for local data
         RTC.addLine(['li','$v0',ST.getAttributeFromFunctionList(function, 'width'),''])
         RTC.addLine(['sub','$sp','$sp','$v0'])
 
@@ -251,7 +253,6 @@ for function in TAC.code:
             RTC.addLine(['jal', 'print_undefined', '', ''])
 
         elif line[3] == 'PRINT':
-            # get a free register
             reg = RTC.nextReg(line[0])
             RTC.addLine(['move', '$a0', reg, ''])
 
@@ -265,14 +266,20 @@ for function in TAC.code:
         else:
             RTC.addLine(line)
 
+    # Data unloading happens for all function save main
     if function != 'main':
-        # We unload all the data
+        # Add a label to point to the end of the function
         RTC.addLine(['LABEL', function + 'end', '', ''])
+
+        # Remove the local data
         RTC.addLine(['addi','$sp','$sp',ST.getAttributeFromFunctionList(function,'width')])
+
+        # Get enviornment pointers
         RTC.addLine(['lw','$ra','0($sp)',''])
         RTC.addLine(['lw','$fp','4($sp)',''])
-
         RTC.addLine(['lw','$a0','8($sp)',''])
+
+        # diplay level
         RTC.addLine(['li','$a1',ST.getAttributeFromFunctionList(function, 'level'),''])
         RTC.addLine(['la', '$s5', '__display__', ''])
         RTC.addLine(['add', '$a1', '$a1', '$a1'])
@@ -280,6 +287,7 @@ for function in TAC.code:
         RTC.addLine(['add', '$s6', '$a1', '$s5'])
         RTC.addLine(['sw','$a0','0($s6)',''])
 
+        # Registers
         RTC.addLine(['lw','$t0','12($sp)',''])
         RTC.addLine(['lw','$t1','16($sp)',''])
         RTC.addLine(['lw','$t2','20($sp)',''])
@@ -296,6 +304,8 @@ for function in TAC.code:
         RTC.addLine(['lw','$s3','64($sp)',''])
         RTC.addLine(['lw','$s4','68($sp)',''])
         RTC.addLine(['addi','$sp','$sp','72'])
+
+        # Jump to the calling procedure
         RTC.addLine(['jr','$ra','',''])
 
 # Print the generated code

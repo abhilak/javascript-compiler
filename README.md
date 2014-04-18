@@ -1,6 +1,7 @@
 # Practical JavaScript Compiler
 
 # Todo
+## Language Features
 - Lists
     - Runtime
     - Normal implementation
@@ -18,8 +19,18 @@ in the way 'place' is handled all across
     - Update flushtemporary and flsuh registers to make used of function name
     and dirty bit
     - Use nextReg heuristic
+- Arguments of functions
+    - Make use of the number of parameters
+    - Replace with arguments array
+    - At function call time, we know the number of parameters passed
+- Short circuit evaluation using a global short circuit flag which can be switched on and off.
 
-# Issues
+
+## Optimizations
+- Code Motion
+- Common Sub expression removal
+
+## Issues
 
 # Language Specification
 ## Unique Stuff
