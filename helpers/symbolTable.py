@@ -3,7 +3,7 @@ import pprint
 class SymbolTable:
     # Constructor for the function
     def __init__(self):
-        self.symbol_table = {
+        self.symbolTable = {
                 'main': {
                     '__scopeName__': 'main', 
                     '__parentName__': 'main', 
@@ -15,7 +15,7 @@ class SymbolTable:
                 }
         self.temporaryCount = 0
         self.stringCount = 0
-        self.functionList = { 'main': self.symbol_table['main']}
+        self.functionList = { 'main': self.symbolTable['main']}
         self.instructionSize = 4
         self.addressSize = 4
         self.booleanSize = 4
@@ -25,15 +25,15 @@ class SymbolTable:
 
         # Two stacks one for offset and other for the current scope
         self.offset = [0]
-        self.scope = [self.symbol_table['main']]
+        self.scope = [self.symbolTable['main']]
 
         # For creating the temporaries
         self.tempBase = "t"
         self.tempCount = 0
 
-    # Print the symbol_table
+    # Print the symbolTable
     def printSymbolTable(self):
-        pprint.pprint(self.symbol_table)
+        pprint.pprint(self.symbolTable)
 
     # Print the functionList
     def printFunctionList(self):
@@ -53,7 +53,7 @@ class SymbolTable:
         if scopeLocation == -1:
             return None
 
-        # add the scope to the symbol_table
+        # add the scope to the symbolTable
         currentScope = self.scope[scopeLocation]
         if currentScope.has_key(identifier):
             return currentScope[identifier]
@@ -62,7 +62,7 @@ class SymbolTable:
 
     # function to add a Scope
     def addScope(self, functionName):
-        # add the scope to the symbol_table
+        # add the scope to the symbolTable
         currentScope = self.scope[len(self.scope) - 1]
         level = currentScope['__level__'] + 1
 
@@ -82,7 +82,7 @@ class SymbolTable:
 
     # function to add an element to the current scope
     def addIdentifier(self, identifier, IdentifierType, IdentifierWidth=0):
-        # add the scope to the symbol_table
+        # add the scope to the symbolTable
         currentScope = self.scope[len(self.scope) - 1]
 
         # Ladder to decide the width of the Identifier

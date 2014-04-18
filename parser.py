@@ -2,8 +2,8 @@
 from ply import yacc
 from JSlexer import tokens, lexer, debug
 
-from helpers import symbol_table as SymbolTable
-from helpers import threeAddrCode as ThreeAddressCode
+from helpers import symbolTable as SymbolTable
+from helpers import threeAddressCode as ThreeAddressCode
 
 ########################################
 ############# STATEMENTS ###############
@@ -62,11 +62,11 @@ def p_statments(p):
 def p_statment(p):
     '''statement : assignment M_quad SEP_SEMICOLON
                  | declaration M_quad
-                 | break_statement M_quad SEP_SEMICOLON
-                 | continue_statement M_quad SEP_SEMICOLON
-                 | return_statement M_quad SEP_SEMICOLON
-                 | print_statement M_quad SEP_SEMICOLON
-                 | function_call M_quad SEP_SEMICOLON'''
+                 | breakStatement M_quad SEP_SEMICOLON
+                 | continueStatement M_quad SEP_SEMICOLON
+                 | returnStatement M_quad SEP_SEMICOLON
+                 | printStatement M_quad SEP_SEMICOLON
+                 | functionCall M_quad SEP_SEMICOLON'''
 
     # the empty semicolon rules introduces a shift reduce conflict
     # Emit code
@@ -82,10 +82,10 @@ def p_statment(p):
 
 # The set of statements that don't require a semi-colon termination
 def p_statement_no_semicolon(p):
-    '''statement : if_then M_quad
-                 | if_then_else M_quad
-                 | while_statement M_quad
-                 | function_statement M_quad'''
+    '''statement : ifThen M_quad
+                 | ifThenElse M_quad
+                 | whileStatement M_quad
+                 | functionStatement M_quad'''
 
     # Emit code
     p[0] = {}
@@ -101,11 +101,11 @@ def p_statement_no_semicolon(p):
 # To notify the user of a missing semicolon
 def p_statement_error(p):
     '''statement : assignment M_quad
-                 | break_statement M_quad 
-                 | return_statement M_quad
-                 | continue_statement M_quad
-                 | print_statement M_quad
-                 | function_call M_quad'''
+                 | breakStatement M_quad 
+                 | returnStatement M_quad
+                 | continueStatement M_quad
+                 | printStatement M_quad
+                 | functionCall M_quad'''
 
     # Emit code
     p[0] = {}
@@ -142,7 +142,7 @@ def p_declaration_statement(p):
 
     # Add identifiers to local scope
     for identifier in p[2]:
-        # Put the identifier into the symbol_table
+        # Put the identifier into the symbolTable
         identifierName = identifier.get('name')
         identifierType = identifier.get('type')
 
@@ -293,8 +293,8 @@ def p_assignment_redefinition(p):
 ########################################
 ############## FUNCTIONS ###############
 ########################################
-def p_function_statement(p):
-    '''function_statement : FUNCTION IDENTIFIER M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block
+def p_functionStatement(p):
+    '''functionStatement : FUNCTION IDENTIFIER M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block
                           | FUNCTION M_anonName M_scope SEP_OPEN_PARENTHESIS argList SEP_CLOSE_PARENTHESIS M_insertArgs block'''
 
     # Any remaining breaks and continues need to be purged
@@ -383,8 +383,8 @@ def p_insert_args(p):
 ########################################
 ######## RETURN STATEMENT ##############
 ########################################
-def p_return_statement(p):
-    'return_statement : RETURN expression'
+def p_returnStatement(p):
+    'returnStatement : RETURN expression'
 
     # Type rules
     p[0] = { 'type' : p[2]['type'] }
@@ -417,8 +417,8 @@ def p_return_statement(p):
 ########################################
 ######## FUNCTIONS CALLS ###############
 ########################################
-def p_function_call(p):
-    'function_call : IDENTIFIER SEP_OPEN_PARENTHESIS actualParameters SEP_CLOSE_PARENTHESIS'
+def p_functionCall(p):
+    'functionCall : IDENTIFIER SEP_OPEN_PARENTHESIS actualParameters SEP_CLOSE_PARENTHESIS'
 
     p[0] = {}
 
@@ -490,8 +490,8 @@ def p_parameters_empty(p):
 ########################################
 ######## BREAK STATEMENT ###############
 ########################################
-def p_break_statement(p):
-    'break_statement : BREAK'
+def p_breakStatement(p):
+    'breakStatement : BREAK'
 
     debug.printStatement('Break')
 
@@ -505,8 +505,8 @@ def p_break_statement(p):
 ########################################
 ######## CONTINUE STATEMENT ############
 ########################################
-def p_continue_statement(p):
-    'continue_statement : CONTINUE'
+def p_continueStatement(p):
+    'continueStatement : CONTINUE'
 
     debug.printStatement('Continue')
 
@@ -520,8 +520,8 @@ def p_continue_statement(p):
 ########################################
 ############# IF THEN ##################
 ########################################
-def p_if_then(p):
-    'if_then : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block'
+def p_ifThen(p):
+    'ifThen : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_ifBranch block'
 
     # Type rules
     if p[3]['type'] != 'BOOLEAN':
@@ -538,8 +538,8 @@ def p_if_then(p):
 ########################################
 ############# IF THEN ELSE #############
 ########################################
-def p_if_then_else(p):
-    'if_then_else : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_if_branch block ELSE M_else_branch block'
+def p_ifThenElse(p):
+    'ifThenElse : IF SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_ifBranch block ELSE M_elseBranch block'
 
     # Type rules
     if p[3]['type'] != 'BOOLEAN':
@@ -557,7 +557,7 @@ def p_if_then_else(p):
     p[0]['loopBeginList'] = TAC.merge(p[9].get('loopBeginList', []), p[6].get('loopBeginList', []))
 
 def p_m_if_branch(p):
-    'M_if_branch : empty'
+    'M_ifBranch : empty'
 
     # Print to the console
     debug.printStatementBlock("If Branch")
@@ -567,7 +567,7 @@ def p_m_if_branch(p):
     TAC.emit(p[-2]['place'], '', -1, 'COND_GOTO_Z')
 
 def p_m_else_branch(p):
-    'M_else_branch : empty'
+    'M_elseBranch : empty'
 
     # Print to the console
     debug.printStatementBlock("Else Branch")
@@ -582,7 +582,7 @@ def p_m_else_branch(p):
 ########## WHILE STATEMENT #############
 ########################################
 def p_while(p):
-    'while_statement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_while_branch block'
+    'whileStatement : WHILE M_quad SEP_OPEN_PARENTHESIS expression SEP_CLOSE_PARENTHESIS M_whileBranch block'
 
     # Emit code
     p[0] = {}
@@ -604,7 +604,7 @@ def p_while(p):
     p[0]['type'] = 'VOID'
 
 def p_m_while_branch(p):
-    'M_while_branch : empty'
+    'M_whileBranch : empty'
 
     p[0] = {}
     p[0]['falseList'] = [TAC.getNextQuad()]
@@ -616,8 +616,8 @@ def p_m_while_branch(p):
 ########################################
 ############## PRINT ###################
 ########################################
-def p_print_statement(p):
-    'print_statement : PRINT SEP_OPEN_PARENTHESIS printList SEP_CLOSE_PARENTHESIS'
+def p_printStatement(p):
+    'printStatement : PRINT SEP_OPEN_PARENTHESIS printList SEP_CLOSE_PARENTHESIS'
 
     p[0] = {}
 
@@ -828,8 +828,8 @@ def p_expression_group(p):
 
 ######## BASE TYPE EXPRESSION ###########
 
-def p_expression_base_type(p):
-    'expression : base_type'
+def p_expression_baseType(p):
+    'expression : baseType'
 
     # Type rules
     p[0] = { 'type' : p[1]['type'] }
@@ -878,8 +878,8 @@ def p_expression_identifier(p):
         raise SyntaxError
 
 ######## FUNCTION CALLS ##################
-def p_expression_function_call(p):
-    'expression : function_call'
+def p_expression_functionCall(p):
+    'expression : functionCall'
 
     # Return the value of the function
     p[0] = {}
@@ -895,14 +895,14 @@ def p_expression_function_call(p):
 ########## BASE TYPES ##################
 ########################################
 
-def p_base_type_number(p):
-    'base_type : NUMBER'
+def p_baseType_number(p):
+    'baseType : NUMBER'
 
     # Type rules
     p[0] = { 'type' : 'NUMBER', 'value' : int(p[1]) }
 
-def p_base_type_boolean(p):
-    'base_type : BOOLEAN'
+def p_baseType_boolean(p):
+    'baseType : BOOLEAN'
 
     # Type rules
     if p[1] == 'true':
@@ -911,8 +911,8 @@ def p_base_type_boolean(p):
         value = 0
     p[0] = { 'type' : 'BOOLEAN' , 'value' : value }
 
-def p_base_type_string(p):
-    'base_type : STRING'
+def p_baseType_string(p):
+    'baseType : STRING'
 
     # Type rules
     p[0] = { 'type' : 'STRING' , 'reference': ST.nameString(), 'value' : p[1] }
@@ -920,24 +920,24 @@ def p_base_type_string(p):
     # Whenever a string is defined, we have to add it to the function's data region
     ST.addToStringList(p[0]['reference'], p[1])
 
-def p_base_type_undefine(p):
-    'base_type : UNDEFINED'
+def p_baseType_undefine(p):
+    'baseType : UNDEFINED'
 
     # Type rules
     p[0] = { 'type' : 'UNDEFINED', 'value' : 0}
 
 ######## FUNCTION EXPRESSION ###########
 
-def p_base_type_function(p):
-    'base_type : function_statement'
+def p_baseType_function(p):
+    'baseType : functionStatement'
 
     # Type rules
     p[0] = { 'type': 'FUNCTION', 'reference': p[1]['reference']}
 
 ######## ARRAY EXPRESSION ##############
 
-def p_base_type_array(p):
-    'base_type : array'
+def p_baseType_array(p):
+    'baseType : array'
     p[0] = { 'type' : 'ARRAY', 'contentType': p[1]['type'] }
 
 def p_array(p):
@@ -994,15 +994,16 @@ parser = yacc.yacc()
 
 def parseProgram(program):
     parser.parse(program, lexer=lexer)
+    return ST, TAC, debug
 
 # a function to test the parser
-def test_yacc(input_file):
-    program = open(input_file).read()
+def testYacc(inputFile):
+    program = open(inputFile).read()
     parser.parse(program, lexer=lexer)
     # parser.parse(program, lexer=lexer, debug=1)
 
 if __name__ == "__main__":
     from sys import argv
-    filename, input_file = argv 
+    filename, inputFile = argv 
 
-    test_yacc(input_file)
+    testYacc(inputFile)

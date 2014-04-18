@@ -233,10 +233,9 @@ prev = 0
 ########################################
 
 # A function to test the lexer
-def test_lex(input_file):
+def testLex(inputFile):
     # Open the passed argument as an input file and then pass it to lex
-    global lexer
-    program = open(input_file).read()
+    program = open(inputFile).read()
     lexer.input(program)
 
     # This iterates over the function lex.token and converts the returned object into an iterator
@@ -247,5 +246,5 @@ def test_lex(input_file):
 
 if __name__ == "__main__":
     from sys import argv
-    filename, input_file = argv 
-    test_lex(input_file)
+    filename, inputFile = argv 
+    testLex(inputFile)

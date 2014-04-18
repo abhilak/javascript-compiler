@@ -1,7 +1,3 @@
-# An array to store the three address code
-import debug
-import symbol_table as SymbolTable
-
 class ThreeAddressCode:
     def __init__(self, ST):
         self.code = {'main': []}

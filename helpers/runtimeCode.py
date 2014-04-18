@@ -1,5 +1,3 @@
-from helpers import threeAddrCode as ThreeAddressCode
-import pprint
 class RuntimeCode:
     def __init__(self, SymbolTable, ThreeAddressCode):
         self.code = {}
