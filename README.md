@@ -1,11 +1,27 @@
 # Practical JavaScript Compiler
 
-## Issues
-- declaration doesn't have the semicolon check rule
-- Plain semicolon error message
-- Look into the way registers are allocated, make a better 
-register allocation scheme
+# Todo
+- Lists
+    - Runtime
+    - Normal implementation
+    - Thinking of making it a C type array with only one type of element
+- Parameters as an array ' arguments array'
+- A variable cache for variables loaded in from another scope
+- Error productions:
+    - Declaration statments without a semicolon
+    - Empty statements
+- Replace 'place' with the function name, this will maintain consistency
+in the way 'place' is handled all across
+- Register Allocation:
+    - Remove redundancy as both caller and callee are flushing registers.
+    - Make use of dirty bit
+    - Update flushtemporary and flsuh registers to make used of function name
+    and dirty bit
+    - Use nextReg heuristic
 
+# Issues
+
+# Language Specification
 ## Unique Stuff
 - Breaks and continues don't signal errors, but they are silently removed
 - The idea of callbacks:
@@ -15,51 +31,17 @@ register allocation scheme
     - Callbacks can be returned from functions.
 - Typing
     - Strongly typed.
-    - Parameters are not type checked or checked for length.
+    - Parameters are not type checked.
 - Functions
     - Not hoisted, you have to define them before using them.
     - No closures
+    - The number of parameters is not checked
+    - Type Hinting: The types of function parameters needs to be hinted
 - Strings defined using double quotes are constants
-
-## Todo
-- Lists
-    - Runtime
-    - Normal implementation
-    - Thinking of making it a C type array with only one type of element
-- Parameters as an array ' arguments array'
-- A variable cache for variables loaded in from another scope
-
-## Meetings
-### First Meeting
-- All lists are of a fixed size.
-- ~~No need of an input, a main will do the initializations~~
-- ~~anonymous function can be handled by giving out unique names~~
-- new can be handled using sbreak.
-- eval is left for the end: Done using the runtime
-- Handling exceptions using a runtime object.
-- overloading is left for the end: 
-- The concept of an event loop as in Node?
-- A runtime library for lists, hasmaps and inheritance.
-
-## Technical Specifications
-- Version                              : EC5.1
-- Target                               : SPIM
-- Lexer Generator                      : PLY
-- Parser Generator                     : PLY
-- Implementation                       : Python
-
-## Things to note
-- Curly braces are compulsary in every statement, so if and while require them
-- The language is strongly typed
-    - This means there is no type coercion possible
-
-## Idiosyncracies of JavaScript 
-- Only one number type
-- function language
-- function scope
-- JavaScript allows for arbitary comparisons between different types of data
-    - Note, we use the python comparison results over here which may be a bit off
-      as compared to JS results.
+- Blocks must have curly braces
+- Scoping
+    - Lexical Scoping
+    - Function is the fundamental unit of scope
 
 ## Features not implemented
 - Data types:
@@ -112,11 +94,24 @@ register allocation scheme
 - '!=' and '!==' mean the same thing, strict checking
 - '++' and '--' are not supported
 
-# Usage
-- run python lexer.py -y <testFileName>
+## Meetings
+### First Meeting
+- All lists are of a fixed size.
+- ~~No need of an input, a main will do the initializations~~
+- ~~anonymous function can be handled by giving out unique names~~
+- new can be handled using sbreak.
+- eval is left for the end: Done using the runtime
+- Handling exceptions using a runtime object.
+- overloading is left for the end: 
+- The concept of an event loop as in Node?
+- A runtime library for lists, hasmaps and inheritance.
 
-## Tests
-- All the test files need to added under the tests folder
+## Technical Specifications
+- Version                              : EC5.1
+- Target                               : SPIM
+- Lexer Generator                      : PLY
+- Parser Generator                     : PLY
+- Implementation                       : Python
 
 ## Dependencies
 - Python 2.7 and higher
@@ -124,5 +119,10 @@ register allocation scheme
 
 # Flow
 - JSlexer defines a debug instance and a lexer instance.
-- The lexer and parser instance of debug are used by parser to parse the program and create a ST and TAC.
-- Now codeGen only used this ST and TAC to generate code.
+- parser defines a ST, TAC and parser instance.
+- runTime define a RTC which uses all of the above.
+
+# Usage
+- run make
+- ./runTime.py <testFileName>
+
