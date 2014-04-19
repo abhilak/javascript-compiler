@@ -61,7 +61,7 @@ def p_statments(p):
 # The set of statements that require a semi-colon termination
 def p_statment(p):
     '''statement : assignment M_quad SEP_SEMICOLON
-                 | declaration M_quad
+                 | declaration M_quad SEP_SEMICOLON
                  | breakStatement M_quad SEP_SEMICOLON
                  | continueStatement M_quad SEP_SEMICOLON
                  | returnStatement M_quad SEP_SEMICOLON
@@ -138,7 +138,7 @@ def p_mark_statements(p):
 ############# DECLARATION ##############
 ########################################
 def p_declaration(p):
-    'declaration : VAR decList SEP_SEMICOLON'
+    'declaration : VAR decList'
 
     # Add identifiers to local scope
     for identifierName in p[2]:
