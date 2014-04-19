@@ -137,18 +137,15 @@ def p_mark_statements(p):
 ########################################
 ############# DECLARATION ##############
 ########################################
-def p_declaration_statement(p):
-    'declaration : VAR argList SEP_SEMICOLON'
+def p_declaration(p):
+    'declaration : VAR decList SEP_SEMICOLON'
 
     # Add identifiers to local scope
-    for identifier in p[2]:
+    for identifierName in p[2]:
         # Put the identifier into the symbolTable
-        identifierName = identifier.get('name')
-        identifierType = identifier.get('type')
-
         identifierEntry = ST.existsInCurrentScope(identifierName)
         if identifierEntry == False:
-            ST.addIdentifier(identifierName, identifierType)
+            ST.addIdentifier(identifierName, 'UNDEFINED')
             displayValue, offset = ST.getAttribute(identifierName, 'scopeLevel'), ST.getAttribute(identifierName, 'offset')
             place = ST.newTemp((displayValue, offset))
             ST.addAttribute(identifierName, 'place', place)
@@ -156,59 +153,30 @@ def p_declaration_statement(p):
             debug.printError('Redefined Variable "%s"' %identifierName)
             raise SyntaxError
 
-        debug.printStatement("Declaration '%s' of type '%s'" %(identifierName, identifierType))
+        debug.printStatement("Declaration '%s'" %identifierName)
 
     # Type rules
     p[0] = {}
 
-def p_arg_list(p):
-    'argList : hint SEP_COMMA argList'
+def p_decList(p):
+    'decList : IDENTIFIER SEP_COMMA decList'
     
     p[0] = [ p[1] ] + p[3]
 
-def p_arg_list_base(p):
-    'argList : hint'
+def p_decList_base(p):
+    'decList : IDENTIFIER'
 
     p[0] = [p[1]]
 
-def p_arg_list_empty(p):
-    'argList : empty'''
+def p_decList_empty(p):
+    'decList : empty'''
 
     p[0] = [ ]
-
-def p_hint(p):
-    '''hint : IDENTIFIER OP_HINT HINT_NUMBER
-            | IDENTIFIER OP_HINT HINT_CALLBACK
-            | IDENTIFIER OP_HINT HINT_STRING
-            | IDENTIFIER OP_HINT HINT_ARRAY
-            | IDENTIFIER OP_HINT HINT_BOOLEAN'''
-
-    p[0] = {'name': p[1] }
-
-    # According to the hint assign a type to the identifier
-    if p[3] == 'callback':
-        p[0]['type'] = 'CALLBACK'
-    elif p[3] == 'num':
-        p[0]['type'] = 'NUMBER'
-    elif p[3] == 'bool':
-        p[0]['type'] = 'BOOLEAN'
-    elif p[3] == 'string':
-        p[0]['type'] = 'STRING'
-    else:
-        p[0]['type'] = 'ARRAY'
-
-def p_hint_error(p):
-    'hint : IDENTIFIER'
-
-    debug.printError("No hint provided for variable '%s'" %p[1])
-
-    # Pass in any empty object
-    p[0] = {'name': p[1]}
 
 ########################################
 ############# ASSIGNMENT ###############
 ########################################
-def p_assignment_statment(p):
+def p_assignment(p):
     'assignment : VAR assignList'
     
     # In case the var is not present
@@ -226,8 +194,6 @@ def p_assignment_statment(p):
             ST.changeMemoryLocationOfTemp(identifier['place'], (displayValue, offset))
             ST.addAttribute(identifier['name'], 'place', identifier['place'])
             ST.addAttribute(identifier['name'], 'reference', identifier['reference'])
-
-            # TAC.emit(identifierEntry['place'], '', ST.getAttribute(identifierEntry['name'], 'offset'), 'STORE')
 
             # print the name of the statement
             debug.printStatement("ASSIGNMENT of %s" %identifier['name'])
@@ -340,7 +306,6 @@ def p_scope(p):
 
             # Emit the location of the function reference
             TAC.emit(location, p[0]['reference'], '', '=REF')
-            # TAC.emit(location, '', ST.getAttribute(p[-1], 'offset'), 'STORE')
     else:
         # Print to console
         debug.printStatementBlock('Function Definition "%s"' %p[0]['reference'])
@@ -349,12 +314,56 @@ def p_scope(p):
     ST.addScope(p[0]['reference'])
     TAC.createFunctionCode(p[0]['reference'])
     
-def p_anon_name(p):
+def p_anonName(p):
     'M_anonName : empty'
 
     p[0] = None
 
-def p_insert_args(p):
+def p_argList(p):
+    'argList : hint SEP_COMMA argList'
+    
+    p[0] = [ p[1] ] + p[3]
+
+def p_argList_base(p):
+    'argList : hint'
+
+    p[0] = [p[1]]
+
+def p_argList_empty(p):
+    'argList : empty'''
+
+    p[0] = [ ]
+
+def p_hint(p):
+    '''hint : IDENTIFIER OP_HINT HINT_NUMBER
+            | IDENTIFIER OP_HINT HINT_CALLBACK
+            | IDENTIFIER OP_HINT HINT_STRING
+            | IDENTIFIER OP_HINT HINT_ARRAY
+            | IDENTIFIER OP_HINT HINT_BOOLEAN'''
+
+    p[0] = {'name': p[1] }
+
+    # According to the hint assign a type to the identifier
+    if p[3] == 'callback':
+        p[0]['type'] = 'CALLBACK'
+    elif p[3] == 'num':
+        p[0]['type'] = 'NUMBER'
+    elif p[3] == 'bool':
+        p[0]['type'] = 'BOOLEAN'
+    elif p[3] == 'string':
+        p[0]['type'] = 'STRING'
+    else:
+        p[0]['type'] = 'ARRAY'
+
+def p_hint_error(p):
+    'hint : IDENTIFIER'
+
+    debug.printError("No hint provided for variable '%s'" %p[1])
+
+    # Pass in any empty object
+    p[0] = {'name': p[1]}
+
+def p_insertArgs(p):
     'M_insertArgs : empty'
 
     # Add identifiers to local scope
@@ -401,10 +410,12 @@ def p_returnStatement(p):
         else:
             ST.addAttributeToCurrentScope('returnType', p[2]['type'])
             debug.printStatement("Return statement of type '%s'" %p[2]['type'])
+
     elif p[2]['type'] != returnType:
         p[0]['type'] = 'TYPE_ERROR'
         debug.printError('Return Types dont match')
         raise SyntaxError
+
     else:
         # In this case, the return types match, so we needn't do anything
         pass
@@ -556,7 +567,7 @@ def p_ifThenElse(p):
     p[0]['loopEndList'] = TAC.merge(p[9].get('loopEndList', []), p[6].get('loopEndList', []))
     p[0]['loopBeginList'] = TAC.merge(p[9].get('loopBeginList', []), p[6].get('loopBeginList', []))
 
-def p_m_if_branch(p):
+def p_m_ifBranch(p):
     'M_ifBranch : empty'
 
     # Print to the console
@@ -566,7 +577,7 @@ def p_m_if_branch(p):
     p[0]['falseList'] = [TAC.getNextQuad()]
     TAC.emit(p[-2]['place'], '', -1, 'COND_GOTO_Z')
 
-def p_m_else_branch(p):
+def p_m_elseBranch(p):
     'M_elseBranch : empty'
 
     # Print to the console
@@ -603,7 +614,7 @@ def p_while(p):
 
     p[0]['type'] = 'VOID'
 
-def p_m_while_branch(p):
+def p_m_whileBranch(p):
     'M_whileBranch : empty'
 
     p[0] = {}
@@ -617,11 +628,11 @@ def p_m_while_branch(p):
 ############## PRINT ###################
 ########################################
 def p_printStatement(p):
-    'printStatement : PRINT SEP_OPEN_PARENTHESIS printList SEP_CLOSE_PARENTHESIS'
+    'printStatement : CONSOLE OP_DOT LOG SEP_OPEN_PARENTHESIS printList SEP_CLOSE_PARENTHESIS'
 
     p[0] = {}
 
-    for printIterator in p[3]:
+    for printIterator in p[5]:
         # Check if the given expression is printable or not
         expType = printIterator.get('type')
         if expType in ['STRING', 'NUMBER', 'BOOLEAN', 'UNDEFINED']:
@@ -920,7 +931,7 @@ def p_baseType_string(p):
     # Whenever a string is defined, we have to add it to the function's data region
     ST.addToStringList(p[0]['reference'], p[1])
 
-def p_baseType_undefine(p):
+def p_baseType_undefined(p):
     'baseType : UNDEFINED'
 
     # Type rules
@@ -933,32 +944,6 @@ def p_baseType_function(p):
 
     # Type rules
     p[0] = { 'type': 'FUNCTION', 'reference': p[1]['reference']}
-
-######## ARRAY EXPRESSION ##############
-
-def p_baseType_array(p):
-    'baseType : array'
-    p[0] = { 'type' : 'ARRAY', 'contentType': p[1]['type'] }
-
-def p_array(p):
-    'array : SEP_OPEN_BRACKET list SEP_CLOSE_BRACKET'
-
-def p_list(p):
-    'list : expression SEP_COMMA list'
-
-def p_list_base(p):
-    'list : expression'''
-
-    p[0] = { 'type' : p[1]['type']}
-
-def p_list_empty(p):
-    'list : empty'''
-
-    p[0] = { 'type' : 'undefined' }
-
-######## ARRAY ACCESS ##############
-# def p_array_access(p):
-#     'array_access : IDENTIFIER SEP_OPEN_BRACKET NUMBER SEP_CLOSE_BRACE'
 
 ########################################
 ################ EMPTY #################

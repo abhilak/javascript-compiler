@@ -22,7 +22,8 @@ reserved = {
     'callback': 'HINT_CALLBACK',
     'array' : 'HINT_ARRAY',
     'bool' : 'HINT_BOOLEAN',
-    'consolelog' : 'PRINT'
+    'console' : 'CONSOLE',
+    'log': 'LOG'
 }
 
 ########################################
@@ -35,6 +36,7 @@ tokens = [
         "NUMBER",
         "BOOLEAN",
         "IDENTIFIER",
+        "OP_DOT",
         "OP_ASSIGNMENT",
         "OP_EQUALS",
         "OP_NOT_EQUALS",
@@ -105,6 +107,10 @@ def t_BOOLEAN(t):
 ########################################
 def t_OP_HINT(t):
     r"::"
+    return t
+
+def t_OP_DOT(t):
+    r"\."
     return t
 
 def t_OP_EQUALS(t):
