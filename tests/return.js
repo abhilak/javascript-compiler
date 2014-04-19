@@ -9,7 +9,7 @@ function temp () {
     }
 
     var x = fib(3);
-    consolelog(x);
+    console.log(x);
 }
 
 temp();

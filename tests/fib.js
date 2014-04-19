@@ -12,5 +12,5 @@ function fib(n::num) {
 
 }
 
-var x = fib(6);
-consolelog(x);
+var x = fib(8);
+console.log(x);

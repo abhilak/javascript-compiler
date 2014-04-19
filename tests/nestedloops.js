@@ -8,9 +8,9 @@ var j = 0;
 while ( i < 10 ) {
     j = 0;
     while( j < i ) {
-        consolelog(j);
+        console.log(j);
         j = j + 1;
     }
-    consolelog("\n");
+    console.log("\n");
     i = i + 1;
 }

@@ -5,13 +5,13 @@ function print(k::num) {
     k = 1;
     function foo() {
         var k = 8;
-        consolelog(k);
+        console.log(k);
     }
 
     i = 8;
     foo();
-    consolelog(k);
+    console.log(k);
 }
 
 print();
-consolelog(i);
+console.log(i);
