@@ -191,19 +191,22 @@ class SymbolTable:
             return None
 
     # Function to create new temporaries
-    def newTemp(self, memoryLocation='', loadFromMemory=False):
+    def newTemp(self, memoryLocation='', variable='', loadFromMemory=False):
         self.tempCount = self.tempCount + 1
         createdTemp = self.tempBase + str(self.tempCount)
         self.addressDescriptor[createdTemp] = { 'memory': None , 
                                                 'register': None, 
                                                 'store': loadFromMemory, 
                                                 'dirty': False,
-                                                'scope': self.getCurrentScope() }
+                                                'scope': self.getCurrentScope(),
+                                                'variable': variable}
         if memoryLocation != '':
             self.addressDescriptor[createdTemp]['memory'] = memoryLocation
 
         return createdTemp
 
-    def changeMemoryLocationOfTemp(self, tempName, memoryLocation):
+    def changeMemoryLocationOfTemp(self, tempName, memoryLocation, variable=''):
         self.addressDescriptor[tempName]['memory'] = memoryLocation
+        self.addressDescriptor[tempName]['variable'] = variable
+        self.addressDescriptor[tempName]['scope'] = self.getCurrentScope()
 

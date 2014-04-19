@@ -91,6 +91,7 @@ class RuntimeCode:
         # pprint.pprint(self.ST.addressDescriptor)
 
     def nextReg(self, temporary):
+        # If the temporary is already loaded in a register, we return the register
         if temporary in self.registerDescriptor.values():
             reg = self.ST.addressDescriptor[temporary]['register']
         else:
@@ -188,10 +189,12 @@ class RuntimeCode:
     # Reload all registers which belong to parents
     def reloadParents(self, level, function):
         for temporary in self.ST.addressDescriptor:
-            if self.ST.addressDescriptor[temporary]['memory'] != None and self.ST.addressDescriptor[temporary]['scope'] == function:
-                if self.ST.addressDescriptor[temporary]['memory'][0] <= level and self.ST.addressDescriptor[temporary]['register'] != None:
-                    (level, offset) = self.ST.addressDescriptor[temporary]['memory']
-                    reg = self.ST.addressDescriptor[temporary]['register']
+            temporaryEntry = self.ST.addressDescriptor[temporary]
+            if temporaryEntry['memory'] != None and temporaryEntry['scope'] == function:
+                if temporaryEntry['memory'][0] <= level and temporaryEntry['register'] != None:
+                    print 'reloading', temporary
+                    (level, offset) = temporaryEntry['memory']
+                    reg = temporaryEntry['register']
 
                     # First we load in the value of the activation record where we have to store the value
                     self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
@@ -215,10 +218,12 @@ class RuntimeCode:
     # Flush all registers to memory which belong to this function
     def flushRegisters(self, level, function):
         for temporary in self.ST.addressDescriptor:
-            if self.ST.addressDescriptor[temporary]['memory'] != None and self.ST.addressDescriptor[temporary]['scope'] == function:
-                if self.ST.addressDescriptor[temporary]['memory'][0] <= level and self.ST.addressDescriptor[temporary]['register'] != None:
-                    (level, offset) = self.ST.addressDescriptor[temporary]['memory']
-                    reg = self.ST.addressDescriptor[temporary]['register']
+            temporaryEntry = self.ST.addressDescriptor[temporary]
+            if temporaryEntry['memory'] != None and temporaryEntry['scope'] == function:
+                if temporaryEntry['memory'][0] <= level and temporaryEntry['register'] != None:
+                    print 'flushing', temporary
+                    (level, offset) = temporaryEntry['memory']
+                    reg = temporaryEntry['register']
 
                     # First we load in the value of the activation record where we have to store the value
                     self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
@@ -237,19 +242,24 @@ class RuntimeCode:
                     self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
 
                     # Set the store bit
-                    self.ST.addressDescriptor[temporary]['store'] = True
+                    temporaryEntry['store'] = True
 
                     # Delete the register allocated to this
-                    self.ST.addressDescriptor[temporary]['register'] = None
+                    temporaryEntry['register'] = None
                     self.registerDescriptor[reg] = None
                     self.freeReg.append(reg)
                     self.regInUse.pop(self.regInUse.index(reg))
 
     # flush a given temporary to memory
     def flushTemporary(self, temporary):
-        if self.ST.addressDescriptor[temporary]['memory'] != None:
-            (level, offset) = self.ST.addressDescriptor[temporary]['memory']
-            reg = self.ST.addressDescriptor[temporary]['register']
+        temporaryEntry = self.ST.addressDescriptor[temporary]
+        reg = temporaryEntry['register']
+
+        if temporaryEntry['memory'] != None and temporaryEntry['register'] != None:
+            (level, offset) = temporaryEntry['memory']
+            print 'flushing', temporary, 'to memory'
+            (level, offset) = temporaryEntry['memory']
+            reg = temporaryEntry['register']
 
             # First we load in the value of the activation record where we have to store the value
             self.addLine(['la', '$s5', '__display__', '']) # put the address of display into $s5
@@ -268,10 +278,18 @@ class RuntimeCode:
             self.addLine(['sw', reg, '0($s7)', ''])        # store the value into the record
 
             # Set the store bit
-            self.ST.addressDescriptor[temporary]['store'] = True
+            temporaryEntry['store'] = True
+            temporaryEntry['register'] = None
 
             # Delete the register allocated to this
-            self.ST.addressDescriptor[temporary]['register'] = None
+            self.registerDescriptor[reg] = None
+            self.freeReg.append(reg)
+            self.regInUse.pop(self.regInUse.index(reg))
+
+        elif temporaryEntry['register'] != None:
+            print 'freeing', temporary
+
+            # Delete the register allocated to this
             self.registerDescriptor[reg] = None
             self.freeReg.append(reg)
             self.regInUse.pop(self.regInUse.index(reg))

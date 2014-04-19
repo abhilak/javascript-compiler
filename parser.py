@@ -146,9 +146,11 @@ def p_declaration(p):
         identifierEntry = ST.existsInCurrentScope(identifierName)
         if identifierEntry == False:
             ST.addIdentifier(identifierName, 'UNDEFINED')
+
+            # Create a temporary for the current scope
             displayValue, offset = ST.getAttribute(identifierName, 'scopeLevel'), ST.getAttribute(identifierName, 'offset')
-            place = ST.newTemp((displayValue, offset))
-            ST.addAttribute(identifierName, 'place', place)
+            place = ST.newTemp((displayValue, offset), variable=identifierName)
+            ST.addAttribute(identifierName, ST.getCurrentScope(), place)
         else:
             debug.printError('Redefined Variable "%s"' %identifierName)
             raise SyntaxError
@@ -184,15 +186,14 @@ def p_assignment(p):
 
     # Now we add all of these statements
     for identifier in p[2]:
-        identifierEntry = ST.existsInCurrentScope(identifier['name'])
-        if identifierEntry == False:
+        if not ST.existsInCurrentScope(identifier['name']):
             # Store information about the identifier
             ST.addIdentifier(identifier['name'], identifier['type'])
 
             # This is a new variable, so we link the temporary to our variable
             displayValue, offset = ST.getAttribute(identifier['name'], 'scopeLevel'), ST.getAttribute(identifier['name'], 'offset')
-            ST.changeMemoryLocationOfTemp(identifier['place'], (displayValue, offset))
-            ST.addAttribute(identifier['name'], 'place', identifier['place'])
+            ST.changeMemoryLocationOfTemp(identifier['place'], (displayValue, offset), variable=identifier['name'])
+            ST.addAttribute(identifier['name'], ST.getCurrentScope(), identifier['place'])
             ST.addAttribute(identifier['name'], 'reference', identifier['reference'])
 
             # print the name of the statement
@@ -235,20 +236,15 @@ def p_assignment_redefinition(p):
         ST.addAttribute(p[1], 'type', p[3]['type'])
 
         # Check if the function is in the current scope or parent one
-        identifierEntry = ST.existsInCurrentScope(p[1])
-        if identifierEntry == True:
-            place = ST.getAttribute(p[1], 'place')
-            TAC.emit(place, p[3]['place'], '', '=')
+        if ST.existsInCurrentScope(p[1]):
+            place = ST.getAttribute(p[1], ST.getCurrentScope())
         else:
             # store the address into the address descriptor
-            if not ST.getAttribute(p[1], ST.getCurrentScope()):
-                displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-                place = ST.newTemp((displayValue, offset))
-                ST.addAttribute(p[1], ST.getCurrentScope(), place)
-            else:
-                place = ST.getAttribute(p[1], ST.getCurrentScope())
+            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+            place = ST.newTemp((displayValue, offset), variable=p[1])
+            ST.addAttribute(p[1], ST.getCurrentScope(), place)
 
-            TAC.emit(place, p[3]['place'], '', '=')
+        TAC.emit(place, p[3]['place'], '', '=')
     else:
         debug.printError('Undefined Variable "%s"' %p[1])
         raise SyntaxError
@@ -300,12 +296,12 @@ def p_scope(p):
 
             # Create a new temporary for the function and store it in the addressList
             displayValue, offset = ST.getAttribute(p[-1], 'scopeLevel'), ST.getAttribute(p[-1], 'offset')
-            location = ST.newTemp((displayValue, offset))
-            ST.addAttribute(p[-1], 'place', location)
+            place = ST.newTemp((displayValue, offset), variable=p[-1])
+            ST.addAttribute(p[-1], ST.getCurrentScope(), place)
             ST.addAttribute(p[-1], 'reference', p[0]['reference'])
 
             # Emit the location of the function reference
-            TAC.emit(location, p[0]['reference'], '', '=REF')
+            TAC.emit(place, p[0]['reference'], '', '=REF')
     else:
         # Print to console
         debug.printStatementBlock('Function Definition "%s"' %p[0]['reference'])
@@ -358,10 +354,11 @@ def p_hint(p):
 def p_hint_error(p):
     'hint : IDENTIFIER'
 
-    debug.printError("No hint provided for variable '%s'" %p[1])
-
     # Pass in any empty object
     p[0] = {'name': p[1]}
+
+    debug.printError("No hint provided for variable '%s'" %p[1])
+    raise SyntaxError
 
 def p_insertArgs(p):
     'M_insertArgs : empty'
@@ -381,8 +378,8 @@ def p_insertArgs(p):
             # store the address into the address descriptor
             # The parameters have to loaded in form memory
             displayValue, offset = ST.getAttribute(argument['name'], 'scopeLevel'), ST.getAttribute(argument['name'], 'offset')
-            place = ST.newTemp((displayValue, offset), loadFromMemory=True)
-            ST.addAttribute(argument['name'], 'place', place)
+            place = ST.newTemp((displayValue, offset), variable=argument['name'], loadFromMemory=True)
+            ST.addAttribute(argument['name'],  ST.getCurrentScope(), place)
 
             debug.printStatementBlock("Argument '%s' of type '%s'" %(argument['name'], argument['type']))
 
@@ -423,8 +420,6 @@ def p_returnStatement(p):
     # Emit code for the return type
     TAC.emit(p[2]['place'], '' ,'', 'RETURN')
 
-    debug.printStatement("Return statement of type '%s'" %p[2]['type'])
-
 ########################################
 ######## FUNCTIONS CALLS ###############
 ########################################
@@ -443,17 +438,13 @@ def p_functionCall(p):
 
         # If the function exists in the current scope
         if identifierType in [ 'FUNCTION', 'CALLBACK' ]:
-            identifierEntry = ST.existsInCurrentScope(p[1])
-            if identifierEntry == False:
-                if not ST.getAttribute(p[1], ST.getCurrentScope()):
-                    # The definition of the function has to be loaded in from memory
-                    displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-                    place = ST.newTemp((displayValue, offset),loadFromMemory=True)
-                    ST.addAttribute(p[1], ST.getCurrentScope(), place)
-                else:
-                    place = ST.getAttribute(p[1], ST.getCurrentScope())
+            if not ST.existsInCurrentScope(p[1]):
+                # The definition of the function has to be loaded in from memory
+                displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+                place = ST.newTemp((displayValue, offset),variable=p[1], loadFromMemory=True)
+                ST.addAttribute(p[1], ST.getCurrentScope(), place)
             else:
-                place = ST.getAttribute(p[1], 'place')
+                place = ST.getAttribute(p[1], ST.getCurrentScope())
 
             # Now we print the param statements
             for param in p[3]:
@@ -864,25 +855,17 @@ def p_expression_identifier(p):
 
     # We have to check if the identifier exists in the current scope or not, and
     # accordingly load it in
-    identifierEntry = ST.exists(p[1])
-    if identifierEntry == True:
+    if ST.exists(p[1]):
         p[0]['type'] = ST.getAttribute(p[1], 'type')
 
         # Here we have to load in the value of the variable
-        identifierEntry = ST.existsInCurrentScope(p[1])
-        if identifierEntry == False:
-            # store the address into the address descriptor
-            if not ST.getAttribute(p[1], ST.getCurrentScope()):
-                # If an identifier is used, we assume that it is present in memory
-                displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
-                p[0]['place'] = ST.newTemp((displayValue, offset), loadFromMemory=True)
-                ST.addAttribute(p[1], ST.getCurrentScope(), p[0]['place'])
-            else:
-                p[0]['place'] = ST.getAttribute(p[1], ST.getCurrentScope())
-            # TAC.emit(p[0]['place'], ST.getAttribute(p[1], 'offset'), ST.getAttribute(p[1], 'scopeLevel'), 'LOAD_DISPLAY')
+        if not ST.existsInCurrentScope(p[1]):
+            # If an identifier is used, we assume that it is present in memory
+            displayValue, offset = ST.getAttribute(p[1], 'scopeLevel'), ST.getAttribute(p[1], 'offset')
+            p[0]['place'] = ST.newTemp((displayValue, offset), variable=p[1], loadFromMemory=True)
+            ST.addAttribute(p[1], ST.getCurrentScope(), p[0]['place'])
         else:
-            p[0]['place'] = ST.getAttribute(p[1], 'place')
-            # TAC.emit(p[0]['place'], '', ST.getAttribute(p[1], 'offset'), 'LOAD')
+            p[0]['place'] = ST.getAttribute(p[1], ST.getCurrentScope())
     else:
         p[0]['type'] = 'REFERENCE_ERROR'
         debug.printError('Undefined Variable "%s"' %p[1])
