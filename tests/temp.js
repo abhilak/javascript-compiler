@@ -1,2 +1,10 @@
-var x = 1;
-var y = x;
+function temp() {
+    var x;
+    x = 1;
+    x = 1;
+    x = 1;
+    x = 1;
+}
+
+temp();
+
