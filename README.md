@@ -6,13 +6,9 @@
     - Runtime
     - Normal implementation
     - Thinking of making it a C type array with only one type of element
-- Parameters as an array ' arguments array'
-- A variable cache for variables loaded in from another scope
 - Error productions:
     - Declaration statments without a semicolon
     - Empty statements
-- Replace 'place' with the function name, this will maintain consistency
-in the way 'place' is handled all across
 - Register Allocation:
     - Remove redundancy as both caller and callee are flushing registers.
     - Make use of dirty bit
@@ -23,8 +19,6 @@ in the way 'place' is handled all across
     - Make use of the number of parameters
     - Replace with arguments array
     - At function call time, we know the number of parameters passed
-- Short circuit evaluation using a global short circuit flag which can be switched on and off.
-
 
 ## Optimizations
 - Code Motion

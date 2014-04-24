@@ -885,6 +885,13 @@ def p_expression_functionCall(p):
     else:
         p[0]['place'] = p[1]['place']
 
+######## ARRAY EXPRESSION ################
+def p_expression_array(p):
+    'expression : array'
+
+    p[0] = {}
+    print "array"
+
 ########################################
 ########## BASE TYPES ##################
 ########################################
@@ -927,6 +934,34 @@ def p_baseType_function(p):
 
     # Type rules
     p[0] = { 'type': 'FUNCTION', 'reference': p[1]['reference']}
+
+####### ARRAY EXPRESSIONS ##############
+
+def p_baseType_array(p):
+    'array : SEP_OPEN_BRACKET arrayList SEP_CLOSE_BRACKET'
+
+    p[0] = {'type': 'NUMBER'}
+
+def p_arrayList(p):
+    'arrayList : expression SEP_COMMA arrayList'
+
+    print p[3]
+    if p[3]['type'] == 'UNDEFINED':
+        p[0] = {'value': p[1]['place'], 'type' : p[1]['type']}
+    elif p[1]['type'] == p[3]['type']:
+        p[0] = {'value': [p[1]['place']] + p[3]['value'], 'type' : p[1]['type']}
+    else:
+        debug.printError('Elements of an array must be of the same type')
+
+def p_arrayList_base(p):
+    'arrayList : expression'
+
+    p[0] = {'value': [p[1]['place']], 'type' : p[1]['type']}
+
+def p_arrayList_empty(p):
+    'arrayList : empty'
+
+    p[0] = {'value': [], 'type': 'UNDEFINED'}
 
 ########################################
 ################ EMPTY #################
