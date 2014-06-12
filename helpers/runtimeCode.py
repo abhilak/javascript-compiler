@@ -5,7 +5,7 @@ class RuntimeCode:
         self.TAC = ThreeAddressCode
         self.currentFunction = ''
         self.regCount = 1
-        self.labelCount = -1 
+        self.labelCount = -1
         self.labelBase = 'label'
         self.resetRegisters()
 
@@ -295,7 +295,7 @@ class RuntimeCode:
             self.regInUse.pop(self.regInUse.index(reg))
 
     # Patch all the labels in the functions
-    def fixLabels(self): 
+    def fixLabels(self):
         for function in self.TAC.code:
             unresolvedLabels = {}
             for line in self.TAC.code[function]:
