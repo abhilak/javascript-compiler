@@ -24,11 +24,11 @@ def p_start(p):
 
     # Now delete the main scope
     ST.deleteScope('main')
-    
+
     # Emit code
     p[0] = {}
 
-def p_block(p): 
+def p_block(p):
     'block : SEP_OPEN_BRACE statements SEP_CLOSE_BRACE'
 
     # Emit code
@@ -38,7 +38,7 @@ def p_block(p):
     p[0]['loopEndList'] = p[2].get('loopEndList', [])
     p[0]['loopBeginList'] = p[2].get('loopBeginList', [])
 
-def p_block_empty(p): 
+def p_block_empty(p):
     'block : SEP_OPEN_BRACE empty SEP_CLOSE_BRACE'
 
     # Emit code
@@ -101,7 +101,7 @@ def p_statement_no_semicolon(p):
 # To notify the user of a missing semicolon
 def p_statement_error(p):
     '''statement : assignment M_quad
-                 | breakStatement M_quad 
+                 | breakStatement M_quad
                  | returnStatement M_quad
                  | continueStatement M_quad
                  | printStatement M_quad
@@ -162,7 +162,7 @@ def p_declaration(p):
 
 def p_decList(p):
     'decList : IDENTIFIER SEP_COMMA decList'
-    
+
     p[0] = [ p[1] ] + p[3]
 
 def p_decList_base(p):
@@ -180,7 +180,7 @@ def p_decList_empty(p):
 ########################################
 def p_assignment(p):
     'assignment : VAR assignList'
-    
+
     # In case the var is not present
     p[0] = { 'type' : 'VOID' }
 
@@ -267,7 +267,7 @@ def p_functionStatement(p):
     TAC.emit('', '' , '', 'JUMPBACK')
 
     # print the name of the statement
-    functionName = p[3]['reference'] 
+    functionName = p[3]['reference']
     ST.deleteScope(functionName)
 
     # Type rules
@@ -309,7 +309,7 @@ def p_scope(p):
     # Create a function scope
     ST.addScope(p[0]['reference'])
     TAC.createFunctionCode(p[0]['reference'])
-    
+
 def p_anonName(p):
     'M_anonName : empty'
 
@@ -317,7 +317,7 @@ def p_anonName(p):
 
 def p_argList(p):
     'argList : hint SEP_COMMA argList'
-    
+
     p[0] = [ p[1] ] + p[3]
 
 def p_argList_base(p):
@@ -741,7 +741,7 @@ def p_expression_relational(p):
         expType = 'TYPE_ERROR'
         debug.printError('Operands to relational expressions must be numbers')
         raise SyntaxError
-    
+
     p[0] = { 'type' : expType }
     p[0]['place'] = ST.newTemp()
 
@@ -1007,6 +1007,6 @@ def testYacc(inputFile):
 
 if __name__ == "__main__":
     from sys import argv
-    filename, inputFile = argv 
+    filename, inputFile = argv
 
     testYacc(inputFile)

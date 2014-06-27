@@ -88,7 +88,7 @@ t_ignore_WHITESPACE = r"\s"
 ########################################
 ############# TYPES ####################
 ########################################
-def t_STRING(t): 
+def t_STRING(t):
     r"(?P<start>\"|')[^\"']*(?P=start)"
     t.value = t.value.replace("\"", "").replace("'", "")
     return t
@@ -229,7 +229,7 @@ def t_error(t):
     t.lexer.skip(1)
 
 ######################################################################################################
-# Create a lexer which uses the above defined rules, this can be used by the any parser which 
+# Create a lexer which uses the above defined rules, this can be used by the any parser which
 # includes this file
 
 ######### Required Globals #############
@@ -252,5 +252,5 @@ def testLex(inputFile):
 
 if __name__ == "__main__":
     from sys import argv
-    filename, inputFile = argv 
+    filename, inputFile = argv
     testLex(inputFile)

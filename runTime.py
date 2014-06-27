@@ -43,11 +43,11 @@ def generateCode(inputFile, debug=False, outputFile='pro'):
             RTC.addLine(['sw','$v0', '0($s5)', ''])
             RTC.addLine(['li', '$v0', ST.getAttributeFromFunctionList(function, 'width'), ''])
             RTC.addLine(['sub', '$sp', '$sp', '$v0'])
-        
+
         else:
             #allocate space for the registers by updating stack pointer
             RTC.addLine(['sub', '$sp','$sp','72'])
-            
+
             #store return address of the caller
             RTC.addLine(['sw','$ra','0($sp)',''])
 
@@ -313,7 +313,7 @@ def generateCode(inputFile, debug=False, outputFile='pro'):
 
 if __name__ == '__main__':
     # Parse the program to get the threeAddressCode
-    filename, inputFile = argv 
+    filename, inputFile = argv
 
     generateCode(inputFile, outputFile='pro')
 
